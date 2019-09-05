@@ -30,14 +30,12 @@ class ModelBase(Model):
         self._debug(f"Class name: '{class_name}', model name: '{model_name}'")
         self.model_params = self.config.get_parameters(CONFIG_MODEL_SEARCH).get(model_name)
 
-    def fit(self):
+    def fit(self, x, y):
         ''' Fit model '''
         self._debug(f"Fitting model {self.class_name}")
-        x, y = self.dataset.in_out()
         self.train_results = self.model.fit(x, y)
         return True
 
-    def model_evaluate(self, ds, name):
+    def model_evaluate(self, x, y, name):
         self._debug(f"Evaluating model {self.class_name}")
-        x, y = self.dataset.in_out()
         return 1.0 - self.model.score(x, y)

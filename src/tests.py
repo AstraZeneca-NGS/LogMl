@@ -34,7 +34,7 @@ class TestLogMl(unittest.TestCase):
         config_file = os.path.join('tests', 'ml.test_config_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
-        mldataset = Dataset(config)
+        mldataset = Datasets(config)
         logml = LogMl(config)
         mltrain = Model(config, mldataset)
         self.assertTrue(ret)
@@ -79,7 +79,7 @@ class TestLogMl(unittest.TestCase):
         config()
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
         self.assertEqual(config.get_parameters_functions('dataset_create'), {'num_create': 42})
-        ds = Dataset(config)
+        ds = Datasets(config)
         ret = ds.create()
         self.assertTrue(ret)
         self.assertEqual(ds.dataset, [1, 2, 3, 4])
@@ -116,7 +116,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(os.path.join('tests', 'ml.test_dataset_002.yaml'), argv=list())
         config()
         # Create dataset
-        ds = Dataset(config)
+        ds = Datasets(config)
         # Cleanup old files
         rm(ds.get_file_name())
         ret = ds()
@@ -128,7 +128,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.get_validate(), [4, 5])
         self.assertEqual(ds.get_test(), [6])
         # Load from pickle and check values
-        ds2 = Dataset(config)
+        ds2 = Datasets(config)
         ret = ds2.load()
         self.assertTrue(ret)
         self.assertEqual(ds.dataset, [8, 9, 10, 11, 12, 13])
@@ -162,7 +162,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(os.path.join('tests', 'ml.test_dataset_003.yaml'), argv=list())
         config()
         # Create dataset
-        ds = Dataset(config)
+        ds = Datasets(config)
         rm(ds.get_file_name())
         ret = ds()
         self.assertTrue(ret)
@@ -181,7 +181,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(os.path.join('tests', 'ml.test_dataset_004.yaml'), argv=list())
         config()
         # Create dataset
-        ds = Dataset(config)
+        ds = Datasets(config)
         rm(ds.get_file_name())
         random.seed(20190705)
         ret = ds()
@@ -200,7 +200,7 @@ class TestLogMl(unittest.TestCase):
         " Test split_idx method "
         config = Config(os.path.join('tests', 'ml.test_dataset_005.yaml'), argv=list())
         config()
-        ds = Dataset(config)
+        ds = Datasets(config)
         ds.dataset = np.array([i + 100 for i in range(10)])
         ret = ds.split_idx([0, 1, 2, 3, 4], [5, 6, 7], [8, 9])
         self.assertTrue(ret)

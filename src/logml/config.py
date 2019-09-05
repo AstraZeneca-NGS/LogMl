@@ -52,7 +52,7 @@ class Config(MlFiles):
         ''' Get 'section' parameters '''
         if section in self.parameters:
             return self.parameters[section]
-        self._warning(f"Config has not parameters for '{section}'.")
+        self._debug(f"Config has not parameters for '{section}'.")
         return dict()
 
     def get_parameters_functions(self, fname):
@@ -63,11 +63,11 @@ class Config(MlFiles):
         ''' Get parameters 'param_name' from section 'section' '''
         fdict = self.get_parameters(section)
         if not fdict:
-            self._warning(f"Config has no '{section}' section.")
+            self._debug(f"Config has no '{section}' section.")
             return dict() if empty_dict else None
         if param_name in fdict:
             return fdict[param_name]
-        self._info(f"Config has no parameters for '{param_name}' in '{section}' section.")
+        self._debug(f"Config has no parameters for '{param_name}' in '{section}' section.")
         return dict() if empty_dict else None
 
     def invoke(self, name, tag, args=None):

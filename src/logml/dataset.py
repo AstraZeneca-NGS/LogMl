@@ -10,7 +10,7 @@ InOut = namedtuple('InOut', ['x', 'y'])
 
 class Dataset(MlFiles):
     '''
-    Dataset cotaining trainig, test and validation partitions
+    Datasets class cotaining trainig, test and validation datasets
         self.dataset             : Original dataset
         self.dataset_test        : Test dataset (split from self.dataset)
         self.dataset_test_xy     : Test dataset, inputs and outputs
@@ -224,7 +224,7 @@ class Dataset(MlFiles):
         '''
         if ds is None:
             return InOut(None, None)
-        self._info(f"Get inputs & outputs from dataset '{name}'")
+        self._debug(f"Get inputs & outputs from dataset '{name}'")
         (invoked, ret) = self.invoke_in_out(ds, name)
         if invoked:
             return ret

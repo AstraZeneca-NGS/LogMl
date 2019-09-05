@@ -13,14 +13,14 @@ class Model(MlFiles):
     '''
     _id_counter = 0
 
-    def __init__(self, config, dataset=None, set_config=True):
+    def __init__(self, config, datasets=None, set_config=True):
         '''
         config: An Config object
-        dataset: An Dataset object
+        datasets: An Datasets object
         '''
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
-        self.dataset = dataset
+        self.datasets = datasets
         self.is_save_model_pickle = False
         self.is_save_model_method = False
         self.is_save_model_method_ext = 'model'
@@ -58,7 +58,7 @@ class Model(MlFiles):
 
     def _call(self):
         ''' Execute model trainig '''
-        if self.dataset is None:
+        if self.datasets is None:
             self._error("Could not find dataset")
             return False
         # Create model & save params
@@ -98,7 +98,12 @@ class Model(MlFiles):
         assert self.model_path is not None
         assert self.model_name is not None
 
-    def default_model_evaluate(self, ds, name):
+    def default_model_create(x, y):
+        " Default implementation for '@model_create' "
+        return False
+
+    def default_model_evaluate(self, x, y, name):
+        " Default implementation for '@model_evaluate' "
         return None
 
     def default_model_save(self):
@@ -116,29 +121,29 @@ class Model(MlFiles):
             self.model.save(file_model)
         return False
 
-    def fit(self):
+    def fit(self, x, y):
         """ model.fit() is an alias to model.model_train() """
-        return self.invoke_model_train()
+        return self.invoke_model_train(x, y)
 
     def get_file_name(self, file_type=None, ext='pkl'):
         ''' Create a file name for training data '''
         self._debug(f"file_type={file_type}, ext='{ext}'")
         return self._get_file_name(self.model_path, self.model_name, file_type, ext, _id=self._id)
 
-    def invoke_model_create(self):
+    def invoke_model_create(self, x, y):
         " Invoke user defined function '@model_create' "
         if self.model is not None:
             self._debug("Model already exists, skipping")
             return True
-        args = [self.dataset.get_train()]
+        args = [x, y]
         (invoked, ret) = self.config.invoke(MODEL_CREATE, 'Create model', args)
         if invoked:
             self.model = ret
         return invoked
 
-    def invoke_model_evaluate(self, dataset, name):
+    def invoke_model_evaluate(self, x, y, name):
         ''' Invoke model evaluate '''
-        args = [self.model, dataset]
+        args = [self.model, x, y]
         (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
         if invoked:
             self._info(f"Model evaluate {name} returned: '{ret}'")
@@ -150,9 +155,9 @@ class Model(MlFiles):
         (invoked, ret) = self.config.invoke(MODEL_SAVE, 'Save model', args)
         return invoked
 
-    def invoke_model_train(self):
+    def invoke_model_train(self, x, y):
         " Invoke user defined function '@model_train' "
-        args = [self.model, self.dataset.get_train()]
+        args = [self.model, x, y]
         (invoked, ret) = self.config.invoke(MODEL_TRAIN, 'Train model', args)
         if invoked:
             self.train_results = ret
@@ -166,13 +171,21 @@ class Model(MlFiles):
         return res
 
     def model_create(self):
-        return self.invoke_model_create()
+        ''' Create a model '''
+        x, y = self.datasets.get_train_xy()
+        if x is None:
+            self._warning("Model create: Cannot get training dataset")
+            return False
+        ret = self.invoke_model_create(x, y)
+        if ret:
+            return ret
+        return self.default_model_create(x, y)
 
-    def model_evaluate(self, ds, name):
-        (invoked, ret) = self.invoke_model_evaluate(ds, name)
+    def model_evaluate(self, x, y, name):
+        (invoked, ret) = self.invoke_model_evaluate(x, y, name)
         if invoked:
             return ret
-        return self.default_model_evaluate(ds, name)
+        return self.default_model_evaluate(x, y, name)
 
     def model_save(self):
         ''' Save dataset to pickle file '''
@@ -183,28 +196,32 @@ class Model(MlFiles):
         if not self.is_test_model:
             self._debug(f"Model testing disabled, skipping (is_test_model={self.is_test_model})")
             return None
-        ds_test = self.dataset.get_test()
-        if ds_test is None:
+        x, y = self.datasets.get_test_xy()
+        if x is None:
             self._debug(f"Test dataset not found, skipping")
             return False
-        ret = self.model_evaluate(ds_test, 'test')
+        ret = self.model_evaluate(x, y, 'test')
         self.test_results = ret
         return ret is not None
 
     def model_train(self):
         """ Train (a.k.a. 'fit') the model """
         self._debug(f"Model train: Start")
-        ret = self.fit()
+        x, y = self.datasets.get_train_xy()
+        if x is None:
+            self._warning("Model train: Cannot get training dataset")
+            return False
+        ret = self.fit(x, y)
         self._debug(f"Model train: End")
         return ret
 
     def model_validate(self):
         ''' Validate model: Evaluate on validation dataset '''
-        ds_val = self.dataset.get_validate()
-        if ds_val is None:
+        x, y = self.datasets.get_validate_xy()
+        if x is None:
             self._debug(f"Validation dataset not found, skipping")
             return False
-        ret = self.model_evaluate(ds_val, 'validate')
+        ret = self.model_evaluate(x, y, 'validate')
         self.validate_results = ret
         return ret is not None
 

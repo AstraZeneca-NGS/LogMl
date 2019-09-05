@@ -20,9 +20,9 @@ class LogMl(MlFiles):
     ML Logger definition
     Note: This class is used as a singleton
     '''
-    def __init__(self, config=None, dataset=None):
+    def __init__(self, config=None, datasets=None):
         super().__init__(config, config_section=CONFIG_LOGGER)
-        self.dataset = dataset
+        self.datasets = datasets
         self._id_counter = 0
         self.cross_validation = None
         self.hyper_parameter_optimization = None
@@ -63,9 +63,9 @@ class LogMl(MlFiles):
         # Initialize
         self.initialize()
         # Dataset: Load or create dataset, augment, preprocess, split
-        if not self.dataset:
-            self.dataset = self._new_dataset()
-        if not self.dataset():
+        if not self.datasets:
+            self.datasets = self._new_dataset()
+        if not self.datasets():
             self._error("Could not load or create dataset")
             return False
         # Explore data
@@ -81,7 +81,7 @@ class LogMl(MlFiles):
         " Explore dataset "
         if not self.is_df():
             return False
-        de = DataExplore(self.dataset, self.config)
+        de = DataExplore(self.datasets, self.config)
         return de()
 
     def get_model_validate(self):
@@ -138,19 +138,19 @@ class LogMl(MlFiles):
             return DatasetDf(self.config)
         else:
             self._debug(f"Using dataset 'Dataset'")
-            return Dataset(self.config)
+            return Datasets(self.config)
 
     def _new_model(self, config=None, dataset=None):
         ''' Create an Model: This is a factory method '''
         if config is None:
             config = self.config
         if dataset is None:
-            dataset = self.dataset
+            dataset = self.datasets
         self._debug(f"Parameters: {config.parameters[CONFIG_FUNCTIONS]}")
         # Create models depending on class
         model_class = config.get_parameters_section(CONFIG_MODEL, 'model_class')
         if model_class.startswith('sklearn'):
             model_params = config.get_parameters_functions(MODEL_CREATE)
-            return SkLearnModel(self.config, self.dataset, model_class, model_params)
+            return SkLearnModel(self.config, self.datasets, model_class, model_params)
         else:
             return Model(config, dataset)

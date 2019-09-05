@@ -51,14 +51,14 @@ class DatasetDf(Dataset):
 
     def default_in_out(self, df, name):
         ''' Get inputs and outputs '''
-        self._info("Default method, inputs & outputs from dataset '{name}'")
+        self._debug(f"Default method, inputs & outputs from dataset '{name}'")
         outs = self.outputs
         if outs:
             # Split input and output variables
-            self._info("Default method, inputs & outputs from dataframe '{name}': Outputs {outs}")
+            self._debug(f"Default method, inputs & outputs from dataframe '{name}': Outputs {outs}")
             x, y = df.drop(outs, axis=1), df.loc[:, outs]
         else:
-            self._info("Default method, inputs & outputs from dataframe '{name}': No outputs defined")
+            self._debug(f"Default method, inputs & outputs from dataframe '{name}': No outputs defined")
             # Do not split: e.g. unsupervised learning
             x, y = df, None
         return InOut(x, y)

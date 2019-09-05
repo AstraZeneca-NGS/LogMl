@@ -14,7 +14,7 @@ class SkLearnModel(ModelBase):
         for n in params:
             self.__dict__[n] = params[n]
 
-    def model_create(self):
+    def default_model_create(self, x, y):
         """ Create real model from SciKit learn """
         self._info(f"Creating model based on class '{self.class_name}'")
         class_reference = eval(self.class_name)
@@ -29,3 +29,11 @@ class SkLearnModel(ModelBase):
         self._debug(f"Invoking constructor '{self.class_name}', with arguments: {kwargs}")
         self.model = eval(f"{self.class_name}(**kwargs)")
         return True
+
+    def model_create(self):
+        # In this case, we don't want to invoke user's function
+        x, y = self.datasets.get_train_xy()
+        if x is None:
+            self._warning("Model create: Cannot get training dataset")
+            return False
+        return self.default_model_create(x, y)
