@@ -8,7 +8,7 @@ import pandas as pd
 import pickle
 import tensorflow as tf
 
-from .dataset import Dataset
+from .dataset import Dataset, InOut
 from .df_transform import DfTransform
 
 from sklearn.ensemble import RandomForestRegressor
@@ -49,6 +49,20 @@ class DatasetDf(Dataset):
         ret = self._load_from_csv()
         return ret
 
+    def default_in_out(self, df, name):
+        ''' Get inputs and outputs '''
+        self._info("Default method, inputs & outputs from dataset '{name}'")
+        outs = self.outputs
+        if outs:
+            # Split input and output variables
+            self._info("Default method, inputs & outputs from dataframe '{name}': Outputs {outs}")
+            x, y = df.drop(outs, axis=1), df.loc[:, outs]
+        else:
+            self._info("Default method, inputs & outputs from dataframe '{name}': No outputs defined")
+            # Do not split: e.g. unsupervised learning
+            x, y = df, None
+        return InOut(x, y)
+
     def default_transform(self):
         " Default implementation for '@dataset_transform' "
         self._debug(f"Using default dataset transform for DataFrame")
@@ -57,21 +71,6 @@ class DatasetDf(Dataset):
         self.dataset = dft()
         self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
         return True
-
-    def in_out(self, df):
-        ''' Split dataset into inputs and outputs '''
-
-    def default_in_out(self, df):
-        ''' Split into inputs and outputs '''
-        df = self.dataset
-        outs = self.outputs
-        if outs:
-            # Split input and output variables
-            x, y = df.drop(outs, axis=1), df.loc[:, outs]
-        else:
-            # Do not split: e.g. unsupervised learning
-            x, y = df, None
-        return x, y
 
     def _load_from_csv(self):
         ''' Load dataframe from CSV '''

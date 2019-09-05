@@ -7,6 +7,7 @@ from .log import MlLog
 # Registry names
 DATASET_AUGMENT = 'dataset_augment'
 DATASET_CREATE = 'dataset_create'
+DATASET_INOUT = 'dataset_inout'
 DATASET_LOAD = 'dataset_load'
 DATASET_PREPROCESS = 'dataset_preprocess'
 DATASET_SAVE = 'dataset_save'
@@ -19,7 +20,7 @@ MODEL_TRAIN = 'model_train'
 
 ENABLE = 'enable'
 
-REGISTRATION_KEYS = [DATASET_AUGMENT, DATASET_CREATE, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, MODEL_CREATE, MODEL_SAVE, MODEL_EVALUATE, MODEL_TRAIN]
+REGISTRATION_KEYS = [DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM, MODEL_CREATE, MODEL_SAVE, MODEL_EVALUATE, MODEL_TRAIN]
 
 
 def singleton(cls):
@@ -106,6 +107,10 @@ def dataset_augment(f):
 
 def dataset_create(f):
     return register(DATASET_CREATE, f)
+
+
+def dataset_inout(f):
+    return register(DATASET_INOUT, f)
 
 
 def dataset_load(f):

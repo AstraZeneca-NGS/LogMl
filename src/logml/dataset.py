@@ -1,23 +1,39 @@
 import numpy as np
 import random
 
+from collections import namedtuple
 from .config import CONFIG_DATASET
 from .files import MlFiles
-from .registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
+from .registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
 
+InOut = namedtuple('InOut', ['x', 'y'])
 
 class Dataset(MlFiles):
-    ''' Dataset cotaining trainig, test and validation partitions '''
+    '''
+    Dataset cotaining trainig, test and validation partitions
+        self.dataset             : Original dataset
+        self.dataset_test        : Test dataset (split from self.dataset)
+        self.dataset_test_xy     : Test dataset, inputs and outputs
+        self.dataset_train       : Train dataset (split of self.dataset_
+        self.dataset_train_xy    : Train dataset inputs and outputs
+        self.dataset_validate    : Valiation dataset (split from self.dataset)
+        self.dataset_validate_xy : Validation dataset inputs and outputs
+    '''
     def __init__(self, config, set_config=True):
         super().__init__(config, CONFIG_DATASET)
         self.dataset_path = None
         self.dataset_name = None
         self.dataset = None
+        self.dataset_xy = InOut(None, None)
         self.dataset_test = None
+        self.dataset_test_xy = InOut(None, None)
         self.dataset_train = None
+        self.dataset_train_xy = InOut(None, None)
         self.dataset_validate = None
+        self.dataset_validate_xy = InOut(None, None)
         self.do_not_load_pickle = False
         self.do_not_save = False
+        self.is_use_default_in_out = True
         self.is_use_default_split = True
         self.is_use_default_transform = True
         self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
@@ -49,6 +65,11 @@ class Dataset(MlFiles):
         for op in self.operations:
             if self.do(op):
                 self.should_save = True
+        # Get inputs / outputs
+        self.dataset_xy = self.in_out(self.dataset, 'all')
+        self.dataset_test_xy = self.in_out(self.dataset_test, 'test')
+        self.dataset_train_xy = self.in_out(self.dataset_train, 'train')
+        self.dataset_validate_xy = self.in_out(self.dataset_validate, 'validate')
         if self.should_save:
             self.save()
         self._debug("End")
@@ -69,7 +90,8 @@ class Dataset(MlFiles):
         return self.invoke_create()
 
     def default_in_out(self, df):
-        return False, None, None
+        ''' Default method for getting inputs / outputs '''
+        return InOut(None, None)
 
     def default_load(self):
         ''' Load dataset from pickle file. Return new dataset '''
@@ -125,14 +147,10 @@ class Dataset(MlFiles):
         idx_train, idx_validate, idx_test = np.array(idx_train), np.array(idx_validate), np.array(idx_test)
         return self.split_idx(idx_train, idx_validate, idx_test)
 
-    def in_out(self, df):
-        ''' Split dataset into inputs and outputs '''
-
-
     def default_transform(self):
         " Default implementation for '@dataset_transform' "
-        !!!!!!!!
-        pass
+        self._debug(f"Default dataset transform not defined, skipping")
+        return False
 
     def do(self, op):
         ''' Perform an abstract operation on a dataset '''
@@ -170,11 +188,22 @@ class Dataset(MlFiles):
             self._info(f"Test dataset not found")
         return self.dataset_test
 
+    def get_test_xy(self):
+        if self.dataset_test_xy.x is None:
+            self._info(f"Test dataset not found")
+        return self.dataset_test_xy
+
     def get_train(self):
         if self.dataset_train is None:
             self._info(f"Training dataset not found, using whole dataset")
             return self.dataset
         return self.dataset_train
+
+    def get_train_xy(self):
+        if self.dataset_train_xy.x is None:
+            self._info(f"Training dataset not found, using whole dataset")
+            return self.dataset_xy
+        return self.dataset_train_xy
 
     def get_validate(self):
         if self.dataset_validate is None:
@@ -182,11 +211,27 @@ class Dataset(MlFiles):
             return self.dataset
         return self.dataset_validate
 
-    def in_out(self):
-        ''' Split dataset inputs and outputs '''
-        # TODO: Implement this
-        raise Exception("UNIMPLEMENTED!!!")
-        pass
+    def get_validate_xy(self):
+        if self.dataset_validate_xy.x is None:
+            self._info(f"Validate dataset not found, using whole dataset")
+            return self.dataset_xy
+        return self.dataset_validate_xy
+
+    def in_out(self, ds, name):
+        '''
+        Split dataset inputs and outputs from dataset 'ds'
+        Returns an InOut named tuple
+        '''
+        if ds is None:
+            return InOut(None, None)
+        self._info(f"Get inputs & outputs from dataset '{name}'")
+        (invoked, ret) = self.invoke_in_out(ds, name)
+        if invoked:
+            return ret
+        # We provide a default implementation for 'in_out'
+        if self.is_use_default_in_out:
+            return self.default_in_out(ds, name)
+        return InOut(None, None)
 
     def invoke_augment(self):
         " Invoke user defined function for '@dataset_augment' "
@@ -203,14 +248,16 @@ class Dataset(MlFiles):
             self.dataset = ret
         return invoked
 
-!!!!!!!!!!!!
-    def invoke_in_out(self):
+    def invoke_in_out(self, ds, name):
         " Invoke user defined function for '@dataset_inout' "
-        args = [self.dataset]
-        (invoked, ret) = self.config.invoke(DATASET_INOUT, 'InOut', args)
+        args = [ds]
+        (invoked, ret) = self.config.invoke(DATASET_INOUT, f"InOut'{name}", args)
         if invoked:
-            self.dataset = ret
-        return invoked
+            if ret is None or len(ret) != 2:
+                self._fatal_error(f"User defined function '{DATASET_INOUT}' should return a tuple, but it returned '{ret}'")
+            x, y  = ret
+            return InOut(x, y)
+        return InOut(None, None)
 
     def invoke_load(self):
         " Invoke user defined function fo '@dataset_load' "
