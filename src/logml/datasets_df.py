@@ -8,7 +8,7 @@ import pandas as pd
 import pickle
 import tensorflow as tf
 
-from .dataset import Dataset, InOut
+from .datasets import Datasets, InOut
 from .df_transform import DfTransform
 
 from sklearn.ensemble import RandomForestRegressor
@@ -17,7 +17,7 @@ from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_d
 from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
 
 
-class DatasetDf(Dataset):
+class DatasetsDf(Datasets):
     '''
     A dataset based on a Pandas DataFrame
     (i.e. Dataset.dataset must be a DataFrame)

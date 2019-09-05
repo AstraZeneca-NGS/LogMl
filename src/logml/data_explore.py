@@ -27,12 +27,12 @@ class DataExplore(MlFiles):
         2) ML-based exploration
     '''
 
-    def __init__(self, dataset_df, config, set_config=True):
+    def __init__(self, datasets_df, config, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
         self.corr_thresdold = 0.7
-        self.dataset_df = dataset_df
-        self.df = self.dataset_df.dataset
-        self.df_ori = self.dataset_df.dataset_ori
+        self.datasets_df = datasets_df
+        self.df = self.datasets_df.dataset
+        self.df_ori = self.datasets_df.dataset_ori
         self.is_use_ori = False
         self.figsize = (20, 20)
         self.shapiro_wilks_threshold = 0.1

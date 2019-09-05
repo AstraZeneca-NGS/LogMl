@@ -4,8 +4,8 @@ import datetime
 from .config import CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .config import Config, DEFAULT_YAML
 from .cross_validation import CrossValidation
-from .dataset import Dataset
-from .dataset_df import DatasetDf
+from .datasets import Datasets
+from .datasets_df import DatasetsDf
 from .data_explore import DataExplore
 from .model_search import ModelSearch
 from .files import MlFiles
@@ -134,8 +134,8 @@ class LogMl(MlFiles):
 
     def _new_dataset(self):
         if self.is_df():
-            self._debug(f"Using dataset 'DatasetDf'")
-            return DatasetDf(self.config)
+            self._debug(f"Using dataset 'DatasetsDf'")
+            return DatasetsDf(self.config)
         else:
             self._debug(f"Using dataset 'Dataset'")
             return Datasets(self.config)

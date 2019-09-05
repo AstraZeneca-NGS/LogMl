@@ -7,8 +7,8 @@ import sys
 import unittest
 
 from logml.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
-from logml.dataset import Dataset
-from logml.dataset_df import DatasetDf
+from logml.datasets import Datasets
+from logml.datasets_df import DatasetsDf
 from logml.files import MlFiles
 from logml.log import MlLog
 from logml.logml import LogMl
@@ -87,7 +87,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
 
     def test_dataset_002(self):
-        ''' Check Dataset.__call__() '''
+        ''' Check Datasets.__call__() '''
         def test_dataset_002_augment(dataset, num_augment=1):
             assert num_augment == 10
             dataset.append(5)
@@ -138,7 +138,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]))
 
     def test_dataset_003(self):
-        ''' Check Dataset.__call__(), with 'enable=False' '''
+        ''' Check Datasets.__call__(), with 'enable=False' '''
         def test_dataset_003_augment(dataset, num_augment=1):
             assert num_augment == 10
             dataset.append(5)
@@ -170,7 +170,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.operations_done, set([DATASET_AUGMENT]))
 
     def test_dataset_004(self):
-        ''' Check Dataset.__call__(), with default split method '''
+        ''' Check Datasets.__call__(), with default split method '''
         def test_dataset_004_create(num_create):
             assert num_create == 42
             return np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -210,11 +210,11 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(all(ds.get_test() == np.array([108, 109])))
 
     def test_dataset_006(self):
-        ''' DatasetDf test (load dataframe) and expand date/time columns and '_na' columns '''
+        ''' DatasetsDf test (load dataframe) and expand date/time columns and '_na' columns '''
         # Create dataset
         config = Config(os.path.join('tests', 'ml.test_dataset_006.yaml'), argv=list())
         config()
-        ds = DatasetDf(config)
+        ds = DatasetsDf(config)
         rm(ds.get_file_name())
         ret = ds()
         self.assertTrue(ret)
@@ -232,7 +232,7 @@ class TestLogMl(unittest.TestCase):
         # Create dataset
         config = Config(os.path.join('tests', 'ml.test_dataset_007.yaml'), argv=list())
         config()
-        ds = DatasetDf(config)
+        ds = DatasetsDf(config)
         rm(ds.get_file_name())
         ret = ds()
         self.assertTrue(ret)

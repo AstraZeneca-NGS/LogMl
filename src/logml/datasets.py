@@ -8,7 +8,7 @@ from .registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT
 
 InOut = namedtuple('InOut', ['x', 'y'])
 
-class Dataset(MlFiles):
+class Datasets(MlFiles):
     '''
     Datasets class cotaining trainig, test and validation datasets
         self.dataset             : Original dataset
