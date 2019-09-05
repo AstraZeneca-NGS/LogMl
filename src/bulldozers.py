@@ -9,7 +9,7 @@ import logging
 import numpy as np
 import os
 
-from logml import *
+from ...logml import *
 
 from sklearn.ensemble import RandomForestRegressor
 
