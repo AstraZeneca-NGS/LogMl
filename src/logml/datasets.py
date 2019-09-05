@@ -66,10 +66,8 @@ class Datasets(MlFiles):
             if self.do(op):
                 self.should_save = True
         # Get inputs / outputs
-        self.dataset_xy = self.in_out(self.dataset, 'all')
-        self.dataset_test_xy = self.in_out(self.dataset_test, 'test')
-        self.dataset_train_xy = self.in_out(self.dataset_train, 'train')
-        self.dataset_validate_xy = self.in_out(self.dataset_validate, 'validate')
+        self.in_outs()
+        # Save
         if self.should_save:
             self.save()
         self._debug("End")
@@ -233,6 +231,14 @@ class Datasets(MlFiles):
             return self.default_in_out(ds, name)
         return InOut(None, None)
 
+    def in_outs(self, all=True):
+        ''' Get inputs & outputs for all datasets '''
+        if all:
+            self.dataset_xy = self.in_out(self.dataset, 'all')
+        self.dataset_test_xy = self.in_out(self.dataset_test, 'test')
+        self.dataset_train_xy = self.in_out(self.dataset_train, 'train')
+        self.dataset_validate_xy = self.in_out(self.dataset_validate, 'validate')
+
     def invoke_augment(self):
         " Invoke user defined function for '@dataset_augment' "
         args = [self.dataset]
@@ -346,6 +352,7 @@ class Datasets(MlFiles):
         self.dataset_validate = self[idx_validate]
         if len_test > 0:
             self.dataset_test = self[idx_test]
+        self.in_outs()
         return True
 
     def transform(self):
