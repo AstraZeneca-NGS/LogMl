@@ -18,27 +18,19 @@ Log(ML) can:
 
 # Install
 
-Here is an install example
-```
-WORKSPACE_DIR="$HOME/workspaces"
-SRC_DIR="$HOME/workspaces/LogMl"
-INSTALL_DIR="$HOME/logml"
+Requirements:
+- Python 3.7
+- Virtual environment
 
-cd "$WORKSPACE_DIR/.."
+```
 git clone https://github.com/AstraZeneca-NGS/LogMl.git
 
-mkdir "$INSTALL_DIR"
-cd "$INSTALL_DIR"
-
-for d in config logml requirements.txt scripts src tests; do
-  ln -s "$SRC_DIR/$d"
-done
-
-cd "$INSTALL_DIR"
-virtualen -p python3 .
-. ./bin/activate
-pip install -r requirements.txt
+cd LogMl
+./scripts/install.sh
 ```
+
+The `scripts/install.sh` script should take care of installing in a default directory (`$HOME/logml`).
+If you want another directory, just edit the script and change the `INSTALL_DIR` variable
 
 # Nomenclature
 
