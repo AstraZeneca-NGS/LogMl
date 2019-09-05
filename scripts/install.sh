@@ -16,10 +16,6 @@ for d in config logml requirements.txt scripts src tests; do
   ln -s "$SRC_DIR/$d" || true
 done
 
-for p in $SRC_DIR/*.py; do
-  ln -s "$p" || true
-done
-
 cd "$INSTALL_DIR"
 export PS1=""
 virtualenv -p python3 .

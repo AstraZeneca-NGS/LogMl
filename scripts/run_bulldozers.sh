@@ -1,6 +1,7 @@
 #!/bin/bash -eu
 set -o pipefail
 
+DIR=$(cd $(dirname "$0")/..; pwd)
 clear
 
 PS1=""
@@ -15,5 +16,4 @@ rm -rvf data/bulldozers/bulldozers.pkl data/bulldozers/model
 # cd -
 
 # Run LogMl
-# time ./src/bulldozers.py -v -c bulldozers.yaml 2>&1 | tee run_bulldozers.out
-time ./src/bulldozers.py -v -d -c config/bulldozers.yaml 2>&1 | tee run_bulldozers.out
+time ./logml/bulldozers.py -v -c bulldozers.yaml 2>&1 | tee run_bulldozers.out
