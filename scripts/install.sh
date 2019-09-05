@@ -1,22 +1,27 @@
-#!/bin/bash
+#!/bin/bash -eu
+set -o pipefail
 
 INSTALL_DIR="$HOME/logml"
 
 # Get the srouce code directory
 DIR=$( cd $(dirname "$0") ; pwd -P)
-SRC_DIR=$cd "$DIR ; cd .. ; pwd -P"
+echo "DIR=$DIR"
+SRC_DIR=$(cd "$DIR/.." ; pwd -P)
 
-cd "$WORKSPACE_DIR/.."
-git clone https://github.com/AstraZeneca-NGS/LogMl.git
-
-mkdir "$INSTALL_DIR"
+# Create install dir
+mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
 for d in config logml requirements.txt scripts src tests; do
-  ln -s "$SRC_DIR/$d"
+  ln -s "$SRC_DIR/$d" || true
+done
+
+for p in $SRC_DIR/*.py; do
+  ln -s "$p" || true
 done
 
 cd "$INSTALL_DIR"
+export PS1=""
 virtualenv -p python3 .
 . ./bin/activate
 pip install -r requirements.txt
