@@ -149,8 +149,8 @@ class LogMl(MlFiles):
         self._debug(f"Parameters: {config.parameters[CONFIG_FUNCTIONS]}")
         # Create models depending on class
         model_class = config.get_parameters_section(CONFIG_MODEL, 'model_class')
-        if model_class.startswith('sklearn'):
+        if model_class is not None:
             model_params = config.get_parameters_functions(MODEL_CREATE)
-            return SkLearnModel(self.config, self.datasets, model_class, model_params)
-        else:
-            return Model(config, dataset)
+            if model_class.startswith('sklearn'):
+                return SkLearnModel(self.config, self.datasets, model_class, model_params)
+        return Model(config, dataset)

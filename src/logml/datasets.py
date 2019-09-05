@@ -89,7 +89,7 @@ class Datasets(MlFiles):
     def create(self):
         return self.invoke_create()
 
-    def default_in_out(self, df):
+    def default_in_out(self, df, name):
         ''' Default method for getting inputs / outputs '''
         return InOut(None, None)
 
