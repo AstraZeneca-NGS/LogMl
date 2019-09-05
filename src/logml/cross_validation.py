@@ -53,13 +53,13 @@ class CrossValidation(MlLog):
         if not cv_it:
             return False
         # For each split...
-        dlen = len(self.logml.dataset)
+        dlen = len(self.logml.datasets)
         self._debug(f"Dataset length: {dlen}")
         x = np.arange(dlen)
         # Get train and validate indeces for each split
         for train, validate in cv_it.split(x):
             # Split train/validate datasets
-            self.logml.dataset.split_idx(train, validate)
+            self.logml.datasets.split_idx(train, validate)
             # Train
             ret_train = self.logml.model_train()
             self._debug(f"Model train returned: {ret_train}")

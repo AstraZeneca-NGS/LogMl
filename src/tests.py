@@ -13,7 +13,7 @@ from logml.files import MlFiles
 from logml.log import MlLog
 from logml.logml import LogMl
 from logml.model import Model
-from logml.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
+from logml.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
 
 
 def rm(file):
@@ -295,28 +295,32 @@ class TestLogMl(unittest.TestCase):
 
     def test_train_001(self):
         ''' Check Model.__call__() '''
-        def test_train_001_create_dataset(num_create):
+        def test_train_001_dataset_create(num_create):
             assert num_create == 42
             ds = np.arange(100)
             return ds
 
-        def test_train_001_model_create(dataset, beta):
+        def test_train_001_dataset_inout(d):
+            return d, d
+
+        def test_train_001_model_create(x, y, beta):
             assert beta == 0.1
             return {'mean': 0}
 
-        def test_train_001_model_train(model, dataset, epochs, lr):
+        def test_train_001_model_train(model, x, y, epochs, lr):
             assert lr == 0.1
             assert epochs == 100
-            mean = np.array(dataset).mean()
+            mean = np.array(x).mean()
             model['mean'] = mean
             return mean
 
-        def test_train_001_model_evaluate(model, dataset, param):
+        def test_train_001_model_evaluate(model, x, y, param):
             assert param == 42
             return model['mean']
 
         # Register functions
-        MlRegistry().register(DATASET_CREATE, test_train_001_create_dataset)
+        MlRegistry().register(DATASET_CREATE, test_train_001_dataset_create)
+        MlRegistry().register(DATASET_INOUT, test_train_001_dataset_inout)
         MlRegistry().register(MODEL_CREATE, test_train_001_model_create)
         MlRegistry().register(MODEL_TRAIN, test_train_001_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_001_model_evaluate)
@@ -344,29 +348,33 @@ class TestLogMl(unittest.TestCase):
 
     def test_train_002_cross_validate(self):
         ''' Check Model.__call__() '''
-        def test_train_002_create_dataset(num_create):
+        def test_train_002_dataset_create(num_create):
             assert num_create == 42
             ds = np.arange(100)
             return ds
 
-        def test_train_002_model_create(dataset, beta):
+        def test_train_002_dataset_inout(d):
+            return d, d
+
+        def test_train_002_model_create(x, y, beta):
             assert beta == 0.1
             return {'mean': 0}
 
-        def test_train_002_model_train(model, dataset, epochs, lr):
+        def test_train_002_model_train(model, x, y, epochs, lr):
             assert lr == 0.1
             assert epochs == 100
-            mean = np.array(dataset).mean()
+            mean = np.array(x).mean()
             model['mean'] = mean
             return mean
 
-        def test_train_002_model_evaluate(model, dataset, param):
+        def test_train_002_model_evaluate(model, x, y, param):
             assert param == 42
             m = model['mean']
-            return np.sqrt(np.mean((dataset - m)**2))
+            return np.sqrt(np.mean((x - m)**2))
 
         # Register functions
-        MlRegistry().register(DATASET_CREATE, test_train_002_create_dataset)
+        MlRegistry().register(DATASET_CREATE, test_train_002_dataset_create)
+        MlRegistry().register(DATASET_INOUT, test_train_002_dataset_inout)
         MlRegistry().register(MODEL_CREATE, test_train_002_model_create)
         MlRegistry().register(MODEL_TRAIN, test_train_002_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_002_model_evaluate)
