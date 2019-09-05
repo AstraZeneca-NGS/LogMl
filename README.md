@@ -16,6 +16,30 @@ Log(ML) can:
 **How does Log(ML) work?**
 `Log(ML)` has a standard "data processing" workflows. These workflows include several steps, such as data preprocessing, data augmentation, data exploration, model training, hyper-parameter search, cross-validation, etc. Each step in the workflow can be customized.
 
+# Install
+
+Here is an install example
+```
+WORKSPACE_DIR="$HOME/workspaces"
+SRC_DIR="$HOME/workspaces/LogMl"
+INSTALL_DIR="$HOME/logml"
+
+cd "$WORKSPACE_DIR/.."
+git clone https://github.com/AstraZeneca-NGS/LogMl.git
+
+mkdir "$INSTALL_DIR"
+cd "$INSTALL_DIR"
+
+for d in config logml requirements.txt scripts src tests; do
+  ln -s "$SRC_DIR/$d"
+done
+
+cd "$INSTALL_DIR"
+virtualen -p python3 .
+. ./bin/activate
+pip install -r requirements.txt
+```
+
 # Nomenclature
 
 Parameters from YAML: We refer to parameters defined in YAML file as between curly brackets, e.g. `{parameter_name}`
