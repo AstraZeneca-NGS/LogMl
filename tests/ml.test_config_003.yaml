@@ -1,0 +1,47 @@
+logger:
+
+dataset:
+    dataset_name: 'test_003'
+    dataset_path: 'tests/tmp'
+    is_use_default_split: False
+
+model:
+    enable: True
+    model_name: 'model_003'
+    model_path: 'tests/tmp/model'
+    is_save_model_pickle: False
+    is_save_model_method: False
+    is_save_model_method_ext: 'model'
+    is_save_test_pickle: False
+    is_save_train_pickle: False
+    is_save_validate_pickle: False
+
+hyper_parameter_optimization:
+    enable: True
+    show_progressbar: True
+    algorithm: 'tpe'
+    max_evals: 123
+    space:
+        model_train:
+            mean: ['uniform', 0.0, 10.0]
+
+functions:
+    dataset_augment:
+      num_augment: 10
+    dataset_create:
+      num_create: 42
+    dataset_load:
+      csv_file: 'data/test_dataset_01/test_dataset_01.csv'
+    dataset_save:
+    dataset_split:
+      enable: False
+      split_test: 0.3
+      split_validate: 0.2
+    dataset_preprocess:
+    model_create:
+        beta: 0.1
+    model_evaluate:
+        param: 42
+    model_save:
+    model_train:
+      mean: 0.1

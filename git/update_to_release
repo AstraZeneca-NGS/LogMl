@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Get release number
+ver="$1"
+release="release-$ver"
+git fetch -a
+
+# Parse command line parameter
+if [ -z "$ver" ]
+then
+    echo "Argument version number missing"
+	release=`git branch -a | grep "release-" | grep remote | sort | tail -n 1`
+	release=`basename $release`
+	echo "Using release: '$release'"
+fi
+
+echo "Switching to branch '$release'"
+
+# Switch to that branch
+git checkout "$release"
+git pull
+
+# Show current branch
+git status
+git branch

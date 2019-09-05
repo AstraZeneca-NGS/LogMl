@@ -1,0 +1,28 @@
+dataset:
+  dataset_name: 'example_02'
+  dataset_path: 'data/example_02'
+
+model:
+  model_name: 'example_02'
+  model_path: 'data/example_02/model'
+
+functions:
+    dataset_create:
+      num_samples: 1000
+    dataset_split:
+      split_validate: 0.2
+      split_test: 0.0
+    model_create:
+        num_neurons: 3
+    model_train:
+      epochs: 20
+      learning_rate: 0.3
+
+hyper_parameter_optimization:
+    enable: True
+    show_progressbar: True
+    algorithm: 'tpe'
+    max_evals: 10
+    space:
+        model_train:
+          learning_rate: ['uniform', 0.0, 0.5]
