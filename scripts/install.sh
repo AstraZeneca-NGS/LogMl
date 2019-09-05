@@ -12,7 +12,7 @@ SRC_DIR=$(cd "$DIR/.." ; pwd -P)
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
-for d in config logml requirements.txt scripts src tests; do
+for d in config requirements.txt scripts src tests; do
   ln -s "$SRC_DIR/$d" || true
 done
 
