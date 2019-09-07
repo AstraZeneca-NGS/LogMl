@@ -4,6 +4,7 @@ dataset:
     dataset_name: 'test_dataset_004'
     dataset_path: 'tests/tmp'
     is_use_default_split: True
+    is_use_all_inputs: True
 
 model:
     model_name: 'model_test_dataset_004'

@@ -23,6 +23,7 @@ class Datasets(MlFiles):
         super().__init__(config, CONFIG_DATASET)
         self.dataset_path = None
         self.dataset_name = None
+        self.dataset_type = None
         self.dataset = None
         self.dataset_xy = InOut(None, None)
         self.dataset_test = None
@@ -34,6 +35,7 @@ class Datasets(MlFiles):
         self.do_not_load_pickle = False
         self.do_not_save = False
         self.is_use_default_in_out = True
+        self.is_use_all_inputs = False
         self.is_use_default_split = True
         self.is_use_default_transform = True
         self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
@@ -87,8 +89,12 @@ class Datasets(MlFiles):
     def create(self):
         return self.invoke_create()
 
-    def default_in_out(self, df, name):
+    def default_in_out(self, ds, name):
         ''' Default method for getting inputs / outputs '''
+        if self.is_use_all_inputs:
+            # Use all inputs, no output (e.g. unsupervised learning)
+            return InOut(ds, None)
+        self._fatal_error("Default 'dataset_inout' method not defined for generic datasets")
         return InOut(None, None)
 
     def default_load(self):
@@ -229,6 +235,7 @@ class Datasets(MlFiles):
         # We provide a default implementation for 'in_out'
         if self.is_use_default_in_out:
             return self.default_in_out(ds, name)
+        self._fatal_error("Unable to get inputs & output from dataset. No function registered")
         return InOut(None, None)
 
     def in_outs(self, all=True):

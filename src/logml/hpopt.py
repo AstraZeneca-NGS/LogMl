@@ -101,7 +101,7 @@ class HyperOpt(MlLog):
         # Start search
         self._info(f"Search: Create dataset={self.is_create_dataset}")
         if self.random_seed is not None:
-            self._debug("Using random seed {self.random_seed}")
+            self._debug(f"Using random seed {self.random_seed}")
         rand_state = np.random.RandomState(seed=self.random_seed)
         self.best = hyperopt.fmin(fn=self.objective,
                                   space=self.search_space,
@@ -128,13 +128,13 @@ class HyperOpt(MlLog):
         if not self.is_create_dataset:
             return None
         self._debug(f"Creating new dataset")
-        dataset = copy.copy(self.logml.dataset)
-        dataset.config = config
-        dataset.do_not_load_pickle = True
-        dataset.do_not_save = True
-        dataset.reset()
-        dataset()
-        return dataset
+        datasets = copy.copy(self.logml.datasets)
+        datasets.config = config
+        datasets.do_not_load_pickle = True
+        datasets.do_not_save = True
+        datasets.reset()
+        datasets()
+        return datasets
 
     def objective_function(self, params):
         '''

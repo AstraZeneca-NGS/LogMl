@@ -107,8 +107,12 @@ class TestLogMl(unittest.TestCase):
             assert split_validate == 0.1
             return [1, 2, 3], [4, 5], [6]
 
+        def test_dataset_002_inout(dataset):
+            return dataset, dataset
+
         # Register functions
         MlRegistry().register(DATASET_CREATE, test_dataset_002_create)
+        MlRegistry().register(DATASET_INOUT, test_dataset_002_inout)
         MlRegistry().register(DATASET_AUGMENT, test_dataset_002_augment)
         MlRegistry().register(DATASET_PREPROCESS, test_dataset_002_preprocess)
         MlRegistry().register(DATASET_SPLIT, test_dataset_002_split)
@@ -138,7 +142,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]))
 
     def test_dataset_003(self):
-        ''' Check Datasets.__call__(), with 'enable=False' '''
+        ''' Check Datasets.__call__(), with 'enable=False', in this case 'dataset_split' is false '''
         def test_dataset_003_augment(dataset, num_augment=1):
             assert num_augment == 10
             dataset.append(5)
@@ -154,8 +158,12 @@ class TestLogMl(unittest.TestCase):
             assert split_validate == 0.1
             return [1, 2, 3], [4, 5], [6]
 
+        def test_dataset_003_inout(dataset):
+            return dataset, dataset
+
         # Register functions
         MlRegistry().register(DATASET_CREATE, test_dataset_003_create)
+        MlRegistry().register(DATASET_INOUT, test_dataset_003_inout)
         MlRegistry().register(DATASET_AUGMENT, test_dataset_003_augment)
         MlRegistry().register(DATASET_SPLIT, test_dataset_003_split)
         # Read config
@@ -168,6 +176,8 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
         self.assertEqual(ds.dataset, [1, 2, 3, 4, 5, 6])
         self.assertEqual(ds.operations_done, set([DATASET_AUGMENT]))
+        self.assertEqual(ds.dataset_xy.x, [1, 2, 3, 4, 5, 6])
+        self.assertEqual(ds.dataset_xy.y, [1, 2, 3, 4, 5, 6])
 
     def test_dataset_004(self):
         ''' Check Datasets.__call__(), with default split method '''
@@ -195,6 +205,9 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(np.array_equal(ds.get_train(), dataset_expected_train))
         self.assertTrue(np.array_equal(ds.get_validate(), dataset_expected_val))
         self.assertTrue(np.array_equal(ds.get_test(), dataset_expected_test))
+        self.assertTrue(np.array_equal(ds.get_train_xy().x, dataset_expected_train))
+        self.assertTrue(np.array_equal(ds.get_validate_xy().x, dataset_expected_val))
+        self.assertTrue(np.array_equal(ds.get_test_xy().x, dataset_expected_test))
 
     def test_dataset_005(self):
         " Test split_idx method "
@@ -401,26 +414,30 @@ class TestLogMl(unittest.TestCase):
             ds = np.arange(10)
             return ds
 
-        def test_train_003_model_create(dataset, beta):
+        def test_train_003_dataset_inout(d):
+            return d, d
+
+        def test_train_003_model_create(x, y, beta):
             assert beta == 0.1
             return {'mean': 0}
 
-        def test_train_003_model_train(model, dataset, mean):
+        def test_train_003_model_train(model, x, y, mean):
             ''' Model train: No training, it only sets the 'mean' from hyper parameter '''
             model['mean'] = mean
-            dataset = np.array(dataset)
-            rmse = np.sqrt(np.mean((dataset - mean)**2))
+            x = np.array(x)
+            rmse = np.sqrt(np.mean((x - mean)**2))
             return rmse
 
-        def test_train_003_model_evaluate(model, dataset, param):
+        def test_train_003_model_evaluate(model, x, y, param):
             assert param == 42
             mean = model['mean']
-            dataset = np.array(dataset)
-            rmse = np.sqrt(np.mean((dataset - mean)**2))
+            x = np.array(x)
+            rmse = np.sqrt(np.mean((x - mean)**2))
             return rmse
 
         # Register functions
         MlRegistry().register(DATASET_CREATE, test_train_003_dataset_create)
+        MlRegistry().register(DATASET_INOUT, test_train_003_dataset_inout)
         MlRegistry().register(MODEL_CREATE, test_train_003_model_create)
         MlRegistry().register(MODEL_TRAIN, test_train_003_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_003_model_evaluate)
@@ -446,19 +463,23 @@ class TestLogMl(unittest.TestCase):
             ds = np.arange(num_create)
             return ds
 
-        def test_train_004_model_create(dataset, beta):
+        def test_train_004_dataset_inout(d):
+            return d, d
+
+        def test_train_004_model_create(x, y, beta):
             assert beta == 0.1
             return {'len': 0}
 
-        def test_train_004_model_train(model, dataset, mean):
+        def test_train_004_model_train(model, x, y, mean):
             ''' Model train: No training, it only sets the dataset length from hyper parameter '''
-            return 1.0 - len(dataset) / 10.0
+            return 1.0 - len(x) / 10.0
 
-        def test_train_004_model_evaluate(model, dataset, param):
-            return 1.0 - len(dataset) / 10.0
+        def test_train_004_model_evaluate(model, x, y, param):
+            return 1.0 - len(x) / 10.0
 
         # Register functions
         MlRegistry().register(DATASET_CREATE, test_train_004_dataset_create)
+        MlRegistry().register(DATASET_INOUT, test_train_004_dataset_inout)
         MlRegistry().register(MODEL_CREATE, test_train_004_model_create)
         MlRegistry().register(MODEL_TRAIN, test_train_004_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_004_model_evaluate)

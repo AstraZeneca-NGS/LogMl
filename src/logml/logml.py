@@ -79,7 +79,8 @@ class LogMl(MlFiles):
 
     def _explore(self):
         " Explore dataset "
-        if not self.is_df():
+        if not self.is_dataset_df():
+            self._debug("Dataset exploration only available for dataset type 'df'")
             return False
         de = DataExplore(self.datasets, self.config)
         return de()
@@ -104,7 +105,7 @@ class LogMl(MlFiles):
             self.model_search = ModelSearch(self)
         return self._config_sanity_check()
 
-    def is_df(self):
+    def is_dataset_df(self):
         " Is a 'df' type of dataset? "
         ds_type = self.config.get_parameters(CONFIG_DATASET).get('dataset_type')
         return ds_type == 'df'
@@ -133,11 +134,11 @@ class LogMl(MlFiles):
             return self.model_train()
 
     def _new_dataset(self):
-        if self.is_df():
-            self._debug(f"Using dataset 'DatasetsDf'")
+        if self.is_dataset_df():
+            self._debug(f"Using dataset class 'DatasetsDf'")
             return DatasetsDf(self.config)
         else:
-            self._debug(f"Using dataset 'Dataset'")
+            self._debug(f"Using dataset class 'Dataset'")
             return Datasets(self.config)
 
     def _new_model(self, config=None, dataset=None):
