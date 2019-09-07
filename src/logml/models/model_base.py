@@ -32,10 +32,12 @@ class ModelBase(Model):
 
     def fit(self, x, y):
         ''' Fit model '''
-        self._debug(f"Fitting model {self.class_name}")
+        self._debug(f"Fitting model {self.class_name}: Start")
         self.train_results = self.model.fit(x, y)
+        self._debug(f"Fitting model {self.class_name}: End")
         return True
 
     def model_evaluate(self, x, y, name):
-        self._debug(f"Evaluating model {self.class_name}")
-        return 1.0 - self.model.score(x, y)
+        ret = 1.0 - self.model.score(x, y)
+        self._debug(f"Evaluating model {self.class_name}, dataset '{name}': {ret}")
+        return ret
