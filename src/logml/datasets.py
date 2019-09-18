@@ -34,6 +34,7 @@ class Datasets(MlFiles):
         self.dataset_validate_xy = InOut(None, None)
         self.do_not_load_pickle = False
         self.do_not_save = False
+        self.enable = True
         self.is_use_default_in_out = True
         self.is_use_all_inputs = False
         self.is_use_default_split = True
@@ -53,6 +54,9 @@ class Datasets(MlFiles):
         Load (or create) dataset, then augment, proprocess and split
         Save at each step for faster processing / consistency
         '''
+        if not self.enable:
+            self._info(f"Dataset disabled, skipping (enable='{self.enable}')")
+            return True
         self._debug("Start")
         self.should_save = False
         if self.load():
@@ -264,7 +268,7 @@ class Datasets(MlFiles):
     def invoke_in_out(self, ds, name):
         " Invoke user defined function for '@dataset_inout' "
         args = [ds]
-        (invoked, ret) = self.config.invoke(DATASET_INOUT, f"InOut '{name}'", args)
+        (invoked, ret) = self.config.invoke(DATASET_INOUT, f"InOut {name}", args)
         if invoked:
             if ret is None or len(ret) != 2:
                 self._fatal_error(f"User defined function '{DATASET_INOUT}' should return a tuple, but it returned '{ret}'")

@@ -51,8 +51,6 @@ dataset_explore:
 model_search:
   enable: True
 
-  hyper_parameter_optimization: True
-
   # List of models to try
   models:
     RandomForestRegressor:

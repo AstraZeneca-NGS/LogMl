@@ -68,9 +68,10 @@ class LogMl(MlFiles):
         if not self.datasets():
             self._error("Could not load or create dataset")
             return False
-        # Explore data
-        self._explore()
-        # Model: Train model
+        # Explore dataset
+        if not self._explore():
+            self._debug("Could not explore dataset")
+        # Model Train
         if not self.models_train():
             self._error("Could not train model")
             return False
@@ -81,7 +82,7 @@ class LogMl(MlFiles):
         " Explore dataset "
         if not self.is_dataset_df():
             self._debug("Dataset exploration only available for dataset type 'df'")
-            return False
+            return True
         de = DataExplore(self.datasets, self.config)
         return de()
 
@@ -141,17 +142,17 @@ class LogMl(MlFiles):
             self._debug(f"Using dataset class 'Dataset'")
             return Datasets(self.config)
 
-    def _new_model(self, config=None, dataset=None):
+    def _new_model(self, config=None, datasets=None):
         ''' Create an Model: This is a factory method '''
         if config is None:
             config = self.config
-        if dataset is None:
-            dataset = self.datasets
+        if datasets is None:
+            datasets = self.datasets
         self._debug(f"Parameters: {config.parameters[CONFIG_FUNCTIONS]}")
         # Create models depending on class
         model_class = config.get_parameters_section(CONFIG_MODEL, 'model_class')
         if model_class is not None:
             model_params = config.get_parameters_functions(MODEL_CREATE)
             if model_class.startswith('sklearn'):
-                return SkLearnModel(self.config, self.datasets, model_class, model_params)
-        return Model(config, dataset)
+                return SkLearnModel(config, datasets, model_class, model_params)
+        return Model(config, datasets)

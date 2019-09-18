@@ -110,7 +110,7 @@ class HyperOpt(MlLog):
                                   trials=self.trials,
                                   rstate=rand_state,
                                   show_progressbar=self.show_progressbar)
-        self._info(f"Hyper parameter search best:{self.best}")
+        self._info(f"Hyper parameter search best fit:{self.best}, best parameters: {self.best_params}")
         self.save_results()
         self._debug(f"End")
         return True
@@ -145,7 +145,7 @@ class HyperOpt(MlLog):
         # Create a new config with updated parameters
         params_ml = self._space2params(params)
         self._debug(f"Iteration: {self.iteration}, parameters={params_ml}")
-        config_new = self.config.update_config(CONFIG_FUNCTIONS, params_ml)
+        config_new = self.config.update_section(CONFIG_FUNCTIONS, params_ml)
         # Create new dataset
         dataset = self._new_dataset(config_new)
         # Train and evaluate model

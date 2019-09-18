@@ -15,4 +15,4 @@ mkdir -p data/$NAME/train
 rm -rvf data/$NAME/train/*
 rm -vf data/$NAME/*.pkl
 
-time ./src/$NAME.py -v -d -c config/$NAME.yaml 2>&1 | tee $NAME.out
+time ./src/$NAME.py -v -c config/$NAME.yaml 2>&1 | tee $NAME.out

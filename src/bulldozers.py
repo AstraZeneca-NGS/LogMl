@@ -10,11 +10,11 @@ import numpy as np
 import os
 
 from logml import *
-
 from sklearn.ensemble import RandomForestRegressor
 
 
-def in_out(df):
+@dataset_inout
+def df_in_out(df):
     " Split dataframe into inputs / output "
     return df.drop('SalePrice', axis=1), df.SalePrice
 

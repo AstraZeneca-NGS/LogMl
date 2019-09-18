@@ -22,6 +22,17 @@ CONFIG_MODEL = 'model'
 CONFIG_MODEL_SEARCH = 'model_search'
 CONFIG_MODEL_ANALYSIS = 'model_analysis'
 
+def update_dict(d, u):
+    """ Recursively update dictionary 'd' using items in 'u' """
+    for k, v in u.items():
+        dv = d.get(k, {})
+        if not isinstance(dv, collections.Mapping):
+            d[k] = v
+        elif isinstance(v, collections.Mapping):
+            d[k] = update_dict(dv, v)
+        else:
+            d[k] = v
+    return d
 
 class Config(MlFiles):
     '''
@@ -110,14 +121,23 @@ class Config(MlFiles):
         self._set_from_config()
         return self._config_sanity_check()
 
-    def update_config(self, section, params):
+    def update(self, params):
+        '''
+        Create a new config and update parameters from 'params' dictionary
+        recursively
+        '''
+        config_new = copy.deepcopy(self)
+        update_dict(config_new.parameters, params)
+        return config_new
+
+    def update_section(self, section, params):
         '''
         Create a new config and update parameters from 'params' dictionary.
         E.g.: These parameters have been set by hyper parameter optimization process.
         Return new config object with updated values.
         '''
         config_new = copy.deepcopy(self)
-        parameters = config_new.parameters[section]
+        parameters = config_new.parameters[section] if section is not None else config_new.parameters
         if params:
             for param_type in params.keys():
                 if param_type in parameters:
@@ -126,3 +146,6 @@ class Config(MlFiles):
                     parameters[param_type].update(params[param_type])
                     self._debug(f"Updating {param_type}: {params[param_type]}")
         return config_new
+
+    def __str__(self):
+        return f"config_file '{self.config_file}', parameters: {self.parameters}"

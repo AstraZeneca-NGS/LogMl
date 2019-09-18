@@ -27,45 +27,39 @@ class ModelSearch(MlFiles):
         self._info(f"Model search: End")
         return ret
 
-    def create_model(self, model_class, model_params):
-        ''' Create a model or model wrapper '''
-        if model_class.startswith('sklearn'):
-            return SkLearnModel(self.config, self.logml.dataset, model_class, model_params)
-        raise ValueError(f"Unsuported model: model_class: {model_class}")
-
-    def create_models(self):
-        """ Create a list of models for the type of problem """
-        self._debug(f"Create models: Start")
-        if self.model_type is None:
-            raise ValueError(f"Missing 'model_type' parameter, in config file '{self.config.config_file}', section '{CONFIG_MODEL}'")
-        models = list()
-        # Create a list of models and set the parameters
-        for name in self.models:
-            params = self.models[name]
-            if 'model' not in params:
-                self._debug("Model 'name' does not have a 'model' section, ignoring")
-                continue
-            model_params = params['model']
-            model_class = model_params['model_class']
-            self._debug(f"Considering model '{name}', model_class={model_class}, model_params:{model_params}")
-            if self.model_type == model_params['model_type']:
-                self._debug(f"Adding model: model_class={model_class}\tmodel_params={model_params}")
-                models.append(self.create_model(model_class, model_params))
-        if models:
-            self._debug(f"Create models: End")
-            return models
-        raise ValueError(f"Unknown model type '{self.model_type}', in config file '{self.config.config_file}', section '{CONFIG_MODEL}'")
-
-    def create_models_unsupervised(self):
-        """ Create a list of models for unsupervised learning """
-        return list()
-
     def search(self):
         ''' Model search '''
         # Create a list of models
-        models = self.create_models()
-        # Fit each model
-        for m in models:
-            # TODO: Hyper parameter tunning for each model?
-            m()
-            res = m.validate_results
+        self._info(f"Search models: Start")
+        if self.model_type is None:
+            raise ValueError(f"Missing 'model_type' parameter, in config file '{self.config.config_file}', section '{CONFIG_MODEL}'")
+        # For each model in 'models' secction: Create a nea LogMl ofbjec with these parameters and run it
+        for name in self.models:
+            params = self.models[name]
+            if 'model' not in params:
+                self._debug(f"Model '{name}' does not have a 'model' section, ignoring")
+                continue
+            model_params = params['model']
+            if 'model_class' not in model_params:
+                self._debug(f"Model '{name}' does not have a 'model.model_class' value, ignoring")
+                continue
+            model_class = model_params.get('model_class')
+            self._debug(f"Considering model '{name}', model_class={model_class}")
+            if self.model_type == model_params['model_type']:
+                self.search_model(model_class, params)
+        self._info(f"Search models: End")
+
+    def search_model(self, model_class, params):
+        ''' Create model and train it '''
+        self._debug(f"Searching model: model_class={model_class}\tparameters={params}")
+        # Create updated config
+        conf = self.config.update_section(None, params)
+        self._debug(f"Searching model: New config: {conf}")
+        # Create datasets
+        !!! TODO: Shallow copy of datasets
+        datasets = logml.datasets.copy()
+        datasets.enable = False
+        # Create LogMl
+        logml = LogMl(config=conf, datasets=datasets)
+        # Run model
+        logml()

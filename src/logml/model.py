@@ -21,6 +21,7 @@ class Model(MlFiles):
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
         self.datasets = datasets
+        self.enable = True
         self.is_save_model_pickle = False
         self.is_save_model_method = False
         self.is_save_model_method_ext = 'model'

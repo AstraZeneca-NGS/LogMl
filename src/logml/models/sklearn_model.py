@@ -6,13 +6,14 @@ from .model_base import ModelBase
 
 class SkLearnModel(ModelBase):
     ''' Create a wrapper for a SkLearn model '''
-    def __init__(self, config, dataset, class_name, params):
-        super().__init__(config, dataset)
+    def __init__(self, config, datasets, class_name, params):
+        super().__init__(config, datasets)
         self.class_name = class_name
         self._set_from_config()
         # Set parameters
         for n in params:
             self.__dict__[n] = params[n]
+            self._debug(f"Setting {n} = {params[n]}")
 
     def default_model_create(self, x, y):
         """ Create real model from SciKit learn """

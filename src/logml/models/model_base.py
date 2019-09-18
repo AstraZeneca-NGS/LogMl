@@ -16,12 +16,13 @@ class ModelBase(Model):
     Base class for models used in 'model_search'
     '''
 
-    def __init__(self, config, dataset):
+    def __init__(self, config, datasets):
         '''
         config: An Config object
         dataset: An Dataset object
         '''
-        super().__init__(config, dataset, set_config=False)
+        super().__init__(config, datasets, set_config=False)
+        self.datasets = datasets
         self.is_save_params = False
         self.is_test_model = False  # Do not evaluate 'test' dataset
         # Set model specific paramters
