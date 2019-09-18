@@ -3,6 +3,7 @@ dataset:
   dataset_path: 'data/example_01'
 
 model:
+  enable: True
   model_name: 'example_01'
   model_path: 'data/example_01/model'
 

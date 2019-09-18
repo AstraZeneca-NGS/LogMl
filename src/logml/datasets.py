@@ -94,7 +94,7 @@ class Datasets(MlFiles):
         if self.is_use_all_inputs:
             # Use all inputs, no output (e.g. unsupervised learning)
             return InOut(ds, None)
-        self._fatal_error("Default 'dataset_inout' method not defined for generic datasets")
+        self._fatal_error("Default 'dataset_inout' method not defined")
         return InOut(None, None)
 
     def default_load(self):
@@ -264,7 +264,7 @@ class Datasets(MlFiles):
     def invoke_in_out(self, ds, name):
         " Invoke user defined function for '@dataset_inout' "
         args = [ds]
-        (invoked, ret) = self.config.invoke(DATASET_INOUT, f"InOut'{name}", args)
+        (invoked, ret) = self.config.invoke(DATASET_INOUT, f"InOut '{name}'", args)
         if invoked:
             if ret is None or len(ret) != 2:
                 self._fatal_error(f"User defined function '{DATASET_INOUT}' should return a tuple, but it returned '{ret}'")
