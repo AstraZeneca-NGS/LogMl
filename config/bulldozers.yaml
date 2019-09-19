@@ -201,10 +201,10 @@ model_search:
             min_samples_leaf: 5
             max_features: 0.5
         hyper_parameter_optimization:
-          enable: True
+          enable: False
           show_progressbar: True
           algorithm: 'tpe'
-          max_evals: 10
+          max_evals: 100
           space:
               model_create:
                   n_estimators: ['randint', 1000]
@@ -215,3 +215,63 @@ model_search:
         model:
           model_type: regression
           model_class: sklearn.linear_model.LinearRegression
+        functions:
+          model_create:
+            fit_intercept: True
+            normalize: False
+            copy_X: True
+    # Ridge regression (linear model + L2 norm penalty)
+    RidgeRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.Ridge
+        functions:
+          model_create:
+            alpha: 1.0
+            fit_intercept: True
+            normalize: False
+            tol: 0.001
+            solver: 'auto'
+    # Lasso regression (linear model + L1 norm penalty)
+    LassoRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.Lasso
+        functions:
+          model_create:
+            alpha: 1.0
+            fit_intercept: True
+            normalize: False
+            precompute: False
+            copy_X: True
+            max_iter: 1000
+            tol: 0.0001
+            warm_start: False
+            positive: False
+            selection: 'cyclic'
+    # LARS regression (Least-Angle Regression)
+    LarsRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.Lars
+        functions:
+          model_create:
+            fit_intercept: True
+            verbose: False
+            normalize: True
+            precompute: 'auto'
+            n_nonzero_coefs: 500
+            eps: 2.220446049250313e-16
+            copy_X: True
+            fit_path: True
+    # Orthogonal Matching Pursuit regression
+    OrthogonalMatchingPursuitRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.OrthogonalMatchingPursuit
+        functions:
+          model_create:
+            # n_nonzero_coefs: None
+            fit_intercept: True
+            normalize: True
+            precompute: 'auto'
