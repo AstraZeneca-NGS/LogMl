@@ -51,6 +51,7 @@ class ModelSearch(MlFiles):
             if self.model_type == model_params['model_type']:
                 self.search_model(model_class, params)
         self._info(f"Search models: End")
+        return True
 
     def search_model(self, model_class, params):
         ''' Create model and train it '''
@@ -63,7 +64,7 @@ class ModelSearch(MlFiles):
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
         datasets = copy.copy(self.logml.datasets)
-        datasets.enable = False # We don't want to build dataset again
+        datasets.enable = False  # We don't want to build dataset again
         # Create LogMl
         self._debug(f"Creating new LogMl")
         lml = logml.LogMl(config=conf, datasets=datasets)

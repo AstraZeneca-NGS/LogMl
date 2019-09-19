@@ -218,7 +218,7 @@ model_search:
         functions:
           model_create:
             fit_intercept: True
-            normalize: False
+            normalize: True
             copy_X: True
     # Ridge regression (linear model + L2 norm penalty)
     RidgeRegression:
@@ -229,9 +229,20 @@ model_search:
           model_create:
             alpha: 1.0
             fit_intercept: True
-            normalize: False
+            normalize: True
             tol: 0.001
             solver: 'auto'
+    # Ridge regression with Cross-validation to search for alpha
+    RidgeCVRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.RidgeCV
+        functions:
+          model_create:
+            # alphas: [0.1, 1.0, 10.0]
+            fit_intercept: True
+            normalize: False
+            store_cv_values: False
     # Lasso regression (linear model + L1 norm penalty)
     LassoRegression:
         model:
@@ -241,12 +252,31 @@ model_search:
           model_create:
             alpha: 1.0
             fit_intercept: True
-            normalize: False
+            normalize: True
             precompute: False
             copy_X: True
             max_iter: 1000
             tol: 0.0001
             warm_start: False
+            positive: False
+            selection: 'cyclic'
+    # Lasso regression with alpha search using cross-validation
+    LassoCVRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.LassoCV
+        functions:
+          model_create:
+            eps: 0.001
+            n_alphas: 100
+            fit_intercept: True
+            normalize: True
+            precompute: 'auto'
+            max_iter: 1000
+            tol: 0.0001
+            copy_X: True
+            cv: 'warn'
+            verbose: False
             positive: False
             selection: 'cyclic'
     # LARS regression (Least-Angle Regression)
