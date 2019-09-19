@@ -1,4 +1,7 @@
 
+import copy
+import logml
+
 from .config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
 from .files import MlFiles
 from .models import SkLearnModel
@@ -52,14 +55,18 @@ class ModelSearch(MlFiles):
     def search_model(self, model_class, params):
         ''' Create model and train it '''
         self._debug(f"Searching model: model_class={model_class}\tparameters={params}")
-        # Create updated config
+        # Create updated config, make sure.
+        # Disable 'model_search' to avoid infinite recursion
         conf = self.config.update_section(None, params)
-        self._debug(f"Searching model: New config: {conf}")
-        # Create datasets
-        !!! TODO: Shallow copy of datasets
-        datasets = logml.datasets.copy()
-        datasets.enable = False
+        conf.parameters['model_search']['enable'] = False
+        self._debug(f"New config: {conf}")
+        # Create datasets (shallow copy of datasets)
+        self._debug(f"Creating dataset (shallow) copy")
+        datasets = copy.copy(self.logml.datasets)
+        datasets.enable = False # We don't want to build dataset again
         # Create LogMl
-        logml = LogMl(config=conf, datasets=datasets)
+        self._debug(f"Creating new LogMl")
+        lml = logml.LogMl(config=conf, datasets=datasets)
         # Run model
-        logml()
+        self._debug(f"Running new LogMl")
+        lml()

@@ -57,9 +57,9 @@ class LogMl(MlFiles):
         # Configure
         if self.config is None:
             self.config = Config()
-        if not self.config():
-            self._error("Could not load config")
-            return False
+            if not self.config():
+                self._error("Could not load config")
+                return False
         # Initialize
         self.initialize()
         # Dataset: Load or create dataset, augment, preprocess, split

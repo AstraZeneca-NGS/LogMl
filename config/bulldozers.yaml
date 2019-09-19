@@ -46,35 +46,6 @@ dataset_explore:
   is_use_ori: True
 
 #---
-# Model search parameters
-#---
-model_search:
-  enable: True
-
-  # List of models to try
-  models:
-    RandomForestRegressor:
-        model:
-          model_type: regression
-          model_class: sklearn.ensemble.RandomForestRegressor
-        functions:
-          model_create:
-            n_estimators: 100
-            min_samples_leaf: 3
-            max_features: 0.5
-        hyper_parameter_optimization:
-            space:
-                model_create:
-                    n_estimators: ['randint', 1000]
-                    min_samples_leaf: ['randint', 100]
-                    max_features: ['uniform', 0.0, 1.0]
-    # Linear regression
-    LinearRegression:
-        model:
-          model_type: regression
-          model_class: sklearn.linear_model.LinearRegression
-
-#---
 # Model definition and parameters
 #---
 model:
@@ -196,7 +167,7 @@ functions:
     model_create:
       n_estimators: 30
       min_samples_leaf: 3
-      max_features: 0.5
+      max_features: 0.7
 
     # User defined function: Evaluate model
     # Parameters: First parameter is dataset to evaluate (usually dataset_test or dataset_validate)
@@ -211,3 +182,36 @@ functions:
     # Parameters: First parameters are 'model' and dataset (usually dataset_train)
     # Returns: Results from evaliating the dataset (usually a loss)
     model_train:
+
+#---
+# Model search parameters
+#---
+model_search:
+  enable: True
+
+  # List of models to try
+  models:
+    RandomForestRegressor:
+        model:
+          model_type: regression
+          model_class: sklearn.ensemble.RandomForestRegressor
+        functions:
+          model_create:
+            n_estimators: 100
+            min_samples_leaf: 5
+            max_features: 0.5
+        hyper_parameter_optimization:
+          enable: True
+          show_progressbar: True
+          algorithm: 'tpe'
+          max_evals: 10
+          space:
+              model_create:
+                  n_estimators: ['randint', 1000]
+                  min_samples_leaf: ['randint', 100]
+                  max_features: ['uniform', 0.3, 1.0]
+    # Linear regression
+    LinearRegression:
+        model:
+          model_type: regression
+          model_class: sklearn.linear_model.LinearRegression
