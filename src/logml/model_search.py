@@ -56,6 +56,10 @@ class ModelSearch(MlFiles):
     def search_model(self, model_class, params):
         ''' Create model and train it '''
         self._debug(f"Searching model: model_class={model_class}\tparameters={params}")
+        enable = params.get('enable', True)
+        if not enable:
+            self._debug(f"Searching model: Model disabled (enable={enable}), skipping")
+            return
         # Create updated config, make sure.
         # Disable 'model_search' to avoid infinite recursion
         conf = self.config.update_section(None, params)

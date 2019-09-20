@@ -461,6 +461,7 @@ model_search:
             # n_jobs: None
     # Nearest neighbor: Regression based on fixed radius
     RadiusNeighborsRegressor:
+        enable: False   # WARING: Disabled. This model sometimes gives an error "Input contains NaN, infinity or a value too large for dtype('float64')"
         model:
           model_type: regression
           model_class: sklearn.neighbors.RadiusNeighborsRegressor
