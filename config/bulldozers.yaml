@@ -192,7 +192,7 @@ model_search:
   # List of models to try
   models:
     #---
-    # Models: Generalized linear regression
+    # Regression Models: Generalized linear regression
     #---
     # Linear regression
     LinearRegression:
@@ -347,7 +347,7 @@ model_search:
             copy_X: True
             verbose: False
     # RANSAC (RANdom SAmple Consensus) fits a model from random subsets of inliers from the complete data set
-    # RANSACRegressor:
+    RANSACRegressor:
         model:
           model_type: regression
           model_class: sklearn.linear_model.RANSACRegressor
@@ -386,8 +386,116 @@ model_search:
             fit_intercept: True
             tol: 1.0e-05
     #---
+    # Regression Models: Support Vector Machines
+    #---
+    # Support Vector Machine Regressor
+    SVR:
+        model:
+          model_type: regression
+          model_class: sklearn.svm.DecisionTreeClassifier
+        functions:
+          model_create:
+            kernel: 'rbf'
+            degree: 3
+            gamma: 'auto_deprecated'
+            coef0: 0.0
+            tol: 0.001
+            C: 1.0
+            epsilon: 0.1
+            shrinking: True
+            cache_size: 200
+            verbose: False
+            max_iter: -1
+    # Support Vector Machine Regressor:
+    NuSVR:
+        model:
+          model_type: regression
+          model_class: sklearn.svm.DecisionTreeClassifier
+        functions:
+          model_create:
+            nu: 0.5
+            C: 1.0
+            kernel: 'rbf'
+            degree: 3
+            gamma: 'auto_deprecated'
+            coef0: 0.0
+            shrinking: True
+            tol: 0.001
+            cache_size: 200
+            verbose: False
+            max_iter: -1
+    # Support Vector Machine Regressor: Linear
+    LinearSVR:
+        model:
+          model_type: regression
+          model_class: sklearn.svm.DecisionTreeClassifier
+        functions:
+          model_create:
+            epsilon: 0.0
+            tol: 0.0001
+            C: 1.0
+            loss: 'epsilon_insensitive'
+            fit_intercept: True
+            intercept_scaling: 1.0
+            dual: True
+            verbose: 0
+            random_state: None
+            max_iter: 1000
+    #---
+    # Regression Models: Nearest neighbors
+    #---
+    # Nearest neighbor: Regression based on k-nearest neighbors.
+    KNeighborsRegressor:
+        model:
+          model_type: regression
+          model_class: sklearn.neighbors.KNeighborsRegressor
+        functions:
+          model_create:
+            n_neighbors: 5
+            weights: 'uniform'
+            algorithm: 'auto'
+            leaf_size: 30
+            p: 2
+            metric: 'minkowski'
+            # metric_params: None
+            # n_jobs: None
+    # Nearest neighbor: Regression based on fixed radius
+    RadiusNeighborsRegressor:
+        model:
+          model_type: regression
+          model_class: sklearn.neighbors.RadiusNeighborsRegressor
+        functions:
+          model_create:
+            radius: 1.0
+            weights: 'uniform'
+            algorithm: 'auto'
+            leaf_size: 30
+            p: 2
+            metric: 'minkowski'
+            # metric_params: None
+            # n_jobs: None
+    #---
     # Regression Models: Ensemble
     #---
+    # A decision tree regressor
+    DecisionTreeRegressor:
+        model:
+          model_type: classification
+          model_class: sklearn.tree.DecisionTreeRegressor
+        functions:
+          model_create:
+            criterion: 'mse'
+            splitter: 'best'
+            max_depth: None
+            min_samples_split: 2
+            min_samples_leaf: 1
+            min_weight_fraction_leaf: 0.0
+            max_features: None
+            random_state: None
+            max_leaf_nodes: None
+            min_impurity_decrease: 0.0
+            min_impurity_split: None
+            presort: False
     # Random forest: An ensamble of random trees
     RandomForestRegressor:
         model:
@@ -483,6 +591,9 @@ model_search:
             loss: 'hinge'
             warm_start: False
             average: False
+    #---
+    # Clasifiation Models: Naive Bayes
+    #---
     # Naive Bayes: Gaussian likelyhood assumed
     GaussianNB:
         model:
@@ -524,3 +635,133 @@ model_search:
             binarize: 0.0
             fit_prior: True
             # class_prior: None
+    #---
+    # Clasifiation Models: Trees
+    #---
+    # A decision tree classifier
+    DecisionTreeClassifier:
+        model:
+          model_type: classification
+          model_class: sklearn.tree.DecisionTreeClassifier
+        functions:
+          model_create:
+            criterion: 'gini'
+            splitter: 'best'
+            max_depth: None
+            min_samples_split: 2
+            min_samples_leaf: 1
+            min_weight_fraction_leaf: 0.0
+            max_features: None
+            random_state: None
+            max_leaf_nodes: None
+            min_impurity_decrease: 0.0
+            min_impurity_split: None
+            class_weight: None
+            presort: False
+    #---
+    # Clasifiation Models: Support Vector Machine
+    #---
+    # Support Vector Machine: Classifier
+    SVC:
+        model:
+          model_type: classification
+          model_class: sklearn.svm.DecisionTreeClassifier
+        functions:
+          model_create:
+            C: 1.0
+            kernel: 'rbf'
+            degree: 3
+            gamma: 'auto_deprecated'
+            coef0: 0.0
+            shrinking: True
+            probability: False
+            tol: 0.001
+            cache_size: 200
+            class_weight: None
+            verbose: False
+            max_iter: -1
+            decision_function_shape: 'ovr'
+            random_state: None
+    # Support Vector Machine: Classifier. Similar to SVC but uses a parameter to control the number of support vectors.
+    NuSVC:
+        model:
+          model_type: classification
+          model_class: sklearn.svm.DecisionTreeClassifier
+        functions:
+          model_create:
+            nu: 0.5
+            kernel: 'rbf'
+            degree: 3
+            gamma: 'auto_deprecated'
+            coef0: 0.0
+            shrinking: True
+            probability: False
+            tol: 0.001
+            cache_size: 200
+            class_weight: None
+            verbose: False
+            max_iter: -1
+            decision_function_shape: 'ovr'
+            random_state: None
+    # Support Vector Machine: Classifier, linear
+    LinearSVC:
+        model:
+          model_type: classification
+          model_class: sklearn.svm.DecisionTreeClassifier
+        functions:
+          model_create:
+            penalty: 'l2'
+            loss: 'squared_hinge'
+            dual: True
+            tol: 0.0001
+            C: 1.0
+            multi_class: 'ovr'
+            fit_intercept: True
+            intercept_scaling: 1
+            class_weight: None
+            verbose: 0
+            random_state: None
+            max_iter: 1000
+    #---
+    # Clasifiation Models: Nearest neighbors
+    #---
+    # Nearest neighbors: Classifier implementing the k-nearest neighbors vote.
+    KNeighborsClassifier:
+        model:
+          model_type: classification
+          model_class: sklearn.neighbors.KNeighborsClassifier
+        functions:
+          model_create:
+            n_neighbors: 5
+            weights: 'uniform'
+            algorithm: 'auto'
+            leaf_size: 30
+            p: 2
+            metric: 'minkowski'
+            # metric_params: None
+            # n_jobs: None
+    # Nearest neighbors: Classifier implementing a vote among neighbors within a given radius
+    RadiusNeighborsClassifier:
+        model:
+          model_type: classification
+          model_class: sklearn.neighbors.RadiusNeighborsClassifier
+        functions:
+          model_create:
+            radius: 1.0
+            weights: 'uniform'
+            algorithm: 'auto'
+            leaf_size: 30
+            p: 2
+            metric: 'minkowski'
+            # outlier_label: None
+            # metric_params: None
+            # n_jobs: None
+    # Nearest centroid classifier.
+    NearestCentroid:
+        model:
+          model_type: classification
+          model_class: sklearn.neighbors.NearestCentroid
+        functions:
+          model_create:
+            metric: 'euclidean'
+            # shrink_threshold: None
