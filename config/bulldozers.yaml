@@ -392,7 +392,7 @@ model_search:
     SVR:
         model:
           model_type: regression
-          model_class: sklearn.svm.DecisionTreeClassifier
+          model_class: sklearn.svm.SVR
         functions:
           model_create:
             kernel: 'rbf'
@@ -410,7 +410,7 @@ model_search:
     NuSVR:
         model:
           model_type: regression
-          model_class: sklearn.svm.DecisionTreeClassifier
+          model_class: sklearn.svm.NuSVR
         functions:
           model_create:
             nu: 0.5
@@ -428,7 +428,7 @@ model_search:
     LinearSVR:
         model:
           model_type: regression
-          model_class: sklearn.svm.DecisionTreeClassifier
+          model_class: sklearn.svm.LinearSVR
         functions:
           model_create:
             epsilon: 0.0
@@ -665,7 +665,7 @@ model_search:
     SVC:
         model:
           model_type: classification
-          model_class: sklearn.svm.DecisionTreeClassifier
+          model_class: sklearn.svm.SVC
         functions:
           model_create:
             C: 1.0
@@ -686,7 +686,7 @@ model_search:
     NuSVC:
         model:
           model_type: classification
-          model_class: sklearn.svm.DecisionTreeClassifier
+          model_class: sklearn.svm.NuSVC
         functions:
           model_create:
             nu: 0.5
@@ -707,7 +707,7 @@ model_search:
     LinearSVC:
         model:
           model_type: classification
-          model_class: sklearn.svm.DecisionTreeClassifier
+          model_class: sklearn.svm.LinearSVC
         functions:
           model_create:
             penalty: 'l2'
