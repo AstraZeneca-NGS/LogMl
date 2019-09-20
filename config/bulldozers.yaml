@@ -439,7 +439,7 @@ model_search:
             intercept_scaling: 1.0
             dual: True
             verbose: 0
-            random_state: None
+            # random_state: None
             max_iter: 1000
     #---
     # Regression Models: Nearest neighbors
@@ -486,15 +486,15 @@ model_search:
           model_create:
             criterion: 'mse'
             splitter: 'best'
-            max_depth: None
+            # max_depth: None
             min_samples_split: 2
             min_samples_leaf: 1
             min_weight_fraction_leaf: 0.0
-            max_features: None
-            random_state: None
-            max_leaf_nodes: None
+            # max_features: None
+            # random_state: None
+            # max_leaf_nodes: None
             min_impurity_decrease: 0.0
-            min_impurity_split: None
+            # min_impurity_split: None
             presort: False
     # Random forest: An ensamble of random trees
     RandomForestRegressor:
@@ -647,16 +647,16 @@ model_search:
           model_create:
             criterion: 'gini'
             splitter: 'best'
-            max_depth: None
+            # max_depth: None
             min_samples_split: 2
             min_samples_leaf: 1
             min_weight_fraction_leaf: 0.0
-            max_features: None
-            random_state: None
-            max_leaf_nodes: None
+            # max_features: None
+            # random_state: None
+            # max_leaf_nodes: None
             min_impurity_decrease: 0.0
-            min_impurity_split: None
-            class_weight: None
+            # min_impurity_split: None
+            # class_weight: None
             presort: False
     #---
     # Clasifiation Models: Support Vector Machine
@@ -677,11 +677,11 @@ model_search:
             probability: False
             tol: 0.001
             cache_size: 200
-            class_weight: None
+            # class_weight: None
             verbose: False
             max_iter: -1
             decision_function_shape: 'ovr'
-            random_state: None
+            # random_state: None
     # Support Vector Machine: Classifier. Similar to SVC but uses a parameter to control the number of support vectors.
     NuSVC:
         model:
@@ -698,11 +698,11 @@ model_search:
             probability: False
             tol: 0.001
             cache_size: 200
-            class_weight: None
+            # class_weight: None
             verbose: False
             max_iter: -1
             decision_function_shape: 'ovr'
-            random_state: None
+            # random_state: None
     # Support Vector Machine: Classifier, linear
     LinearSVC:
         model:
@@ -718,9 +718,9 @@ model_search:
             multi_class: 'ovr'
             fit_intercept: True
             intercept_scaling: 1
-            class_weight: None
+            # class_weight: None
             verbose: 0
-            random_state: None
+            # random_state: None
             max_iter: 1000
     #---
     # Clasifiation Models: Nearest neighbors
