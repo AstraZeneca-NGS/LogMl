@@ -1,0 +1,7 @@
+GaussianNB:
+  functions:
+    model_create:
+      var_smoothing: 1.0e-09
+  model:
+    model_class: sklearn.naive_bayes.GaussianNB
+    model_type: classification

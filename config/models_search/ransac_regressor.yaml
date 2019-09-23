@@ -1,11 +1,12 @@
-functions:
-  model_create:
-    loss: absolute_loss
-    max_skips: .inf
-    max_trials: 100
-    stop_n_inliers: .inf
-    stop_probability: 0.99
-    stop_score: .inf
-model:
-  model_class: sklearn.linear_model.RANSACRegressor
-  model_type: regression
+RANSACRegressor:
+  functions:
+    model_create:
+      loss: absolute_loss
+      max_skips: .inf
+      max_trials: 100
+      stop_n_inliers: .inf
+      stop_probability: 0.99
+      stop_score: .inf
+  model:
+    model_class: sklearn.linear_model.RANSACRegressor
+    model_type: regression

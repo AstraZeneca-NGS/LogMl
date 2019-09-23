@@ -1,0 +1,9 @@
+ComplementNB:
+  functions:
+    model_create:
+      alpha: 1.0
+      fit_prior: true
+      norm: false
+  model:
+    model_class: sklearn.naive_bayes.ComplementNB
+    model_type: classification

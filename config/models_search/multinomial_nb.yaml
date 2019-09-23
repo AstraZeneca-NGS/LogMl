@@ -1,0 +1,8 @@
+MultinomialNB:
+  functions:
+    model_create:
+      alpha: 1.0
+      fit_prior: true
+  model:
+    model_class: sklearn.naive_bayes.MultinomialNB
+    model_type: classification

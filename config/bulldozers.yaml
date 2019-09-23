@@ -183,6 +183,9 @@ functions:
     # Returns: Results from evaliating the dataset (usually a loss)
     model_train:
 
+#---
+# Model search
+#---
 model_search:
   enable: True
-  models: !include models_search/regression.yaml
+  models: !include models_search/*.yaml

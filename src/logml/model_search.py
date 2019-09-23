@@ -1,6 +1,7 @@
 
 import copy
 import logml
+import yaml
 
 from .config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
 from .files import MlFiles
@@ -37,8 +38,8 @@ class ModelSearch(MlFiles):
         if self.model_type is None:
             raise ValueError(f"Missing 'model_type' parameter, in config file '{self.config.config_file}', section '{CONFIG_MODEL}'")
         # For each model in 'models' secction: Create a nea LogMl ofbjec with these parameters and run it
-        for name in self.models:
-            params = self.models[name]
+        for model_def in self.models:
+            name, params = next(iter(model_def.items()))
             if 'model' not in params:
                 self._debug(f"Model '{name}' does not have a 'model' section, ignoring")
                 continue
@@ -47,9 +48,11 @@ class ModelSearch(MlFiles):
                 self._debug(f"Model '{name}' does not have a 'model.model_class' value, ignoring")
                 continue
             model_class = model_params.get('model_class')
+            if self.model_type != model_params['model_type']:
+                self._debug(f"Model '{name}' does not match model type, skipping ('{self.model_type}' != '{model_params['model_type']}')")
+                continue
             self._debug(f"Considering model '{name}', model_class={model_class}")
-            if self.model_type == model_params['model_type']:
-                self.search_model(model_class, params)
+            self.search_model(model_class, params)
         self._info(f"Search models: End")
         return True
 

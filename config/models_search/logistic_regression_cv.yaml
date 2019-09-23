@@ -1,0 +1,18 @@
+LogisticRegressionCV:
+  functions:
+    model_create:
+      Cs: 10
+      cv: warn
+      dual: false
+      fit_intercept: true
+      intercept_scaling: 1.0
+      max_iter: 100
+      multi_class: warn
+      penalty: l2
+      refit: true
+      solver: lbfgs
+      tol: 0.0001
+      verbose: 0
+  model:
+    model_class: sklearn.linear_model.LogisticRegressionCV
+    model_type: classification

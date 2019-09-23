@@ -1,15 +1,16 @@
-functions:
-  model_create:
-    alpha: 1.0
-    copy_X: true
-    fit_intercept: true
-    max_iter: 1000
-    normalize: true
-    positive: false
-    precompute: false
-    selection: cyclic
-    tol: 0.0001
-    warm_start: false
-model:
-  model_class: sklearn.linear_model.Lasso
-  model_type: regression
+LassoRegression:
+  functions:
+    model_create:
+      alpha: 1.0
+      copy_X: true
+      fit_intercept: true
+      max_iter: 1000
+      normalize: true
+      positive: false
+      precompute: false
+      selection: cyclic
+      tol: 0.0001
+      warm_start: false
+  model:
+    model_class: sklearn.linear_model.Lasso
+    model_type: regression

@@ -1,17 +1,18 @@
-functions:
-  model_create:
-    copy_X: true
-    cv: warn
-    eps: 0.001
-    fit_intercept: true
-    max_iter: 1000
-    n_alphas: 100
-    normalize: true
-    positive: false
-    precompute: auto
-    selection: cyclic
-    tol: 0.0001
-    verbose: false
-model:
-  model_class: sklearn.linear_model.LassoCV
-  model_type: regression
+LassoCVRegression:
+  functions:
+    model_create:
+      copy_X: true
+      cv: warn
+      eps: 0.001
+      fit_intercept: true
+      max_iter: 1000
+      n_alphas: 100
+      normalize: true
+      positive: false
+      precompute: auto
+      selection: cyclic
+      tol: 0.0001
+      verbose: false
+  model:
+    model_class: sklearn.linear_model.LassoCV
+    model_type: regression

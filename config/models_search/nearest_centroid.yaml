@@ -1,0 +1,7 @@
+NearestCentroid:
+  functions:
+    model_create:
+      metric: euclidean
+  model:
+    model_class: sklearn.neighbors.NearestCentroid
+    model_type: classification

@@ -1,10 +1,11 @@
-functions:
-  model_create:
-    alpha: 1.0
-    fit_intercept: true
-    normalize: true
-    solver: auto
-    tol: 0.001
-model:
-  model_class: sklearn.linear_model.Ridge
-  model_type: regression
+RidgeRegression:
+  functions:
+    model_create:
+      alpha: 1.0
+      fit_intercept: true
+      normalize: true
+      solver: auto
+      tol: 0.001
+  model:
+    model_class: sklearn.linear_model.Ridge
+    model_type: regression

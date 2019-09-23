@@ -1,11 +1,12 @@
-functions:
-  model_create:
-    copy_X: true
-    fit_intercept: true
-    max_iter: 300
-    max_subpopulation: 10000.0
-    tol: 0.001
-    verbose: false
-model:
-  model_class: sklearn.linear_model.TheilSenRegressor
-  model_type: regression
+TheilSenRegressor:
+  functions:
+    model_create:
+      copy_X: true
+      fit_intercept: true
+      max_iter: 300
+      max_subpopulation: 10000.0
+      tol: 0.001
+      verbose: false
+  model:
+    model_class: sklearn.linear_model.TheilSenRegressor
+    model_type: regression

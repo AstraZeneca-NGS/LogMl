@@ -1,17 +1,18 @@
-NuSVR:
+NuSVC:
   functions:
     model_create:
-      C: 1.0
       cache_size: 200
       coef0: 0.0
+      decision_function_shape: ovr
       degree: 3
       gamma: auto_deprecated
       kernel: rbf
       max_iter: -1
       nu: 0.5
+      probability: false
       shrinking: true
       tol: 0.001
       verbose: false
   model:
-    model_class: sklearn.svm.NuSVR
-    model_type: regression
+    model_class: sklearn.svm.NuSVC
+    model_type: classification

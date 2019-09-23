@@ -1,0 +1,16 @@
+LinearSVC:
+  functions:
+    model_create:
+      C: 1.0
+      dual: true
+      fit_intercept: true
+      intercept_scaling: 1
+      loss: squared_hinge
+      max_iter: 1000
+      multi_class: ovr
+      penalty: l2
+      tol: 0.0001
+      verbose: 0
+  model:
+    model_class: sklearn.svm.LinearSVC
+    model_type: classification

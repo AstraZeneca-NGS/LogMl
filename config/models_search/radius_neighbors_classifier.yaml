@@ -1,5 +1,4 @@
-RadiusNeighborsRegressor:
-  enable: false
+RadiusNeighborsClassifier:
   functions:
     model_create:
       algorithm: auto
@@ -9,5 +8,5 @@ RadiusNeighborsRegressor:
       radius: 1.0
       weights: uniform
   model:
-    model_class: sklearn.neighbors.RadiusNeighborsRegressor
-    model_type: regression
+    model_class: sklearn.neighbors.RadiusNeighborsClassifier
+    model_type: classification

@@ -1,4 +1,4 @@
-KNeighborsRegressor:
+KNeighborsClassifier:
   functions:
     model_create:
       algorithm: auto
@@ -8,5 +8,5 @@ KNeighborsRegressor:
       p: 2
       weights: uniform
   model:
-    model_class: sklearn.neighbors.KNeighborsRegressor
-    model_type: regression
+    model_class: sklearn.neighbors.KNeighborsClassifier
+    model_type: classification
