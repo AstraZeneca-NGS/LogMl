@@ -11,7 +11,7 @@ import warnings
 from IPython.display import display
 from scipy.cluster import hierarchy as hc
 
-from .config import CONFIG_DATASET_EXPLORE
+from .config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from .files import MlFiles
 
 
@@ -19,41 +19,24 @@ from .files import MlFiles
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class DataExplore(MlFiles):
+class DataFeatureImportance(MlFiles):
     '''
-    Perform data exploratory analysis.
-    There are two types of analysis being performed here:
-        1) Basic data exploration
-        2) ML-based exploration
+    Perform feature importance / feature selection analysis
     '''
 
     def __init__(self, datasets_df, config, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
-        self.corr_thresdold = 0.7
         self.datasets_df = datasets_df
-        self.df = self.datasets_df.dataset
-        self.df_ori = self.datasets_df.dataset_ori
-        self.is_use_ori = False
-        self.is_summary = True
-        self.is_nas = True
-        self.is_plot_pairs = True
-        self.is_correlation_analysis = True
-        self.is_dendogram = True
-        self.is_describe_all = True
-        self.figsize = (20, 20)
-        self.shapiro_wilks_threshold = 0.1
         if set_config:
             self._set_from_config()
 
     def __call__(self):
-        ''' Explore dataset '''
+        ''' Feature importance '''
         if not self.enable:
-            self._info(f"Dataset exploration disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
+            self._info(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
-        self._info("Explore data: Start")
-        if self.is_use_ori:
-            self.explore(self.df_ori, "Original dataset")
-        self.explore(self.df, "Transformed dataset")
+        self._info("Feature importance / feature selection: Start")
+        self.feature_importance()
 
     def explore(self, df, name):
         # TODO: Remove outliers
@@ -177,6 +160,9 @@ class DataExplore(MlFiles):
         (w, p) = scipy.stats.shapiro(x)
         is_normal = (p >= self.shapiro_wilks_threshold)
         return pd.DataFrame({field_name: [is_normal, p]}, index=['Normality', 'Normality_test_pvalue'])
+
+    def feature_importance(self):
+        self._fatal_error("!!!!!!!")
 
     def is_numeric(self, x):
         return pd.api.types.is_numeric_dtype(x)

@@ -42,17 +42,20 @@ dataset:
 # Dataset exploration
 #---
 dataset_explore:
-  enable: False
+  enable: True
   is_use_ori: True
   is_summary: True
-  is_nas: True
-  is_plot_pairs: True
-  is_correlation_analysis: True
-  is_dendogram: True
-  is_describe_all: True
+  is_nas: False
+  is_plot_pairs: False
+  is_correlation_analysis: False
+  is_dendogram: False
+  is_describe_all: False
 
-  dataset_feature_importance:
-    enable: False
+#---
+# Dataset: Feature importance / feature selection
+#---
+dataset_feature_importance:
+  enable: False
 
 #---
 # Model definition and parameters

@@ -71,6 +71,8 @@ class LogMl(MlFiles):
         # Explore dataset
         if not self._explore():
             self._debug("Could not explore dataset")
+        if not self._feature_importance():
+            self._debug("Could not perform feature importance / feature selection")
         # Model Train
         if not self.models_train():
             self._error("Could not train model")
@@ -85,6 +87,14 @@ class LogMl(MlFiles):
             return True
         de = DataExplore(self.datasets, self.config)
         return de()
+
+    def _feature_importance(self):
+        " Feature importance / feature selection "
+        if not self.is_dataset_df():
+            self._debug("Dataset feature importance only available for dataset type 'df'")
+            return True
+        dfi = DataFeatureImportance(self.datasets, self.config)
+        return dfi()
 
     def get_model_validate(self):
         ''' Get model validate results '''
