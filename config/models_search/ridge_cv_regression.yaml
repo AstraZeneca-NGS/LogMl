@@ -1,0 +1,8 @@
+functions:
+  model_create:
+    fit_intercept: true
+    normalize: true
+    store_cv_values: false
+model:
+  model_class: sklearn.linear_model.RidgeCV
+  model_type: regression

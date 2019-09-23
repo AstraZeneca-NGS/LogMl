@@ -1,0 +1,11 @@
+functions:
+  model_create:
+    alpha: 0.0001
+    epsilon: 1.35
+    fit_intercept: true
+    max_iter: 100
+    tol: 1.0e-05
+    warm_start: false
+model:
+  model_class: sklearn.linear_model.HuberRegressor
+  model_type: regression

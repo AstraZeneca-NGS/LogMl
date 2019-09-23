@@ -1,0 +1,8 @@
+functions:
+  model_create:
+    fit_intercept: true
+    normalize: true
+    precompute: auto
+model:
+  model_class: sklearn.linear_model.OrthogonalMatchingPursuit
+  model_type: regression

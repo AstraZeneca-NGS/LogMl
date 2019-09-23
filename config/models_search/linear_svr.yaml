@@ -1,0 +1,14 @@
+functions:
+  model_create:
+    C: 1.0
+    dual: true
+    epsilon: 0.0
+    fit_intercept: true
+    intercept_scaling: 1.0
+    loss: epsilon_insensitive
+    max_iter: 1000
+    tol: 0.0001
+    verbose: 0
+model:
+  model_class: sklearn.svm.LinearSVR
+  model_type: regression

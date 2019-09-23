@@ -1,0 +1,13 @@
+functions:
+  model_create:
+    copy_X: true
+    eps: 2.220446049250313e-16
+    fit_intercept: true
+    fit_path: true
+    n_nonzero_coefs: 500
+    normalize: true
+    precompute: auto
+    verbose: false
+model:
+  model_class: sklearn.linear_model.Lars
+  model_type: regression

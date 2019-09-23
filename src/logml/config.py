@@ -8,6 +8,12 @@ import yaml
 from .files import MlFiles
 from .registry import MlRegistry
 
+import re
+def camel_to_snake(name):
+    ''' Convert CamelCase names to snake_case '''
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
 
 DEFAULT_YAML = "ml.yaml"
 
@@ -22,6 +28,7 @@ CONFIG_MODEL = 'model'
 CONFIG_MODEL_SEARCH = 'model_search'
 CONFIG_MODEL_ANALYSIS = 'model_analysis'
 
+
 def update_dict(d, u):
     """ Recursively update dictionary 'd' using items in 'u' """
     for k, v in u.items():
@@ -33,6 +40,7 @@ def update_dict(d, u):
         else:
             d[k] = v
     return d
+
 
 class Config(MlFiles):
     '''
@@ -117,7 +125,13 @@ class Config(MlFiles):
         '''
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
-        self._debug(f"params={self.parameters}")
+        self._debug(f"params: {yaml.dump(self.parameters)}")
+        ms = self.parameters['model_search']['models']
+        self._debug(f"MODEL_SEARCH: {ms}")
+        for k in ms:
+            fn = f"config/models_search/{camel_to_snake(k)}.yaml"
+            self._debug(f"FILE: '{fn}'")
+            self._save_yaml(fn, ms[k])
         self._set_from_config()
         return self._config_sanity_check()
 

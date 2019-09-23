@@ -5,6 +5,7 @@ import pickle
 import os
 import sys
 import yaml
+from yamlinclude import YamlIncludeConstructor
 
 from .log import MlLog
 
@@ -49,8 +50,11 @@ class MlFiles(MlLog):
 
     def _load_yaml(self, file_yaml):
         ''' Load a yaml file '''
+        yaml_dir = os.path.dirname(file_yaml)
+        self._debug(f"Loading YAML file '{file_yaml}', base dir '{yaml_dir}'")
+        YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=yaml_dir)
         with open(file_yaml) as yaml_file:
-            return yaml.load(yaml_file, Loader=yaml.SafeLoader)
+            return yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     def _save_pickle(self, file_pickle, tag, data):
         ''' Save a pickle file, return True (on success) or False (on failure) '''

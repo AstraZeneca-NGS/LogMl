@@ -1,0 +1,12 @@
+enable: false
+functions:
+  model_create:
+    algorithm: auto
+    leaf_size: 30
+    metric: minkowski
+    p: 2
+    radius: 1.0
+    weights: uniform
+model:
+  model_class: sklearn.neighbors.RadiusNeighborsRegressor
+  model_type: regression

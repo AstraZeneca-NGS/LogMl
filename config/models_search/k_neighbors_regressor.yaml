@@ -1,0 +1,11 @@
+functions:
+  model_create:
+    algorithm: auto
+    leaf_size: 30
+    metric: minkowski
+    n_neighbors: 5
+    p: 2
+    weights: uniform
+model:
+  model_class: sklearn.neighbors.KNeighborsRegressor
+  model_type: regression
