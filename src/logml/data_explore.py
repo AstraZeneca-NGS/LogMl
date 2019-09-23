@@ -34,6 +34,12 @@ class DataExplore(MlFiles):
         self.df = self.datasets_df.dataset
         self.df_ori = self.datasets_df.dataset_ori
         self.is_use_ori = False
+        self.is_summary = True
+        self.is_nas = True
+        self.is_plot_pairs = True
+        self.is_correlation_analysis = True
+        self.is_dendogram = True
+        self.is_describe_all = True
         self.figsize = (20, 20)
         self.shapiro_wilks_threshold = 0.1
         if set_config:
@@ -48,6 +54,7 @@ class DataExplore(MlFiles):
         if self.is_use_ori:
             self.explore(self.df_ori, "Original dataset")
         self.explore(self.df, "Transformed dataset")
+        self.feature_importance()
 
     def explore(self, df, name):
         # TODO: Remove outliers
@@ -65,12 +72,15 @@ class DataExplore(MlFiles):
         self.plots_pairs(df)
         self.correlation_analysis(df)
         # Analysis: Multiple variables analysis
+        print(f"Dendogram: {name}")
         self.dendogram(df, name)
         self._info("Explore data '{name}': End")
         return True
 
     def correlation_analysis(self, df):
         " Correlation between all variables "
+        if not self.is_correlation_analysis:
+            return
         self._debug("Correlation analysis")
         corr = self.rank_correlation(df)
         # Sort and get index in correlation matrix
@@ -99,6 +109,8 @@ class DataExplore(MlFiles):
         Remove columns having stdDev lower than 'std_threshold', this
         is used to avoid having 'nan' in Spearsman's correlation
         """
+        if not self.is_dendogram:
+            return
         corr = self.rank_correlation(df)
         corr = np.round(corr, 4)
         # Convert to distance
@@ -116,6 +128,8 @@ class DataExplore(MlFiles):
 
     def describe_all(self, df, max_bins=100):
         " Show basic stats and histograms for every column "
+        if not self.is_describe_all:
+            return
         dfs = self.keep_uniq(df)
         print(f"Plotting histograms for columns: {list(dfs.columns)}")
         for c in sorted(dfs.columns):
@@ -165,6 +179,9 @@ class DataExplore(MlFiles):
         is_normal = (p >= self.shapiro_wilks_threshold)
         return pd.DataFrame({field_name: [is_normal, p]}, index=['Normality', 'Normality_test_pvalue'])
 
+    def feature_importance(self):
+        self._fatal_error("!!!!!!!")
+
     def is_numeric(self, x):
         return pd.api.types.is_numeric_dtype(x)
 
@@ -181,6 +198,8 @@ class DataExplore(MlFiles):
 
     def nas(self, df):
         " Analysis of missing values "
+        if not self.is_nas:
+            return
         # Number of missing values, sorted
         nas_count = df.isna().sum().sort_values(ascending=False)
         nas_perc = nas_count / len(df)
@@ -226,6 +245,8 @@ class DataExplore(MlFiles):
         return df_copy
 
     def plots_pairs(self, df):
+        if not self.is_plot_pairs:
+            return
         dfs = self.keep_uniq(df)
         print(f"Plotting pairs for columns: {dfs.columns}")
         sns.set_style('darkgrid')
@@ -251,6 +272,8 @@ class DataExplore(MlFiles):
 
     def summary(self, df):
         " Look into basic column statistics"
+        if not self.is_summary:
+            return
         # Look at the data
         self.print_all("Head", df.head())
         self.print_all("Tail", df.tail())

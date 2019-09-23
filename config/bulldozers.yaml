@@ -44,6 +44,15 @@ dataset:
 dataset_explore:
   enable: False
   is_use_ori: True
+  is_summary: True
+  is_nas: True
+  is_plot_pairs: True
+  is_correlation_analysis: True
+  is_dendogram: True
+  is_describe_all: True
+
+  dataset_feature_importance:
+    enable: False
 
 #---
 # Model definition and parameters
@@ -187,5 +196,5 @@ functions:
 # Model search
 #---
 model_search:
-  enable: True
+  enable: False
   models: !include models_search/*.yaml
