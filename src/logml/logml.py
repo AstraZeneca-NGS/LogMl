@@ -7,6 +7,7 @@ from .cross_validation import CrossValidation
 from .datasets import Datasets
 from .datasets_df import DatasetsDf
 from .data_explore import DataExplore
+from .data_feature_importance import DataFeatureImportance
 from .model_search import ModelSearch
 from .files import MlFiles
 from .hpopt import HyperOpt, HYPER_PARAM_TYPES

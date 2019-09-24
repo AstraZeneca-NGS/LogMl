@@ -42,26 +42,26 @@ dataset:
 # Dataset exploration
 #---
 dataset_explore:
-  enable: True
+  enable: False
   is_use_ori: True
   is_summary: True
-  is_nas: False
-  is_plot_pairs: False
-  is_correlation_analysis: False
-  is_dendogram: False
-  is_describe_all: False
+  is_nas: True
+  is_plot_pairs: True
+  is_correlation_analysis: True
+  is_dendogram: True
+  is_describe_all: True
 
 #---
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
-  enable: False
+  enable: True
 
 #---
 # Model definition and parameters
 #---
 model:
-  enable: True
+  enable: False
 
   # Type of model: {'clasification', 'regression', 'unsupervised'}
   model_type: regression
