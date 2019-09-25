@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 class FeatureImportance:
     '''
-    Estimate feature importance.
+    Estimate feature importance based on a model.
     How it works: Suffle a column and analyze how model performance is
     degraded. Most important features will make the model perform much
     worse when shuffled, unimportant features will not affect performance

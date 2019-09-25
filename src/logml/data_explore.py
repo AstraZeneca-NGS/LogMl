@@ -56,8 +56,6 @@ class DataExplore(MlFiles):
         self.explore(self.df, "Transformed dataset")
 
     def explore(self, df, name):
-        # TODO: Remove outliers
-        # TODO: Multimodal analysys
         # Analysis: Single variable analysis
         self._info("Explore data '{name}': End")
         print(f"Summary: {name}")
@@ -73,6 +71,9 @@ class DataExplore(MlFiles):
         # Analysis: Multiple variables analysis
         print(f"Dendogram: {name}")
         self.dendogram(df, name)
+        # TODO: Dimmensionality reduction {PCA, LDA, tSNE, KL}
+        # TODO: Remove outliers
+        # TODO: Multimodal analysys
         self._info("Explore data '{name}': End")
         return True
 
