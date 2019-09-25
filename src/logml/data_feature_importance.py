@@ -12,12 +12,14 @@ import warnings
 from IPython.core.display import Image, display
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
 from sklearn.feature_selection import SelectFdr, chi2, f_classif, f_regression, mutual_info_classif, mutual_info_regression
-from sklearn.linear_model import RidgeCV, LassoCV
+from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
 from sklearn.tree import export_graphviz
 
 from .config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from .files import MlFiles
 from .feature_importance import FeatureImportance
+
+EPSILON = 1.0e-4
 
 class DataFeatureImportance(MlFiles):
     '''
@@ -28,6 +30,7 @@ class DataFeatureImportance(MlFiles):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
         self.model_type = model_type
+        self.regularization_model_cv = 10
         if set_config:
             self._set_from_config()
 
@@ -93,21 +96,50 @@ class DataFeatureImportance(MlFiles):
     def is_regression(self):
         return self.model_type == 'regression'
 
+    def plot_ic_criterion(self, model, name, color):
+        '''
+        Plot AIC/BIC criterion
+        Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
+        '''
+        alpha_ = model.alpha_ + EPSILON
+        alphas_ = model.alphas_ + EPSILON
+        criterion_ = model.criterion_
+        plt.plot(-np.log10(alphas_), criterion_, '--', color=color, linewidth=3, label=f"{name} criterion")
+        plt.axvline(-np.log10(alpha_), color=color, linewidth=3, label=f"alpha: {name} estimate")
+        plt.xlabel('-log(alpha)')
+        plt.ylabel('criterion')
+
+    def plot_lars(self, model_aic, model_bic):
+        '''
+        Plot LARS AIC/BIC criterion
+        Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
+        '''
+        alpha_bic_ = model_bic.alpha_
+        plt.figure()
+        self.plot_ic_criterion(model_aic, 'AIC', 'b')
+        self.plot_ic_criterion(model_bic, 'BIC', 'r')
+        plt.legend()
+        plt.title('Information-criterion for model selection')
+        plt.show()
+
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
         self._debug(f"Feature importance based on regularization")
         # LassoCV
-        lassocv = self.regularization_model(LassoCV)
+        lassocv = self.regularization_model(LassoCV(cv=self.regularization_model_cv))
         self.plot_lasso_alphas(lassocv)
         # RidgeCV
-        ridgecv = self.regularization_model(RidgeCV)
+        ridgecv = self.regularization_model(RidgeCV(cv=self.regularization_model_cv))
+        # LARS
+        lars_aic = self.regularization_model(LassoLarsIC(criterion='aic'))
+        lars_bic = self.regularization_model(LassoLarsIC(criterion='bic'))
+        self.plot_lars(lars_aic, lars_bic)
 
-    def regularization_model(self, model_class):
+    def regularization_model(self, model):
         ''' Fit a modelularization model and show non-zero coefficients '''
-        model = model_class(cv=10)
         model.fit(self.x, self.y)
         keep = (model.coef_ != 0.0)
-        model_name = model_class.__name__
+        model_name = model.__class__.__name__
         field_name = f"coeficient_{model_name}"
         coef_df = pd.DataFrame({field_name: model.coef_[keep]}, index=self.x.columns[keep])
         coef_df.sort_values(by=[field_name], ascending=False, inplace=True)
@@ -119,7 +151,6 @@ class DataFeatureImportance(MlFiles):
         Plot LassoCV model alphas
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
         '''
-        EPSILON = 1.0e-4
         m_log_alphas = -np.log10(model.alphas_ + EPSILON)
         plt.figure()
         plt.plot(m_log_alphas, model.mse_path_, ':')
