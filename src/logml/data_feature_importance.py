@@ -9,9 +9,10 @@ import scipy
 import subprocess
 import warnings
 
+from boruta import BorutaPy
 from IPython.core.display import Image, display
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
-from sklearn.feature_selection import SelectFdr, chi2, f_classif, f_regression, mutual_info_classif, mutual_info_regression
+from sklearn.feature_selection import SelectFdr, SelectKBest, chi2, f_classif, f_regression, mutual_info_classif, mutual_info_regression
 from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
 from sklearn.tree import export_graphviz
 
@@ -34,6 +35,18 @@ class DataFeatureImportance(MlFiles):
         if set_config:
             self._set_from_config()
 
+    def boruta(self):
+        ''' Calculate feature improtance using Boruta algorithm '''
+        if not self.is_classification():
+            self._debug("Boruta algorithm only for classification")
+            return
+        model = self.random_forest()
+        boruta = BorutaPy(model, n_estimators='auto', verbose=2)
+        boruta.fit(self.x, self.y)
+        bor_df = pd.DataFrame({'support': boruta.support_, 'rank': boruta.ranking_}, index=self.x.columns)
+        bor_df.sort_values(by=['rank'], inplace=True)
+        display(bor_df)
+
     def __call__(self):
         ''' Feature importance '''
         if not self.enable:
@@ -41,12 +54,14 @@ class DataFeatureImportance(MlFiles):
             return True
         self._info("Feature importance / feature selection (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
+        # TODO: RFECV / Backward elimination (OLS?)
+        self.boruta()
         self.regularization_models()
-        # self.select_fdr()
-        # self.feature_importance(self.random_forest(), 'RandomForest')
-        # self.feature_importance(self.extra_trees(), 'ExtraTrees')
-        # self.feature_importance(self.gradient_boosting(), 'GradientBoosting')
-        # self.tree_graph()
+        self.select()
+        self.feature_importance(self.random_forest(), 'RandomForest')
+        self.feature_importance(self.extra_trees(), 'ExtraTrees')
+        self.feature_importance(self.gradient_boosting(), 'GradientBoosting')
+        self.tree_graph()
         self._info("Feature importance / feature selection: End")
         return True
 
@@ -122,6 +137,34 @@ class DataFeatureImportance(MlFiles):
         plt.title('Information-criterion for model selection')
         plt.show()
 
+    def plot_lasso_alphas(self, model):
+        '''
+        Plot LassoCV model alphas
+        Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
+        '''
+        m_log_alphas = -np.log10(model.alphas_ + EPSILON)
+        plt.figure()
+        plt.plot(m_log_alphas, model.mse_path_, ':')
+        plt.plot(m_log_alphas, model.mse_path_.mean(axis=-1), 'k', label='Average across the folds', linewidth=2)
+        plt.axvline(-np.log10(model.alpha_ + EPSILON), linestyle='--', color='k', label='alpha: CV estimate')
+        plt.legend()
+        plt.xlabel('-log(alpha)')
+        plt.ylabel('Mean square error')
+        plt.title('Mean square error on each fold: coordinate descent')
+        plt.axis('tight')
+        plt.show()
+
+    def random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
+        ''' Create a RandomForest model '''
+        if self.is_regression():
+            m = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+        elif self.is_classification():
+            m = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        m.fit(self.x, self.y)
+        return m
+
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
         self._debug(f"Feature importance based on regularization")
@@ -146,65 +189,44 @@ class DataFeatureImportance(MlFiles):
         display(coef_df)
         return model
 
-    def plot_lasso_alphas(self, model):
+    def select(self):
         '''
-        Plot LassoCV model alphas
-        Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
-        '''
-        m_log_alphas = -np.log10(model.alphas_ + EPSILON)
-        plt.figure()
-        plt.plot(m_log_alphas, model.mse_path_, ':')
-        plt.plot(m_log_alphas, model.mse_path_.mean(axis=-1), 'k', label='Average across the folds', linewidth=2)
-        plt.axvline(-np.log10(model.alpha_ + EPSILON), linestyle='--', color='k', label='alpha: CV estimate')
-        plt.legend()
-        plt.xlabel('-log(alpha)')
-        plt.ylabel('Mean square error')
-        plt.title('Mean square error on each fold: coordinate descent')
-        plt.axis('tight')
-        plt.show()
-
-    def random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
-        ''' Create a RandomForest model '''
-        if self.is_regression():
-            m = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-        elif self.is_classification():
-            m = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-        else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
-        return m
-
-    def select_fdr(self):
-        '''
-        User SelectFdr to calculate a feature importance rank
+        User Select (Fdr or K-best) to calculate a feature importance rank
         Use different functions, depending on model_type and inputs
         '''
-        # Select functions to use
+        # Select functions to use, defined as dictionary {function: has_pvalue}
         if self.is_regression():
-            funcs = [f_regression, mutual_info_regression]
+            funcs = {f_regression: True, mutual_info_regression: False}
         elif self.is_classification():
-            funcs = [f_classif, mutual_info_classif]
+            funcs = {f_classif: True, mutual_info_classif: False}
             # Chi^2 only works on non-negative values
             if (X < 0).all(axis=None):
                 funcs.append(chi2)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
-
         # Apply all functions
-        for f in funcs:
-            self.select_fdr_f(f)
+        for f, has_pvalue in funcs.items():
+            self.select_f(f, has_pvalue)
         return True
 
-    def select_fdr_f(self, score_function):
-        ''' Select features using FDR (False Discovery Rate) '''
+    def select_f(self, score_function, has_pvalue):
+        ''' Select features using FDR (False Discovery Rate) or K-best '''
         # skb = SelectFdr(score_func=score_function, k="all")
-        skb = SelectFdr(score_func=score_function)
-        fit = skb.fit(self.x, self.y)
-        keep = skb.get_support()
         fname = score_function.__name__
-        skb_df = pd.DataFrame({f"scores_{fname}": skb.scores_, f"p_values_{fname}": skb.pvalues_, f"keep_{fname}": keep}, index=self.x.columns)
-        skb_df.sort_values(by=[f"scores_{fname}", f"p_values_{fname}"], inplace=True, ascending=False)
-        display(skb_df)
+        self._debug(f"Select FDR: '{fname}'")
+        # select = SelectFdr(score_func=score_function)
+        if has_pvalue:
+            select = SelectFdr(score_func=score_function)
+        else:
+            select = SelectKBest(score_func=score_function, k='all')
+        fit = select.fit(self.x, self.y)
+        keep = select.get_support()
+        if has_pvalue:
+            select_df = pd.DataFrame({f"scores_{fname}": select.scores_, f"p_values_{fname}": select.pvalues_, f"keep_{fname}": keep}, index=self.x.columns)
+        else:
+            select_df = pd.DataFrame({f"scores_{fname}": select.scores_}, index=self.x.columns)
+        select_df.sort_values(by=[f"scores_{fname}"], inplace=True, ascending=False)
+        display(select_df)
 
     def tree_graph(self, max_depth=3, file_dot='tree.dot', file_png='tree.png'):
         """ Simple tree representation """
