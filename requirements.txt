@@ -2,6 +2,7 @@ absl-py==0.8.0
 appnope==0.1.0
 astor==0.8.0
 backcall==0.1.0
+Boruta==0.3
 coverage==4.5.4
 cycler==0.10.0
 decorator==4.4.0

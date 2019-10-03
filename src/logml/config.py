@@ -15,6 +15,7 @@ CONFIG_CONFIG = ''
 CONFIG_CROSS_VALIDATION = 'cross_validation'
 CONFIG_DATASET = 'dataset'
 CONFIG_DATASET_EXPLORE = 'dataset_explore'
+CONFIG_DATASET_FEATURE_IMPORTANCE = "dataset_feature_importance"
 CONFIG_FUNCTIONS = 'functions'
 CONFIG_HYPER_PARAMETER_OPTMIMIZATION = 'hyper_parameter_optimization'
 CONFIG_LOGGER = 'logger'
@@ -119,7 +120,7 @@ class Config(MlFiles):
         '''
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
-        self._debug(f"params: {yaml.dump(self.parameters)}")
+        self._debug(f"params: {self.parameters}")
         ms = self.parameters['model_search']['models']
         self._set_from_config()
         return self._config_sanity_check()

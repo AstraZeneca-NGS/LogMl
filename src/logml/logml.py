@@ -7,6 +7,7 @@ from .cross_validation import CrossValidation
 from .datasets import Datasets
 from .datasets_df import DatasetsDf
 from .data_explore import DataExplore
+from .data_feature_importance import DataFeatureImportance
 from .model_search import ModelSearch
 from .files import MlFiles
 from .hpopt import HyperOpt, HYPER_PARAM_TYPES
@@ -71,6 +72,8 @@ class LogMl(MlFiles):
         # Explore dataset
         if not self._explore():
             self._debug("Could not explore dataset")
+        if not self._feature_importance():
+            self._debug("Could not perform feature importance / feature selection")
         # Model Train
         if not self.models_train():
             self._error("Could not train model")
@@ -85,6 +88,15 @@ class LogMl(MlFiles):
             return True
         de = DataExplore(self.datasets, self.config)
         return de()
+
+    def _feature_importance(self):
+        " Feature importance / feature selection "
+        if not self.is_dataset_df():
+            self._debug("Dataset feature importance only available for dataset type 'df'")
+            return True
+        model_type = self.model_ori.model_type
+        dfi = DataFeatureImportance(self.datasets, self.config, model_type)
+        return dfi()
 
     def get_model_validate(self):
         ''' Get model validate results '''
