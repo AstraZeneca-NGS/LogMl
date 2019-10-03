@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class FeatureImportance:
+class FeatureImportanceFromModel:
     '''
     Estimate feature importance based on a model.
     How it works: Suffle a column and analyze how model performance is
