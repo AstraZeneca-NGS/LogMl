@@ -1,9 +1,9 @@
 
 import datetime
 
-from .config import CONFIG_MODEL
-from .files import MlFiles
-from .registry import MlRegistry, MODEL_CREATE, MODEL_EVALUATE, MODEL_SAVE, MODEL_TRAIN
+from ..core.config import CONFIG_MODEL
+from ..core.files import MlFiles
+from ..core.registry import MlRegistry, MODEL_CREATE, MODEL_EVALUATE, MODEL_SAVE, MODEL_TRAIN
 
 
 class Model(MlFiles):

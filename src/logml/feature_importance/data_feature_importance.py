@@ -16,9 +16,9 @@ from sklearn.feature_selection import SelectFdr, SelectKBest, chi2, f_classif, f
 from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
 from sklearn.tree import export_graphviz
 
-from .config import CONFIG_DATASET_FEATURE_IMPORTANCE
-from .files import MlFiles
-from .feature_importance import FeatureImportanceFromModel
+from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
+from ..core.files import MlFiles
+from .feature_importance_from_model import FeatureImportanceFromModel
 
 EPSILON = 1.0e-4
 

@@ -3,9 +3,9 @@ import copy
 import logml
 import yaml
 
-from .config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
-from .files import MlFiles
-from .models import SkLearnModel
+from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
+from ..core.files import MlFiles
+from .sklearn_model import SkLearnModel
 
 
 class ModelSearch(MlFiles):

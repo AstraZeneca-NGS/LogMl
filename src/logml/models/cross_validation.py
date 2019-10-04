@@ -2,8 +2,8 @@
 import numpy as np
 import sklearn.model_selection
 
-from .config import CONFIG_CROSS_VALIDATION, CONFIG_MODEL
-from .log import MlLog
+from ..core.config import CONFIG_CROSS_VALIDATION, CONFIG_MODEL
+from ..core.log import MlLog
 
 
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
