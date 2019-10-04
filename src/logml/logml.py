@@ -127,8 +127,9 @@ class LogMl(MlFiles):
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
-        # Add results
+        # Add results and parametres
         model_results = {'train': self.model.validate_results, 'validate': self.model.validate_results, 'time': self.model.elapsed_time}
+        model_results.update(self.model.config.get_parameters_functions(MODEL_CREATE))
         self.model_results.add_row(f"{self.model.model_class}.{self.model._id}", model_results)
         self._debug(f"End")
         return ret
