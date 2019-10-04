@@ -224,7 +224,7 @@ class DataFeatureImportance(MlFiles):
         if self.rfe_model_cv > 1:
             rfe = RFECV(model, min_features_to_select=1, cv=self.rfe_model_cv)
         else:
-            rfe = RFE(model, n_features_to_select=1, cv=self.rfe_model_cv)
+            rfe = RFE(model, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
         self.results.add_col(f"rfe_{model_name}", fit.ranking_)
 
