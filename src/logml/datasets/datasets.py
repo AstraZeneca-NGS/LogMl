@@ -273,7 +273,7 @@ class Datasets(MlFiles):
         if invoked:
             if ret is None or len(ret) != 2:
                 self._fatal_error(f"User defined function '{DATASET_INOUT}' should return a tuple, but it returned '{ret}'")
-            x, y  = ret
+            x, y = ret
             return True, InOut(x, y)
         return False, InOut(None, None)
 

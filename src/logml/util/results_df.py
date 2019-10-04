@@ -3,9 +3,18 @@ import pandas as pd
 
 
 class ResultsDf:
-    def __init__(self, index):
+    def __init__(self, index=None):
         self.index = index
-        self.df = pd.DataFrame({}, index=index)
+        self.df = None
+        if index is not None:
+            self.df = pd.DataFrame({}, index=index)
+
+    def add_df(self, df):
+        ''' Add columns from dataframe 'df' to dataframe '''
+        if self.df is None:
+            self.df = df
+        else:
+            self.df = self.df.join(df)
 
     def add_col(self, name, vals):
         ''' Add column 'name:vals' to dataframe '''

@@ -8,31 +8,17 @@ logger:
 # Dataset parameters
 #---
 dataset:
-  # Dataset type: 'df' means dataFrame
   dataset_type: 'df'
-  # Dataset name:
-  #   A simple name for the dataset.
-  #   It is appended to dataset_path to create dataset_file_name
   dataset_name: 'linear3'
-
-  # Dataset Path: Path to use when loading and saving datasets
   dataset_path: 'data/linear3'
-
-  # Use (internal) 'split' function if none is provided by the user?
-  # Note: This function returns dataset as a list
-  is_use_default_split: False
-
-  # Output variables (what we want to predict)
   outputs: ['y']
-
-  # Drop columns having standard deviation below this limit
   std_threshold: 0.0001
 
 #---
 # Dataset exploration
 #---
 dataset_explore:
-  enable: False
+  enable: True
   is_use_ori: True
   is_summary: True
   is_nas: True

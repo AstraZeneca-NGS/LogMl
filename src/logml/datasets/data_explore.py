@@ -13,6 +13,7 @@ from scipy.cluster import hierarchy as hc
 
 from ..core.config import CONFIG_DATASET_EXPLORE
 from ..core.files import MlFiles
+from ..util.results_df import ResultsDf
 
 
 # Remove some scikit warnings
@@ -57,7 +58,10 @@ class DataExplore(MlFiles):
 
     def explore(self, df, name):
         # Analysis: Single variable analysis
-        self._info("Explore data '{name}': End")
+        if df is None:
+            self._debug(f"Explore data '{name}': DataFrame is None, skipping.")
+            return
+        self._info(f"Explore data '{name}': End")
         print(f"Summary: {name}")
         self.summary(df)
         print(f"Missing data: {name}")
@@ -132,13 +136,16 @@ class DataExplore(MlFiles):
             return
         dfs = self.keep_uniq(df)
         print(f"Plotting histograms for columns: {list(dfs.columns)}")
+        descr = ResultsDf()
         for c in sorted(dfs.columns):
             xi = dfs[c]
-            self.describe(xi, c)
+            df_desc = self.describe(xi, c)
+            descr.add_df(df_desc)
             bins = min(len(xi.unique()), max_bins)
             sns.distplot(xi, bins=bins)
             plt.title(c)
             plt.show()
+        self.print_all('Summary description', descr.df)
 
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
@@ -152,6 +159,7 @@ class DataExplore(MlFiles):
         # Show all information
         df_desc = pd.concat([df_desc, df_skew, df_kurt, df_fit])
         self.print_all(f"Summary {field_name}", df_desc)
+        return df_desc
 
     def distribution_fit(self, x, field_name):
         " Check if a sample matches a distribution "
@@ -196,8 +204,14 @@ class DataExplore(MlFiles):
     def nas(self, df):
         " Analysis of missing values "
         if not self.is_nas:
+            self._info("Missing values analysis disabled, skipping")
             return
         # Number of missing values, sorted
+        count_nas = df.isna().to_numpy().sum()
+        if count_nas == 0:
+            self._info("There are no missing values: Skipping missing values analysis")
+            return
+        self._info("Missing values analysis")
         nas_count = df.isna().sum().sort_values(ascending=False)
         nas_perc = nas_count / len(df)
         dfnas = pd.DataFrame({'count': nas_count, 'percent': nas_perc})
