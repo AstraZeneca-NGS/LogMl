@@ -6,14 +6,13 @@ import random
 import sys
 import unittest
 
-from logml.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
-from logml.datasets import Datasets
-from logml.datasets_df import DatasetsDf
-from logml.files import MlFiles
-from logml.log import MlLog
+from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
+from logml.datasets import Datasets, DatasetsDf
+from logml.core.files import MlFiles
+from logml.core.log import MlLog
 from logml.logml import LogMl
-from logml.model import Model
-from logml.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
+from logml.models import Model
+from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
 
 
 def rm(file):
