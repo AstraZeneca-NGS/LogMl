@@ -2,7 +2,7 @@ LassoCVRegression:
   functions:
     model_create:
       copy_X: true
-      cv: warn
+      cv: 5
       eps: 0.001
       fit_intercept: true
       max_iter: 1000

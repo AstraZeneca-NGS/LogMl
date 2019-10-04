@@ -18,7 +18,7 @@ dataset:
 # Dataset exploration
 #---
 dataset_explore:
-  enable: False
+  enable: True
   is_use_ori: True
   is_summary: True
   is_nas: True
@@ -31,7 +31,7 @@ dataset_explore:
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
-  enable: False
+  enable: True
 
 #---
 # Model definition and parameters
@@ -71,7 +71,7 @@ hyper_parameter_optimization:
     #   - 'random': Random search
     algorithm: 'tpe'
     # Max number of hyper-parameter evaluations. Keep in mnd that each evaluation is a full model training
-    max_evals: 100
+    max_evals: 20
     # Parameter space to explore
     space:
         # Parameters space for 'train_model'. Names have to match exactly the ones in 'train_model' parameters section
