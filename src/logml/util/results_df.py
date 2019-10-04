@@ -18,11 +18,13 @@ class ResultsDf:
 
     def add_col(self, name, vals):
         ''' Add column 'name:vals' to dataframe '''
+        vals = self._flatten(vals)
         df_new = pd.DataFrame({name: vals}, index=self.index)
         self.df = self.df.join(df_new)
 
     def add_col_rank(self, name, vals, reversed=False):
         ''' Add a column ranked by value '''
+        vals = self._flatten(vals)
         temp = vals.argsort()
         ranks = np.empty_like(temp)
         if reversed:
@@ -42,3 +44,6 @@ class ResultsDf:
                 ranks = ranks + self.df[c]
         self.add_col_rank("ranksum", ranks)
         self.add_col_rank("rank_of_ranksum", ranks)
+
+    def _flatten(self, x):
+        return x if x.ndim == 1 else x.flatten()

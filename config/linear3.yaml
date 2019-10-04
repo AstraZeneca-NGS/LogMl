@@ -18,7 +18,7 @@ dataset:
 # Dataset exploration
 #---
 dataset_explore:
-  enable: True
+  enable: False
   is_use_ori: True
   is_summary: True
   is_nas: True
@@ -31,7 +31,7 @@ dataset_explore:
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
-  enable: False
+  enable: True
 
 #---
 # Model definition and parameters

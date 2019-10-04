@@ -78,7 +78,7 @@ class DataExplore(MlFiles):
         # TODO: Dimmensionality reduction {PCA, LDA, tSNE, KL}
         # TODO: Remove outliers
         # TODO: Multimodal analysys
-        self._info("Explore data '{name}': End")
+        self._info(f"Explore data '{name}': End")
         return True
 
     def correlation_analysis(self, df):
