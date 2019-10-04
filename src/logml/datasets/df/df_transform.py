@@ -52,7 +52,7 @@ class DfTransform(MlLog):
         '''
         super().__init__(config, CONFIG_DATASET)
         self.df = df
-        self.categories = list()  # Fields to be converted to categorical. Entries are list of categories
+        self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
         self.category_column = dict()  # Store Pandas categorical definition
         self.columns_to_add = dict()
         self.columns_to_remove = set()
