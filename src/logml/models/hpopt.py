@@ -3,8 +3,8 @@ import hyperopt
 import copy
 import numpy as np
 
-from .config import CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_FUNCTIONS, CONFIG_MODEL
-from .log import MlLog
+from ..core.config import CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_FUNCTIONS, CONFIG_MODEL
+from ..core.log import MlLog
 
 
 HYPER_PARAM_CREATE_DATASET = ['augment', 'dataset_create', 'dataset_load', 'dataset_split', 'preprocess']

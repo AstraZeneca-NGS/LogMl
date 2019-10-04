@@ -121,7 +121,6 @@ class Config(MlFiles):
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
         self._debug(f"params: {self.parameters}")
-        ms = self.parameters['model_search']['models']
         self._set_from_config()
         return self._config_sanity_check()
 

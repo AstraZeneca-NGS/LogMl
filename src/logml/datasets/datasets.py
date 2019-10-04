@@ -2,11 +2,12 @@ import numpy as np
 import random
 
 from collections import namedtuple
-from .config import CONFIG_DATASET
-from .files import MlFiles
-from .registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
+from ..core.config import CONFIG_DATASET
+from ..core.files import MlFiles
+from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
 
 InOut = namedtuple('InOut', ['x', 'y'])
+
 
 class Datasets(MlFiles):
     '''

@@ -8,12 +8,10 @@ import pandas as pd
 import pickle
 import tensorflow as tf
 
-from .datasets import Datasets, InOut
+from ..datasets import Datasets, InOut
 from .df_transform import DfTransform
 
 from sklearn.ensemble import RandomForestRegressor
-from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
-
 from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
 
 

@@ -11,8 +11,8 @@ import warnings
 from IPython.display import display
 from scipy.cluster import hierarchy as hc
 
-from .config import CONFIG_DATASET_EXPLORE
-from .files import MlFiles
+from ..core.config import CONFIG_DATASET_EXPLORE
+from ..core.files import MlFiles
 
 
 # Remove some scikit warnings

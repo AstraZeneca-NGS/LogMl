@@ -1,8 +1,8 @@
 
 import re
 
-from ..config import CONFIG_MODEL_SEARCH
-from ..model import Model
+from ..core.config import CONFIG_MODEL_SEARCH
+from .model import Model
 
 
 def camel_to_snake(name):

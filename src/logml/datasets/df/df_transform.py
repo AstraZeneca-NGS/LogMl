@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import re
 
-from .config import CONFIG_DATASET
-from .log import MlLog
+from ...core.config import CONFIG_DATASET
+from ...core.log import MlLog
 
 sanitize_valid_chars = set('_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
 sanitize_dict = {
