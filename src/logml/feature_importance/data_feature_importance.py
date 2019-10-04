@@ -66,6 +66,7 @@ class DataFeatureImportance(MlFiles):
         self.select()
         self.recursive_feature_elimination()
         # Use ranks from all previously calculated models
+        self._info(f"Feature importance: Adding 'rank of rank_sum' column")
         self.results.add_rank_of_ranksum()
         res = self.results.df
         res.sort_values('rank_of_ranksum', inplace=True)
@@ -87,7 +88,7 @@ class DataFeatureImportance(MlFiles):
             1) Using sklean 'model.feature_importances_'
             2) Using FeatureImportanceFromModel class
         """
-        self._debug(f"Feature importance based on {model_name}")
+        self._debug(f"Feature importance: Based on {model_name}")
         fi = FeatureImportanceFromModel(model, model_name, self.x, self.y)
         if not fi():
             self._info("Could not analyze feature importance using RandomForest")
@@ -99,6 +100,7 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_skmodel(self, model, model_name):
         ''' Show model built-in feature importance '''
+        self._info(f"Feature importance: Based on SkLean {model_name}")
         self.results.add_col(f"feature_importances_sk_{model_name}", model.feature_importances_)
         self.results.add_col_rank(f"feature_importances_sk_rank_{model_name}", model.feature_importances_, reversed=True)
 
@@ -219,7 +221,7 @@ class DataFeatureImportance(MlFiles):
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
-        self._debug(f"Feature importance: Recursive feature elimination, model '{model_name}'")
+        self._info(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
         if self.rfe_model_cv > 1:
             rfe = RFECV(model, min_features_to_select=1, cv=self.rfe_model_cv)
         else:
@@ -229,21 +231,22 @@ class DataFeatureImportance(MlFiles):
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
-        self._debug(f"Feature importance based on regularization")
+        self._info(f"Feature importance: Regularization")
         # LassoCV
         lassocv = self.regularization_model(self.fit_lasso())
         self.plot_lasso_alphas(lassocv)
         # RidgeCV
         ridgecv = self.regularization_model(self.fit_ridge())
         # LARS
-        lars_aic = self.regularization_model(self.fit_lars_aic())
-        lars_bic = self.regularization_model(self.fit_lars_bic())
+        lars_aic = self.regularization_model(self.fit_lars_aic(), 'Lars_AIC')
+        lars_bic = self.regularization_model(self.fit_lars_bic(), 'Lars_BIC')
         self.plot_lars(lars_aic, lars_bic)
 
-    def regularization_model(self, model):
+    def regularization_model(self, model, model_name=None):
         ''' Fit a modelularization model and show non-zero coefficients '''
-        keep = (model.coef_ != 0.0)
-        model_name = model.__class__.__name__
+        self._info(f"Feature importance: Regularization '{model_name}'")
+        if not model_name:
+            model_name = model.__class__.__name__
         self.results.add_col(f"regularization_coef_{model_name}", model.coef_)
         self.results.add_col_rank(f"regularization_rank_{model_name}", model.coef_, reversed=True)
         return model
@@ -287,7 +290,7 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col(f"selectf_keep_{fname}", keep)
         self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
-    def tree_graph(self, max_depthfile_dot='tree.dot', file_png='tree.png'):
+    def tree_graph(self, file_dot='tree.dot', file_png='tree.png'):
         """ Simple tree representation """
         self._info(f"Tree graph: Random Forest")
         # Train a single tree with all the samples
