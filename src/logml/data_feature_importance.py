@@ -23,6 +23,35 @@ from .feature_importance import FeatureImportanceFromModel
 EPSILON = 1.0e-4
 
 
+class ResultsDf:
+    def __init__(self, index):
+        self.index = index
+        self.df = pd.DataFrame({}, index=index)
+
+    def add_col(self, name, vals):
+        ''' Add column 'name:vals' to dataframe '''
+        df_new = pd.DataFrame({name: vals}, index=self.index)
+        self.df = self.df.join(df_new)
+
+    def add_col_rank(self, name, vals, reversed=False):
+        ''' Add a column ranked by value '''
+        temp = vals.argsort()
+        ranks = np.empty_like(temp)
+        if reversed:
+            temp = temp[::-1]
+        ranks[temp] = np.arange(len(vals))
+        self.add_col(name, ranks)
+
+    def add_rank_of_ranksum(self):
+        ''' Add a column with the rank of the sum of all columns having 'rank' in the name '''
+        len = self.df.shape[0]
+        ranks = np.zeros(len)
+        for c in self.df.columns:
+            if 'rank' in c:
+                ranks = ranks + self.df[c]
+        self.add_col_rank("rank_of_ranksum", ranks)
+
+
 # TODO: Add a summary table with results from all feature importance methods
 class DataFeatureImportance(MlFiles):
     '''
@@ -38,6 +67,8 @@ class DataFeatureImportance(MlFiles):
         self.tree_graph_max_depth = 4
         if set_config:
             self._set_from_config()
+        self.x, self.y = self.datasets.get_train_xy()
+        self.results = ResultsDf(self.x.columns)
 
     def boruta(self):
         ''' Calculate feature improtance using Boruta algorithm '''
@@ -48,9 +79,8 @@ class DataFeatureImportance(MlFiles):
         model = self.fit_random_forest()
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
         boruta.fit(self.x, self.y)
-        bor_df = pd.DataFrame({'support': boruta.support_, 'rank': boruta.ranking_}, index=self.x.columns)
-        bor_df.sort_values(by=['rank'], inplace=True)
-        display(bor_df)
+        self.results.add_col('boruta_support', boruta.support_)
+        self.results.add_col('boruta_rank', boruta.ranking_)
 
     def __call__(self):
         ''' Feature importance '''
@@ -58,12 +88,17 @@ class DataFeatureImportance(MlFiles):
             self._info(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
         self._info("Feature importance / feature selection (model_type={self.model_type}): Start")
-        self.x, self.y = self.datasets.get_train_xy()
+        self.feature_importance()
         self.boruta()
         self.regularization_models()
         self.select()
-        self.feature_importance()
         self.recursive_feature_elimination()
+        # Use ranks from all previously calculated models
+        self.results.add_rank_of_ranksum()
+        res = self.results.df
+        res.sort_values('rank_of_ranksum', inplace=True)
+        display(res)
+        # Show a decitin tree of the most important variables (first levels)
         self.tree_graph()
         self._info("Feature importance / feature selection: End")
         return True
@@ -81,20 +116,19 @@ class DataFeatureImportance(MlFiles):
             2) Using FeatureImportanceFromModel class
         """
         self._debug(f"Feature importance based on {model_name}")
-        self.feature_importance_skmodel(model, model_name)
         fi = FeatureImportanceFromModel(model, model_name, self.x, self.y)
         if not fi():
             self._info("Could not analyze feature importance using RandomForest")
+        self.results.add_col(f"importance_model_{model_name}", fi.performance_norm)
+        self.results.add_col_rank(f"importance_model_rank_{model_name}", fi.performance_norm, reversed=True)
         fi.plot()
+        self.feature_importance_skmodel(model, model_name)
         return True
 
     def feature_importance_skmodel(self, model, model_name):
         ''' Show model built-in feature importance '''
-        field_name = f"importance_{model_name}"
-        imp_df = pd.DataFrame({field_name: model.feature_importances_}, index=self.x.columns)
-        imp_df.sort_values(by=[field_name], ascending=False, inplace=True)
-        display(imp_df)
-        return True
+        self.results.add_col(f"feature_importances_sk_{model_name}", model.feature_importances_)
+        self.results.add_col_rank(f"feature_importances_sk_rank_{model_name}", model.feature_importances_, reversed=True)
 
     def fit_lars_aic(self):
         model = LassoLarsIC(criterion='aic')
@@ -167,6 +201,7 @@ class DataFeatureImportance(MlFiles):
         plt.axvline(-np.log10(alpha_), color=color, linewidth=3, label=f"alpha: {name} estimate")
         plt.xlabel('-log(alpha)')
         plt.ylabel('criterion')
+        plt.show()
 
     def plot_lars(self, model_aic, model_bic):
         '''
@@ -218,10 +253,7 @@ class DataFeatureImportance(MlFiles):
         else:
             rfe = RFE(model, n_features_to_select=1, cv=self.rfe_model_cv)
         fit = rfe.fit(self.x, self.y)
-        field_name = f"rfe_{model_name}"
-        rfe_df = pd.DataFrame({field_name: fit.ranking_}, index=self.x.columns)
-        rfe_df.sort_values(by=[field_name], ascending=True, inplace=True)
-        display(rfe_df)
+        self.results.add_col(f"rfe_{model_name}", fit.ranking_)
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
@@ -240,10 +272,8 @@ class DataFeatureImportance(MlFiles):
         ''' Fit a modelularization model and show non-zero coefficients '''
         keep = (model.coef_ != 0.0)
         model_name = model.__class__.__name__
-        field_name = f"coeficient_{model_name}"
-        coef_df = pd.DataFrame({field_name: model.coef_[keep]}, index=self.x.columns[keep])
-        coef_df.sort_values(by=[field_name], ascending=False, inplace=True)
-        display(coef_df)
+        self.results.add_col(f"regularization_coef_{model_name}", model.coef_)
+        self.results.add_col_rank(f"regularization_rank_{model_name}", model.coef_, reversed=True)
         return model
 
     def select(self):
@@ -278,12 +308,12 @@ class DataFeatureImportance(MlFiles):
             select = SelectKBest(score_func=score_function, k='all')
         fit = select.fit(self.x, self.y)
         keep = select.get_support()
+        field_name = f"scores_{fname}"
+        self.results.add_col(f"selectf_scores_{fname}", select.scores_)
         if has_pvalue:
-            select_df = pd.DataFrame({f"scores_{fname}": select.scores_, f"p_values_{fname}": select.pvalues_, f"keep_{fname}": keep}, index=self.x.columns)
-        else:
-            select_df = pd.DataFrame({f"scores_{fname}": select.scores_}, index=self.x.columns)
-        select_df.sort_values(by=[f"scores_{fname}"], inplace=True, ascending=False)
-        display(select_df)
+            self.results.add_col(f"selectf_p_values_{fname}", select.pvalues_)
+            self.results.add_col(f"selectf_keep_{fname}", keep)
+        self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
     def tree_graph(self, max_depthfile_dot='tree.dot', file_png='tree.png'):
         """ Simple tree representation """

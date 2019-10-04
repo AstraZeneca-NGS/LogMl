@@ -4,6 +4,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+from sklearn.preprocessing import MinMaxScaler
+
 
 class FeatureImportanceFromModel:
     '''
@@ -28,6 +30,7 @@ class FeatureImportanceFromModel:
         x_copy = self.x.copy()
         pred = self.model.predict(x_copy)
         # Shuffle each column
+        perf = list()
         for c in self.x:
             # Shuffle column 'c'
             x_copy = self.x.copy()
@@ -36,11 +39,14 @@ class FeatureImportanceFromModel:
             # How did it perform
             pred_c = self.model.predict(x_copy)
             perf_c = self.rmse(pred, pred_c)
+            perf.append(perf_c)
             self.performance[c] = perf_c
             if self.verbose:
                 print(f"{c}: {perf_c}")
         # List of items sorted by importance (most important first)
         self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
+        p = np.array(perf)
+        self.performance_norm = (p - p.min()) / (p.max() - p.min())
         return True
 
     def most_important(self, importance_threshold=None, ratio_to_most_important=100, df=None):
@@ -64,10 +70,10 @@ class FeatureImportanceFromModel:
         plt.figure(figsize=self.figsize)
         plt.barh(imp_x, imp_y)
         plt.title(f"Feature importance {self.model_name}")
-        # Show line plot
-        plt.figure(figsize=self.figsize)
-        plt.plot(imp_x, imp_y)
-        plt.title(f"Feature importance {self.model_name}")
+        # # Show line plot
+        # plt.figure(figsize=self.figsize)
+        # plt.plot(imp_x, imp_y)
+        # plt.title(f"Feature importance {self.model_name}")
         plt.show()
 
     def rmse(self, x, y):
