@@ -35,7 +35,7 @@ class DataFeatureImportance(MlFiles):
         self.datasets = datasets
         self.model_type = model_type
         self.regularization_model_cv = 10
-        self.rfe_model_cv = 5
+        self.rfe_model_cv = 0
         self.tree_graph_max_depth = 4
         if set_config:
             self._set_from_config()
@@ -71,7 +71,7 @@ class DataFeatureImportance(MlFiles):
         res = self.results.df
         res.sort_values('rank_of_ranksum', inplace=True)
         display(res)
-        # Show a decitin tree of the most important variables (first levels)
+        # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         self._info("Feature importance / feature selection: End")
         return True
@@ -88,7 +88,7 @@ class DataFeatureImportance(MlFiles):
             1) Using sklean 'model.feature_importances_'
             2) Using FeatureImportanceFromModel class
         """
-        self._debug(f"Feature importance: Based on {model_name}")
+        self._debug(f"Feature importance: Based on '{model_name}'")
         fi = FeatureImportanceFromModel(model, model_name, self.x, self.y)
         if not fi():
             self._info("Could not analyze feature importance using RandomForest")
@@ -100,7 +100,7 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_skmodel(self, model, model_name):
         ''' Show model built-in feature importance '''
-        self._info(f"Feature importance: Based on SkLean {model_name}")
+        self._info(f"Feature importance: Based on SkLean '{model_name}'")
         self.results.add_col(f"feature_importances_sk_{model_name}", model.feature_importances_)
         self.results.add_col_rank(f"feature_importances_sk_rank_{model_name}", model.feature_importances_, reversed=True)
 
@@ -175,7 +175,6 @@ class DataFeatureImportance(MlFiles):
         plt.axvline(-np.log10(alpha_), color=color, linewidth=3, label=f"alpha: {name} estimate")
         plt.xlabel('-log(alpha)')
         plt.ylabel('criterion')
-        plt.show()
 
     def plot_lars(self, model_aic, model_bic):
         '''
