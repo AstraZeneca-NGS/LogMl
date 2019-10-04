@@ -75,6 +75,7 @@ class LogMl(MlFiles):
             self._error("Could not train model")
             return False
         if self.display_model_results:
+            self.model_results.sort('validate')
             self.model_results.display()
         self._debug("End")
         return True
