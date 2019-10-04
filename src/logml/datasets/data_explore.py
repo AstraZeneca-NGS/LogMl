@@ -49,7 +49,7 @@ class DataExplore(MlFiles):
     def __call__(self):
         ''' Explore dataset '''
         if not self.enable:
-            self._info(f"Dataset exploration disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
+            self._debug(f"Dataset exploration disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
             return True
         self._info("Explore data: Start")
         if self.is_use_ori:

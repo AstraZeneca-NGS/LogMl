@@ -31,13 +31,13 @@ dataset_explore:
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
-  enable: True
+  enable: False
 
 #---
 # Model definition and parameters
 #---
 model:
-  enable: False
+  enable: True
 
   # Type of model: {'clasification', 'regression', 'unsupervised'}
   model_type: regression
@@ -175,5 +175,5 @@ functions:
 # Model search
 #---
 model_search:
-  enable: False
+  enable: True
   models: !include models_search/*.yaml

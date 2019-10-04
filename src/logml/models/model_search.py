@@ -3,7 +3,7 @@ import copy
 import logml
 import yaml
 
-from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
+from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
 from .sklearn_model import SkLearnModel
 
@@ -57,16 +57,23 @@ class ModelSearch(MlFiles):
         return True
 
     def search_model(self, model_class, params):
-        ''' Create model and train it '''
+        '''
+        Create model and train it.
+        Creates a new config, a new LogMl, adds the model to it and then runs
+        the new LogMl
+        '''
         self._debug(f"Searching model: model_class={model_class}\tparameters={params}")
         enable = params.get('enable', True)
         if not enable:
-            self._debug(f"Searching model: Model disabled (enable={enable}), skipping")
+            self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
             return
-        # Create updated config, make sure.
-        # Disable 'model_search' to avoid infinite recursion
+        # Create updated config
         conf = self.config.update_section(None, params)
-        conf.parameters['model_search']['enable'] = False
+        # Disable some sections to avoid repetition (e.g. 'model_search' to avoid infinite recursion)
+        conf.set_enable(CONFIG_DATASET_EXPLORE, enable=False)
+        conf.set_enable(CONFIG_DATASET_FEATURE_IMPORTANCE, enable=False)
+        conf.set_enable(CONFIG_MODEL_ANALYSIS, enable=False)
+        conf.set_enable(CONFIG_MODEL_SEARCH, enable=False)
         self._debug(f"New config: {conf}")
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")

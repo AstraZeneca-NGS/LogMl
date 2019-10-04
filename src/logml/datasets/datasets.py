@@ -56,7 +56,7 @@ class Datasets(MlFiles):
         Save at each step for faster processing / consistency
         '''
         if not self.enable:
-            self._info(f"Dataset disabled, skipping (enable='{self.enable}')")
+            self._debug(f"Dataset disabled, skipping (enable='{self.enable}')")
             return True
         self._debug("Start")
         self.should_save = False
@@ -204,25 +204,25 @@ class Datasets(MlFiles):
 
     def get_train(self):
         if self.dataset_train is None:
-            self._info(f"Training dataset not found, using whole dataset")
+            self._debug(f"Training dataset not found, using whole dataset")
             return self.dataset
         return self.dataset_train
 
     def get_train_xy(self):
         if self.dataset_train_xy.x is None:
-            self._info(f"Training dataset not found, using whole dataset")
+            self._debug(f"Training dataset not found, using whole dataset")
             return self.dataset_xy
         return self.dataset_train_xy
 
     def get_validate(self):
         if self.dataset_validate is None:
-            self._info(f"Validate dataset not found, using whole dataset")
+            self._debug(f"Validate dataset not found, using whole dataset")
             return self.dataset
         return self.dataset_validate
 
     def get_validate_xy(self):
         if self.dataset_validate_xy.x is None:
-            self._info(f"Validate dataset not found, using whole dataset")
+            self._debug(f"Validate dataset not found, using whole dataset")
             return self.dataset_xy
         return self.dataset_validate_xy
 

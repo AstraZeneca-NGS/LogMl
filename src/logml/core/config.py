@@ -124,6 +124,10 @@ class Config(MlFiles):
         self._set_from_config()
         return self._config_sanity_check()
 
+    def set_enable(self, section, enable=True):
+        if section in self.parameters:
+            self.parameters[section]['enable'] = enable
+
     def update(self, params):
         '''
         Create a new config and update parameters from 'params' dictionary

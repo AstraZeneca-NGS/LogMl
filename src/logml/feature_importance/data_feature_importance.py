@@ -57,7 +57,7 @@ class DataFeatureImportance(MlFiles):
     def __call__(self):
         ''' Feature importance '''
         if not self.enable:
-            self._info(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
+            self._debug(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
         self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
