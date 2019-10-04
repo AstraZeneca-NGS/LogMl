@@ -22,10 +22,14 @@ class ResultsDf:
         self.add_col(name, ranks)
 
     def add_rank_of_ranksum(self):
-        ''' Add a column with the rank of the sum of all columns having 'rank' in the name '''
+        '''
+        Add a column with the sum of all columns having 'rank' in the name.
+        Also, add the rank of the previous column (i.e. rank of 'rank sum')
+        '''
         len = self.df.shape[0]
         ranks = np.zeros(len)
         for c in self.df.columns:
             if 'rank' in c:
                 ranks = ranks + self.df[c]
+        self.add_col_rank("ranksum", ranks)
         self.add_col_rank("rank_of_ranksum", ranks)
