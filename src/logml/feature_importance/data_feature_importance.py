@@ -122,9 +122,9 @@ class DataFeatureImportance(MlFiles):
     def fit_extra_trees(self, n_estimators=100):
         ''' Create a ExtraTrees model '''
         if self.is_regression():
-            m = ExtraTreesRegressor(n_estimators=n_estimators)
+            m = ExtraTreesRegressor(n_jobs=-1, n_estimators=n_estimators)
         elif self.is_classification():
-            m = ExtraTreesClassifier(n_estimators=n_estimators)
+            m = ExtraTreesClassifier(n_jobs=-1, n_estimators=n_estimators)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
         m.fit(self.x, self.y)
@@ -144,9 +144,9 @@ class DataFeatureImportance(MlFiles):
     def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
         ''' Create a RandomForest model '''
         if self.is_regression():
-            m = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+            m = RandomForestRegressor(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
         elif self.is_classification():
-            m = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+            m = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
         m.fit(self.x, self.y)
