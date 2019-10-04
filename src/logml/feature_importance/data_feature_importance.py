@@ -243,9 +243,9 @@ class DataFeatureImportance(MlFiles):
 
     def regularization_model(self, model, model_name=None):
         ''' Fit a modelularization model and show non-zero coefficients '''
-        self._info(f"Feature importance: Regularization '{model_name}'")
         if not model_name:
             model_name = model.__class__.__name__
+        self._info(f"Feature importance: Regularization '{model_name}'")
         self.results.add_col(f"regularization_coef_{model_name}", model.coef_)
         self.results.add_col_rank(f"regularization_rank_{model_name}", model.coef_, reversed=True)
         return model
