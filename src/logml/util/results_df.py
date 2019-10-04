@@ -32,6 +32,18 @@ class ResultsDf:
         ranks[temp] = np.arange(len(vals))
         self.add_col(name, ranks)
 
+    def add_row(self, row_name, vals_dict):
+        ''' Add a row of values '''
+        df_row = pd.DataFrame(vals_dict, index=[row_name])
+        self.add_row_df(df_row)
+
+    def add_row_df(self, df):
+        ''' Add (concatenate) a rows in 'df' '''
+        if self.df is None:
+            self.df = df
+        else:
+            self.df = pd.concat([self.df, df])
+
     def add_rank_of_ranksum(self):
         '''
         Add a column with the sum of all columns having 'rank' in the name.

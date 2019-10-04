@@ -38,38 +38,16 @@ dataset_feature_importance:
 #---
 model:
   enable: True
-
-  # Type of model: {'clasification', 'regression', 'unsupervised'}
   model_type: regression
-
-  # Model name: A simple string to use for file names related to this model
   model_name: 'linear3'
-
-  # Buit-in model
   model_class: sklearn.ensemble.RandomForestRegressor
-
-  # Train path: A path where to store logs and data from training
-  model_path: 'data/bulldozers/model'
-
-  # Try to save model using a pickle file?
+  model_path: 'data/linear3/model'
   is_save_model_pickle: True
-
-  # Try to save model using a 'model.save()'?
   is_save_model_method: True
-
-  # Model file extesion
   is_save_model_method_ext: 'model'
-
-  # Save parameters to YAML file
   is_save_params: True
-
-  # Save model test results to a pickle file?
   is_save_test_pickle: True
-
-  # Save model train results to pickle file?
   is_save_train_pickle: False
-
-  # Save model validation results to pickle file?
   is_save_validate_pickle: False
 
 #---
@@ -175,5 +153,5 @@ functions:
 # Model search
 #---
 model_search:
-  enable: True
+  enable: False
   models: !include models_search/*.yaml

@@ -2,11 +2,12 @@ import copy
 import datetime
 
 from .core import Config, CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
-from .models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelSearch, SkLearnModel
-from .datasets import Datasets, DatasetsDf, DataExplore
-from .feature_importance import DataFeatureImportance
 from .core.files import MlFiles
 from .core.registry import MODEL_CREATE
+from .datasets import Datasets, DatasetsDf, DataExplore
+from .feature_importance import DataFeatureImportance
+from .models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelSearch, SkLearnModel
+from .util.results_df import ResultsDf
 
 
 class LogMl(MlFiles):
@@ -27,6 +28,7 @@ class LogMl(MlFiles):
         self._set_from_config()
         if self.config:
             self.initialize()
+        self.model_results = ResultsDf()
 
     def _config_sanity_check(self):
         '''
@@ -121,6 +123,9 @@ class LogMl(MlFiles):
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
+        # Add results
+        model_results = {'train': self.model.validate_results, 'validate': self.model.validate_results}
+        self.model_results.add_row(model_results, f"{self.model.model_class}.{self.model._id}")
         self._debug(f"End")
         return ret
 

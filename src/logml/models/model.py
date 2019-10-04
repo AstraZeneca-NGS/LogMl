@@ -31,6 +31,7 @@ class Model(MlFiles):
         self.is_save_validate_pickle = False
         self.is_test_model = True
         self.model = None
+        self.model_class = self.__class__.__name__
         self.model_name = None
         self.model_path = None
         self.model_type = None
@@ -55,6 +56,7 @@ class Model(MlFiles):
         finally:
             self._debug(f"Restoring stdout/stderr")
             self.tee(True)  # Close tees
+        self._info(f"MODEL VALIDATE: {self.validate_results}")
         return ret
 
     def _call(self):
