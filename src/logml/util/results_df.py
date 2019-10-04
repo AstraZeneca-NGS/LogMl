@@ -44,7 +44,7 @@ class ResultsDf:
         if self.df is None:
             self.df = df
         else:
-            self.df = pd.concat([self.df, df])
+            self.df = pd.concat([self.df, df], sort=False)
 
     def add_rank_of_ranksum(self):
         '''
