@@ -62,6 +62,14 @@ class Config(MlFiles):
         '''
         return True
 
+    def copy(self, disable_all=False):
+        ''' Create a copy of the config, disable all sections if 'disable_all' is true '''
+        conf = copy.deepcopy(self)
+        if disable_all:
+            for sec in [CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH]:
+                conf.set_enable(sec, enable=False)
+        return conf
+
     def get_parameters(self, section):
         ''' Get 'section' parameters '''
         if section in self.parameters:

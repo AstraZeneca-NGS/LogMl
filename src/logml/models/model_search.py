@@ -3,7 +3,7 @@ import copy
 import logml
 import yaml
 
-from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH
+from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
 from .sklearn_model import SkLearnModel
 
@@ -67,13 +67,10 @@ class ModelSearch(MlFiles):
         if not enable:
             self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
             return
-        # Create updated config
-        conf = self.config.update_section(None, params)
         # Disable some sections to avoid repetition (e.g. 'model_search' to avoid infinite recursion)
-        conf.set_enable(CONFIG_DATASET_EXPLORE, enable=False)
-        conf.set_enable(CONFIG_DATASET_FEATURE_IMPORTANCE, enable=False)
-        conf.set_enable(CONFIG_MODEL_ANALYSIS, enable=False)
-        conf.set_enable(CONFIG_MODEL_SEARCH, enable=False)
+        # Create updated config
+        conf = self.config.copy(disable_all=True)
+        conf = conf.update_section(None, params)
         self._debug(f"New config: {conf}")
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
