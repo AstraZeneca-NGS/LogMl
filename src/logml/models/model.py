@@ -1,5 +1,6 @@
 
 import datetime
+import time
 
 from ..core.config import CONFIG_MODEL
 from ..core.files import MlFiles
@@ -21,6 +22,7 @@ class Model(MlFiles):
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
         self.datasets = datasets
+        self.elapsed_time = 0
         self.enable = True
         self.is_save_model_pickle = False
         self.is_save_model_method = False
@@ -56,7 +58,6 @@ class Model(MlFiles):
         finally:
             self._debug(f"Restoring stdout/stderr")
             self.tee(True)  # Close tees
-        self._info(f"MODEL VALIDATE: {self.validate_results}")
         return ret
 
     def _call(self):
@@ -71,6 +72,7 @@ class Model(MlFiles):
         if not self.save_params():
             self._error("Could not save parameters")
             return False
+        time_start = time.process_time()
         # Fit model and save it
         ret = self.model_train()
         if not ret:
@@ -90,7 +92,9 @@ class Model(MlFiles):
             if not self.save_test_results():
                 self._info("Could not save test results")
         else:
-            self._info("Could not test model")
+            self._debug("Could not test model")
+        time_end = time.process_time()
+        self.elapsed_time = time_end - time_start
         return True
 
     def _config_sanity_check(self):

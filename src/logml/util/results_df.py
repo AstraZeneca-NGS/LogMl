@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from IPython.core.display import Image, display
+
 
 class ResultsDf:
     def __init__(self, index=None):
@@ -56,6 +58,9 @@ class ResultsDf:
                 ranks = ranks + self.df[c]
         self.add_col_rank("ranksum", ranks)
         self.add_col_rank("rank_of_ranksum", ranks)
+
+    def display(self):
+        display(self.df)
 
     def _flatten(self, x):
         return x if x.ndim == 1 else x.flatten()

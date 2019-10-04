@@ -20,6 +20,7 @@ class LogMl(MlFiles):
         self.datasets = datasets
         self._id_counter = 0
         self.cross_validation = None
+        self.display_model_results = True
         self.hyper_parameter_optimization = None
         self.model = None
         self.model_ori = None
@@ -73,6 +74,8 @@ class LogMl(MlFiles):
         if not self.models_train():
             self._error("Could not train model")
             return False
+        if self.display_model_results:
+            self.model_results.display()
         self._debug("End")
         return True
 
@@ -124,8 +127,8 @@ class LogMl(MlFiles):
         self.model = self._new_model(config, dataset)
         ret = self.model()
         # Add results
-        model_results = {'train': self.model.validate_results, 'validate': self.model.validate_results}
-        self.model_results.add_row(model_results, f"{self.model.model_class}.{self.model._id}")
+        model_results = {'train': self.model.validate_results, 'validate': self.model.validate_results, 'time': self.model.elapsed_time}
+        self.model_results.add_row(f"{self.model.model_class}.{self.model._id}", model_results)
         self._debug(f"End")
         return ret
 

@@ -63,7 +63,7 @@ cross_validation:
 #---
 hyper_parameter_optimization:
     # Set this to 'True' to enable hyper-parameter optimization
-    enable: False
+    enable: True
     # Show progress bar
     show_progressbar: True
     # Algorithm:
@@ -71,7 +71,7 @@ hyper_parameter_optimization:
     #   - 'random': Random search
     algorithm: 'tpe'
     # Max number of hyper-parameter evaluations. Keep in mnd that each evaluation is a full model training
-    max_evals: 100
+    max_evals: 10
     # Parameter space to explore
     space:
         # Parameters space for 'train_model'. Names have to match exactly the ones in 'train_model' parameters section
