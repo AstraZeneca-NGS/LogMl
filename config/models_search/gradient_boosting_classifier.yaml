@@ -1,0 +1,21 @@
+GradientBoostingClassifier:
+  functions:
+    model_create:
+      criterion: friedman_mse
+      learning_rate: 0.1
+      loss: deviance
+      max_depth: 3
+      min_impurity_decrease: 0.0
+      min_samples_leaf: 1
+      min_samples_split: 2
+      min_weight_fraction_leaf: 0.0
+      n_estimators: 100
+      presort: auto
+      subsample: 1.0
+      tol: 0.0001
+      validation_fraction: 0.1
+      verbose: 0
+      warm_start: false
+  model:
+    model_class: sklearn.ensemble.GradientBoostingClassifier
+    model_type: classification
