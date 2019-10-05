@@ -1,4 +1,6 @@
 HistGradientBoostingRegressor:
+  # Experimental SkLean module, disabled by default
+  enable: false
   functions:
     model_create:
       l2_regularization: 0.0

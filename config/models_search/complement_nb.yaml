@@ -1,4 +1,5 @@
 ComplementNB:
+  enable: False
   functions:
     model_create:
       alpha: 1.0

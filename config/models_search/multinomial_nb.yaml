@@ -1,4 +1,7 @@
 MultinomialNB:
+  # Requires all inputs to be non-negative: Disabled
+  # You can enable this if your data fits the requirements
+  enable: false
   functions:
     model_create:
       alpha: 1.0

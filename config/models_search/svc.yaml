@@ -6,7 +6,7 @@ SVC:
       coef0: 0.0
       decision_function_shape: ovr
       degree: 3
-      gamma: auto_deprecated
+      gamma: scale
       kernel: rbf
       max_iter: -1
       probability: false

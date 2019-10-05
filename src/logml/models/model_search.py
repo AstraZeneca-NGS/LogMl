@@ -40,6 +40,9 @@ class ModelSearch(MlFiles):
         # For each model in 'models' secction: Create a nea LogMl ofbjec with these parameters and run it
         for model_def in self.models:
             name, params = next(iter(model_def.items()))
+            if 'enable' in params and not params['enable']:
+                self._debug(f"Model '{name}' is disabled (enable='{params['enable']}')")
+                continue
             if 'model' not in params:
                 self._debug(f"Model '{name}' does not have a 'model' section, ignoring")
                 continue

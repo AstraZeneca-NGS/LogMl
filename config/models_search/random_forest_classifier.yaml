@@ -1,7 +1,7 @@
 RandomForestClassifier:
   functions:
     model_create:
-      n_estimators: 'warn'
+      n_estimators: 100
       criterion: 'gini'
       min_samples_split: 2
       min_samples_leaf: 1
@@ -14,7 +14,7 @@ RandomForestClassifier:
       verbose: 0
       warm_start: false
   hyper_parameter_optimization:
-    enable: true
+    enable: false
     algorithm: tpe
     max_evals: 100
     show_progressbar: true

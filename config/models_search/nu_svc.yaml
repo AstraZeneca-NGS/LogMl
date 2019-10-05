@@ -1,11 +1,14 @@
 NuSVC:
+  # Requires tunning of 'nu' parameters, otherwise throws an error.
+  # Disabled by default.
+  enable: false
   functions:
     model_create:
       cache_size: 200
       coef0: 0.0
       decision_function_shape: ovr
       degree: 3
-      gamma: auto_deprecated
+      gamma: scale
       kernel: rbf
       max_iter: -1
       nu: 0.5
