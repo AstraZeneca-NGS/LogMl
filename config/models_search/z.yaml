@@ -1,0 +1,161 @@
+# Classifier:
+AdaBoostClassifier:
+  model:
+    model_class: sklearn.ensemble.AdaBoostClassifier
+    model_type: classification
+  functions:
+    model_create:
+      n_estimators: 50
+      learning_rate: 1.0
+      algorithm: 'SAMME.R'
+BaggingClassifier:
+  model:
+    model_class: sklearn.ensemble.BaggingClassifier
+    model_type: classification
+  functions:
+    model_create:
+      n_estimators: 10
+      max_samples: 1.0
+      max_features: 1.0
+      bootstrap: True
+      bootstrap_features: False
+      oob_score: False
+      warm_start: False
+      n_jobs: -1
+      verbose: 0
+ExtraTreesClassifier:
+  model:
+    model_class: sklearn.ensemble.ExtraTreesClassifier
+    model_type: classification
+  functions:
+    model_create:
+      n_estimators: 'warn'
+      criterion: 'gini'
+      min_samples_split: 2
+      min_samples_leaf: 1
+      min_weight_fraction_leaf: 0.0
+      max_features: 'auto'
+      min_impurity_decrease: 0.0
+      bootstrap: False
+      oob_score: False
+      n_jobs: -1
+      verbose: 0
+      warm_start: False
+GradientBoostingClassifier:
+  model:
+    model_class: sklearn.ensemble.GradientBoostingClassifier
+    model_type: classification
+  functions:
+    model_create:
+      loss: 'deviance'
+      learning_rate: 0.1
+      n_estimators: 100
+      subsample: 1.0
+      criterion: 'friedman_mse'
+      min_samples_split: 2
+      min_samples_leaf: 1
+      min_weight_fraction_leaf: 0.0
+      max_depth: 3
+      min_impurity_decrease: 0.0
+      verbose: 0
+      warm_start: False
+      presort: 'auto'
+      validation_fraction: 0.1
+      tol: 0.0001
+HistGradientBoostingClassifier:
+  model:
+    model_class: sklearn.ensemble.HistGradientBoostingClassifier
+    model_type: classification
+  functions:
+    model_create:
+      loss: 'auto'
+      learning_rate: 0.1
+      max_iter: 100
+      max_leaf_nodes: 31
+      min_samples_leaf: 20
+      l2_regularization: 0.0
+      max_bins: 256
+      validation_fraction: 0.1
+      tol: 1e-07
+      verbose: 0
+# Regressor
+AdaBoostRegressor:
+  model:
+    model_class: sklearn.ensemble.AdaBoostRegressor
+    model_type: regression
+  functions:
+    model_create:
+      n_estimators: 50
+      learning_rate: 1.0
+      loss: 'linear'
+BaggingRegressor:
+  model:
+    model_class: sklearn.ensemble.BaggingRegressor
+    model_type: regression
+  functions:
+    model_create:
+      n_estimators: 10
+      max_samples: 1.0
+      max_features: 1.0
+      bootstrap: True
+      bootstrap_features: False
+      oob_score: False
+      warm_start: False
+      n_jobs: -1
+      verbose: 0
+ExtraTreesRegressor:
+  model:
+    model_class: sklearn.ensemble.ExtraTreesRegressor
+    model_type: regression
+  functions:
+    model_create:
+      n_estimators: 'warn'
+      criterion: 'mse'
+      min_samples_split: 2
+      min_samples_leaf: 1
+      min_weight_fraction_leaf: 0.0
+      max_features: 'auto'
+      min_impurity_decrease: 0.0
+      bootstrap: False
+      oob_score: False
+      n_jobs: -1
+      verbose: 0
+      warm_start: False
+GradientBoostingRegressor:
+  model:
+    model_class: sklearn.ensemble.GradientBoostingRegressor
+    model_type: regression
+  functions:
+    model_create:
+      loss: 'ls'
+      learning_rate: 0.1
+      n_estimators: 100
+      subsample: 1.0
+      criterion: 'friedman_mse'
+      min_samples_split: 2
+      min_samples_leaf: 1
+      min_weight_fraction_leaf: 0.0
+      max_depth: 3
+      min_impurity_decrease: 0.0
+      alpha: 0.9
+      verbose: 0
+      warm_start: False
+      presort: 'auto'
+      validation_fraction: 0.1
+      tol: 0.0001
+HistGradientBoostingRegressor:
+  model:
+    model_class: sklearn.ensemble.HistGradientBoostingRegressor
+    model_type: regression
+  functions:
+    model_create:
+      loss: 'least_squares'
+      learning_rate: 0.1
+      max_iter: 100
+      max_leaf_nodes: 31
+      min_samples_leaf: 20
+      l2_regularization: 0.0
+      max_bins: 256
+      validation_fraction: 0.1
+      tol: 1e-07
+      verbose: 0
