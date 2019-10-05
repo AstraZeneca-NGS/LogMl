@@ -113,7 +113,8 @@ functions:
     # Parameters: First parameter is always 'dataset'
     # Returns: Dataset split into three parts: 'dataset_train, dataset_test, dataset_validate'
     dataset_split:
-      n: 1000
+        split_validate: 0.2
+        split_test: 0.0
 
     # User defined function: Dataset pre-processing
     # Parameters: First parameter is always 'dataset'

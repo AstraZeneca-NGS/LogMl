@@ -129,8 +129,8 @@ class Datasets(MlFiles):
         Assumptions:
             1) self.dataset object is iterable
             2) Parameter 'split_test' and 'split_validate' are defined such that
-                2.a) split_test > 0
-                2.b) split_validate > 0
+                2.a) split_test >= 0
+                2.b) split_validate >= 0
                 2.c) split_test + split_validate < 1
         It returns three list of 'samples': train, validate, test
         '''
