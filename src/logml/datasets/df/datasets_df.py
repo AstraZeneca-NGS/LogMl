@@ -26,10 +26,6 @@ class DatasetsDf(Datasets):
         self.categories = dict()  # Convert these fields to categorical
         self.dataset_ori = None
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
-        self.one_hot = list()  # Convert these fields to 'one hot encoding'
-        self.one_hot_max_cardinality = None  # Convert to one hot encoding, all fields with cardinality <= 'one_hot_max_cardinality'
-        self._set_from_config()
-        self.missing_values = dict()  # Value used to replace missing values
         if set_config:
             self._set_from_config()
 

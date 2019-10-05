@@ -147,4 +147,4 @@ functions:
 #---
 model_search:
   enable: True
-  models: !include models_search_test/*.yaml
+  models: !include models_search/*.yaml

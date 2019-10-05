@@ -46,10 +46,6 @@ class DfTransform(MlLog):
     '''
 
     def __init__(self, df, config, set_config=True):
-        '''
-        Parameters:
-            df : dataFrame
-        '''
         super().__init__(config, CONFIG_DATASET)
         self.df = df
         self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
@@ -59,6 +55,7 @@ class DfTransform(MlLog):
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
         self.one_hot = list()  # Convert these fields to 'one hot encoding'
         self.one_hot_max_cardinality = 7
+        self.outputs = list()
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
@@ -234,6 +231,8 @@ class DfTransform(MlLog):
 
     def should_be_one_hot(self, field_name):
         " Should we convert to 'one hot' encoding? "
+        if field_name in self.outputs:
+            return False
         xi = self.df[field_name]
         xi_cat = xi.astype('category')
         count_cats = len(xi_cat.cat.categories)

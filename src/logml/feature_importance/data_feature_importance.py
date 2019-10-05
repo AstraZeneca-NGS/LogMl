@@ -63,7 +63,8 @@ class DataFeatureImportance(MlFiles):
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsDf(self.x.columns)
         self.feature_importance()
-        self.boruta()
+        print(f"BORUTA: NOT WORKING")
+        # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()
@@ -231,6 +232,8 @@ class DataFeatureImportance(MlFiles):
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
+        if not self.is_regression():
+            return
         self._info(f"Feature importance: Regularization")
         # LassoCV
         lassocv = self.regularization_model(self.fit_lasso())
@@ -262,7 +265,7 @@ class DataFeatureImportance(MlFiles):
         elif self.is_classification():
             funcs = {f_classif: True, mutual_info_classif: False}
             # Chi^2 only works on non-negative values
-            if (X < 0).all(axis=None):
+            if (self.x < 0).all(axis=None):
                 funcs.append(chi2)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
