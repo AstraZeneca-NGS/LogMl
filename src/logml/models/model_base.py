@@ -33,12 +33,14 @@ class ModelBase(Model):
 
     def fit(self, x, y):
         ''' Fit model '''
+        !!!!! HANDLE EXCEPTIONS WHEN FITTING
         self._debug(f"Fitting model {self.class_name}: Start")
         self.train_results = self.model.fit(x, y)
         self._debug(f"Fitting model {self.class_name}: End")
         return True
 
     def model_evaluate(self, x, y, name):
+        !!!!! HANDLE EXCEPTIONS WHEN RUNNING
         ret = 1.0 - self.model.score(x, y)
         self._debug(f"Evaluating model {self.class_name}, dataset '{name}': {ret}")
         return ret

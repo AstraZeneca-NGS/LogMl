@@ -359,9 +359,11 @@ class Datasets(MlFiles):
     def split_idx(self, idx_train, idx_validate, idx_test=None):
         ''' Split dataset using an index list / array '''
         len_test = len(idx_test) if idx_test is not None else 0
+        len_validate = len(idx_validate) if idx_validate is not None else 0
         self._debug(f"Split dataset by idx. Lengths, train: {len(idx_train)}, validate: {len(idx_validate)}, test:{len_test}")
         self.dataset_train = self[idx_train]
-        self.dataset_validate = self[idx_validate]
+        if len_validate > 0:
+            self.dataset_validate = self[idx_validate]
         if len_test > 0:
             self.dataset_test = self[idx_test]
         self.in_outs()

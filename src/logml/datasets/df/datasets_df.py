@@ -66,6 +66,9 @@ class DatasetsDf(Datasets):
         self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
         return True
 
+    def __getitem__(self, key):
+        return self.dataset.iloc[key]
+
     def _load_from_csv(self):
         ''' Load dataframe from CSV '''
         csv_file = self.get_file_name(ext='csv')

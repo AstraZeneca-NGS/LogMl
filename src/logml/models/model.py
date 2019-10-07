@@ -130,6 +130,7 @@ class Model(MlFiles):
 
     def fit(self, x, y):
         """ model.fit() is an alias to model.model_train() """
+        !!!!! HANDLE EXCEPTIONS WHEN FITTING
         return self.invoke_model_train(x, y)
 
     def get_file_name(self, file_type=None, ext='pkl'):
@@ -150,6 +151,7 @@ class Model(MlFiles):
 
     def invoke_model_evaluate(self, x, y, name):
         ''' Invoke model evaluate '''
+        !!!!! HANDLE EXCEPTIONS WHEN EVALUATING
         args = [self.model, x, y]
         (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
         if invoked:
