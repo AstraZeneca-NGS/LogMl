@@ -1,5 +1,6 @@
 
 import datetime
+import math
 import time
 
 from ..core.config import CONFIG_MODEL
@@ -130,8 +131,12 @@ class Model(MlFiles):
 
     def fit(self, x, y):
         """ model.fit() is an alias to model.model_train() """
-        !!!!! HANDLE EXCEPTIONS WHEN FITTING
-        return self.invoke_model_train(x, y)
+        try:
+            ret = self.invoke_model_train(x, y)
+            return ret
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return None
 
     def get_file_name(self, file_type=None, ext='pkl'):
         ''' Create a file name for training data '''
@@ -151,12 +156,15 @@ class Model(MlFiles):
 
     def invoke_model_evaluate(self, x, y, name):
         ''' Invoke model evaluate '''
-        !!!!! HANDLE EXCEPTIONS WHEN FITTING
-        args = [self.model, x, y]
-        (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
-        if invoked:
-            self._info(f"Model evaluate {name} returned: '{ret}'")
-        return invoked, ret
+        try:
+            args = [self.model, x, y]
+            (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
+            if invoked:
+                self._info(f"Model evaluate {name} returned: '{ret}'")
+            return invoked, ret
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return True, math.nan
 
     def invoke_model_save(self):
         " Invoke user defined function '@model_save' "

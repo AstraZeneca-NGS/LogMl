@@ -18,13 +18,13 @@ dataset:
 # Dataset exploration
 #---
 dataset_explore:
-  enable: False
+  enable: True
 
 #---
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
-  enable: False
+  enable: True
 
 #---
 # Model definition and parameters
