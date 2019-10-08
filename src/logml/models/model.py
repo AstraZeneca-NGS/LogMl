@@ -151,7 +151,7 @@ class Model(MlFiles):
 
     def invoke_model_evaluate(self, x, y, name):
         ''' Invoke model evaluate '''
-        !!!!! HANDLE EXCEPTIONS WHEN EVALUATING
+        !!!!! HANDLE EXCEPTIONS WHEN FITTING
         args = [self.model, x, y]
         (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
         if invoked:
