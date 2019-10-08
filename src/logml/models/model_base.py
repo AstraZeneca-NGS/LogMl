@@ -1,5 +1,7 @@
 
+import math
 import re
+import traceback
 
 from ..core.config import CONFIG_MODEL_SEARCH
 from .model import Model
@@ -33,14 +35,20 @@ class ModelBase(Model):
 
     def fit(self, x, y):
         ''' Fit model '''
-        !!!!! HANDLE EXCEPTIONS WHEN FITTING
-        self._debug(f"Fitting model {self.class_name}: Start")
-        self.train_results = self.model.fit(x, y)
-        self._debug(f"Fitting model {self.class_name}: End")
-        return True
+        try:
+            self._debug(f"Fitting model {self.class_name}: Start")
+            self.train_results = self.model.fit(x, y)
+            self._debug(f"Fitting model {self.class_name}: End")
+            return True
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return False
 
     def model_evaluate(self, x, y, name):
-        !!!!! HANDLE EXCEPTIONS WHEN RUNNING
-        ret = 1.0 - self.model.score(x, y)
-        self._debug(f"Evaluating model {self.class_name}, dataset '{name}': {ret}")
-        return ret
+        try:
+            ret = 1.0 - self.model.score(x, y)
+            self._debug(f"Evaluating model {self.class_name}, dataset '{name}': {ret}")
+            return ret
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return math.nan
