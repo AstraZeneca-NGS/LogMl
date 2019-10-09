@@ -46,7 +46,7 @@ class DfTransform(MlLog):
     '''
 
     def __init__(self, df, config, set_config=True):
-        super().__init__(config, CONFIG_DATASET)
+        super().__init__(config, CONFIG_DATASET_TRANSFORM)
         self.df = df
         self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
         self.category_column = dict()  # Store Pandas categorical definition
@@ -208,6 +208,8 @@ class DfTransform(MlLog):
         df_na = pd.DataFrame()
         df_na[f"{field_name}_na"] = xi.isna().astype('int8')
         # Replace missing values by median
+        # TODO: Add other strategies (e.g. mean).
+        # TODO: Define on column by column basis
         replace_value = xi.median()
         xi[xi.isna()] = replace_value
         df_na[field_name] = xi
