@@ -5,6 +5,8 @@ dataset:
   dataset_path: 'tests/data'
   dataset_type: 'df'
   is_use_default_split: False
+
+dataset_transform:
   categories:
     UsageBand: ['Low', 'Medium', 'High']
     fiModelDesc:

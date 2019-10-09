@@ -1,5 +1,6 @@
 import inspect
 import sklearn
+import sklearn.naive_bayes
 
 from .model_base import ModelBase
 

@@ -39,8 +39,8 @@ class DataFeatureImportance(MlFiles):
         self.tree_graph_max_depth = 4
         if set_config:
             self._set_from_config()
-        self.x, self.y = self.datasets.get_train_xy()
-        self.results = ResultsDf(self.x.columns)
+        self.results = None
+        self.x, self.y = None, None
 
     def boruta(self):
         ''' Calculate feature improtance using Boruta algorithm '''
@@ -57,20 +57,22 @@ class DataFeatureImportance(MlFiles):
     def __call__(self):
         ''' Feature importance '''
         if not self.enable:
-            self._info(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
+            self._debug(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
-        self._info("Feature importance / feature selection (model_type={self.model_type}): Start")
+        self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
+        self.x, self.y = self.datasets.get_train_xy()
+        self.results = ResultsDf(self.x.columns)
         self.feature_importance()
-        self.boruta()
+        print(f"BORUTA: NOT WORKING")
+        # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()
         # Use ranks from all previously calculated models
         self._info(f"Feature importance: Adding 'rank of rank_sum' column")
         self.results.add_rank_of_ranksum()
-        res = self.results.df
-        res.sort_values('rank_of_ranksum', inplace=True)
-        display(res)
+        self.results.sort('rank_of_ranksum')
+        display(self.results.df)
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         self._info("Feature importance / feature selection: End")
@@ -230,6 +232,8 @@ class DataFeatureImportance(MlFiles):
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
+        if not self.is_regression():
+            return
         self._info(f"Feature importance: Regularization")
         # LassoCV
         lassocv = self.regularization_model(self.fit_lasso())
@@ -261,7 +265,7 @@ class DataFeatureImportance(MlFiles):
         elif self.is_classification():
             funcs = {f_classif: True, mutual_info_classif: False}
             # Chi^2 only works on non-negative values
-            if (X < 0).all(axis=None):
+            if (self.x < 0).all(axis=None):
                 funcs.append(chi2)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import re
 
-from ...core.config import CONFIG_DATASET
+from ...core.config import CONFIG_DATASET_TRANSFORM
 from ...core.log import MlLog
 
 sanitize_valid_chars = set('_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
@@ -45,20 +45,17 @@ class DfTransform(MlLog):
     changes to the original dataframe to create a new dataframe.
     '''
 
-    def __init__(self, df, config, set_config=True):
-        '''
-        Parameters:
-            df : dataFrame
-        '''
-        super().__init__(config, CONFIG_DATASET)
+    def __init__(self, df, config, outputs, set_config=True):
+        super().__init__(config, CONFIG_DATASET_TRANSFORM)
         self.df = df
-        self.categories = list()  # Fields to be converted to categorical. Entries are list of categories
+        self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
         self.category_column = dict()  # Store Pandas categorical definition
         self.columns_to_add = dict()
         self.columns_to_remove = set()
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
         self.one_hot = list()  # Convert these fields to 'one hot encoding'
         self.one_hot_max_cardinality = 7
+        self.outputs = outputs
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
@@ -120,7 +117,7 @@ class DfTransform(MlLog):
         This creates both number categories as well as one_hot encoding
         '''
         # Forced categories from YAML config
-        self._info(f"Converting to categorical: Start")
+        self._debug(f"Converting to categorical: Start")
         for field_name in self.df.columns:
             if not self.is_categorical_column(field_name):
                 continue
@@ -130,7 +127,7 @@ class DfTransform(MlLog):
                 self._create_one_hot(field_name)
             else:
                 self._create_category(field_name, self.categories.get(field_name))
-        self._info(f"Converting to categorical: End")
+        self._debug(f"Converting to categorical: End")
 
     def _create_category(self, field_name, categories=None):
         " Convert field to category numbers "
@@ -160,15 +157,15 @@ class DfTransform(MlLog):
 
     def convert_dates(self):
         ''' Convert all dates '''
-        self._info(f"Converting to 'date/time' values: fields {self.dates}")
+        self._debug(f"Converting to 'date/time' values: fields {self.dates}")
         count = 0
         for field in self.dates:
             self._add_datepart(field)
-        self._info(f"Converting to 'date/time' values: End")
+        self._debug(f"Converting to 'date/time' values: End")
 
     def drop_zero_std(self):
         " Drop features that have standard deviation below a threshold "
-        self._info(f"Dropping columns with low standard deviation: Start, std_threshold: {self.std_threshold}")
+        self._debug(f"Dropping columns with low standard deviation: Start, std_threshold: {self.std_threshold}")
         to_remove = list()
         for c in self.df.columns:
             if not pd.api.types.is_numeric_dtype(self.df[c]):
@@ -178,7 +175,7 @@ class DfTransform(MlLog):
                 self._info(f"Dropping column '{c}', standard deviation {stdev} <= {self.std_threshold}, values head: {list(self.df[c].head())}")
                 to_remove.append(c)
         self.df.drop(to_remove, axis=1, inplace=True)
-        self._info(f"Dropping columns with low standard deviation: End")
+        self._debug(f"Dropping columns with low standard deviation: End")
 
     def is_categorical_column(self, field_name):
         " Is column 'field_name' a categorical column in the dataFrame? "
@@ -194,11 +191,11 @@ class DfTransform(MlLog):
 
     def nas(self):
         " Transform 'NA' columns (i.e. missing data) "
-        self._info(f"Checking NA (missing values): Start")
+        self._debug(f"Checking NA (missing values): Start")
         for field_name in self.df.columns:
             if field_name not in self.skip_nas:
                 self.na(field_name)
-        self._info(f"Checking NA (missing values): End")
+        self._debug(f"Checking NA (missing values): End")
 
     def na(self, field_name):
         " Process 'na' columns (i.e missing data) "
@@ -211,6 +208,8 @@ class DfTransform(MlLog):
         df_na = pd.DataFrame()
         df_na[f"{field_name}_na"] = xi.isna().astype('int8')
         # Replace missing values by median
+        # TODO: Add other strategies (e.g. mean).
+        # TODO: Define on column by column basis
         replace_value = xi.median()
         xi[xi.isna()] = replace_value
         df_na[field_name] = xi
@@ -234,6 +233,8 @@ class DfTransform(MlLog):
 
     def should_be_one_hot(self, field_name):
         " Should we convert to 'one hot' encoding? "
+        if field_name in self.outputs:
+            return False
         xi = self.df[field_name]
         xi_cat = xi.astype('category')
         count_cats = len(xi_cat.cat.categories)

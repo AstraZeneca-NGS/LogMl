@@ -1,0 +1,28 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_preprpocess_001'
+    dataset_path: 'tests/data'
+    dataset_type: 'df'
+    is_use_default_split: False
+    outputs: ['y']
+
+dataset_transform:
+  enable: false
+
+# Dataset prerpocessing
+dataset_preprocess:
+  enable: true
+  normalize:
+    log: ['x1']
+    log1p: ['x2']
+    maxabs: ['x3']
+    minmax: ['x4']
+    minmax_neg: ['x5']
+    skip: ['x6']
+    standard: true
+
+model:
+  enable: false
+  model_name: 'model_test_dataset_preprpocess_001'
+  model_path: 'tests/tmp/model_test_dataset_preprpocess_001'

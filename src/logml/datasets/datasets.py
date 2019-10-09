@@ -36,8 +36,9 @@ class Datasets(MlFiles):
         self.do_not_load_pickle = False
         self.do_not_save = False
         self.enable = True
-        self.is_use_default_in_out = True
         self.is_use_all_inputs = False
+        self.is_use_default_in_out = True
+        self.is_use_default_preprocess = True
         self.is_use_default_split = True
         self.is_use_default_transform = True
         self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
@@ -56,7 +57,7 @@ class Datasets(MlFiles):
         Save at each step for faster processing / consistency
         '''
         if not self.enable:
-            self._info(f"Dataset disabled, skipping (enable='{self.enable}')")
+            self._debug(f"Dataset disabled, skipping (enable='{self.enable}')")
             return True
         self._debug("Start")
         self.should_save = False
@@ -119,6 +120,11 @@ class Datasets(MlFiles):
             self.operations_done = ds.operations_done
         return ds is not None
 
+    def default_preprocess(self):
+        " Default implementation for '@dataset_preprocess' "
+        self._debug(f"Default dataset preprocess not defined, skipping")
+        return False
+
     def default_save(self):
         ''' Default implementation of '@dataset_save' '''
         return self._save_pickle(self.get_file_name(), 'Save dataset', self)
@@ -129,8 +135,8 @@ class Datasets(MlFiles):
         Assumptions:
             1) self.dataset object is iterable
             2) Parameter 'split_test' and 'split_validate' are defined such that
-                2.a) split_test > 0
-                2.b) split_validate > 0
+                2.a) split_test >= 0
+                2.b) split_validate >= 0
                 2.c) split_test + split_validate < 1
         It returns three list of 'samples': train, validate, test
         '''
@@ -204,25 +210,25 @@ class Datasets(MlFiles):
 
     def get_train(self):
         if self.dataset_train is None:
-            self._info(f"Training dataset not found, using whole dataset")
+            self._debug(f"Training dataset not found, using whole dataset")
             return self.dataset
         return self.dataset_train
 
     def get_train_xy(self):
         if self.dataset_train_xy.x is None:
-            self._info(f"Training dataset not found, using whole dataset")
+            self._debug(f"Training dataset not found, using whole dataset")
             return self.dataset_xy
         return self.dataset_train_xy
 
     def get_validate(self):
         if self.dataset_validate is None:
-            self._info(f"Validate dataset not found, using whole dataset")
+            self._debug(f"Validate dataset not found, using whole dataset")
             return self.dataset
         return self.dataset_validate
 
     def get_validate_xy(self):
         if self.dataset_validate_xy.x is None:
-            self._info(f"Validate dataset not found, using whole dataset")
+            self._debug(f"Validate dataset not found, using whole dataset")
             return self.dataset_xy
         return self.dataset_validate_xy
 
@@ -273,7 +279,7 @@ class Datasets(MlFiles):
         if invoked:
             if ret is None or len(ret) != 2:
                 self._fatal_error(f"User defined function '{DATASET_INOUT}' should return a tuple, but it returned '{ret}'")
-            x, y  = ret
+            x, y = ret
             return True, InOut(x, y)
         return False, InOut(None, None)
 
@@ -329,7 +335,13 @@ class Datasets(MlFiles):
         return False
 
     def preprocess(self):
-        return self.invoke_preprocess()
+        ret = self.invoke_preprocess()
+        if ret:
+            return ret
+        # We provide a default implementation
+        if self.is_use_default_preprocess:
+            return self.default_preprocess()
+        return False
 
     def reset(self):
         ''' Reset fields '''
@@ -359,16 +371,18 @@ class Datasets(MlFiles):
     def split_idx(self, idx_train, idx_validate, idx_test=None):
         ''' Split dataset using an index list / array '''
         len_test = len(idx_test) if idx_test is not None else 0
+        len_validate = len(idx_validate) if idx_validate is not None else 0
         self._debug(f"Split dataset by idx. Lengths, train: {len(idx_train)}, validate: {len(idx_validate)}, test:{len_test}")
         self.dataset_train = self[idx_train]
-        self.dataset_validate = self[idx_validate]
+        if len_validate > 0:
+            self.dataset_validate = self[idx_validate]
         if len_test > 0:
             self.dataset_test = self[idx_test]
         self.in_outs()
         return True
 
     def transform(self):
-        " Transform dataset "
+        ''' Transform dataset '''
         ret = self.invoke_transform()
         if ret:
             return ret

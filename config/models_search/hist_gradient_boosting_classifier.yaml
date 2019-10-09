@@ -1,0 +1,17 @@
+HistGradientBoostingClassifier:
+  enable: false # Experimental SkLean module, disabled by default
+  functions:
+    model_create:
+      l2_regularization: 0.0
+      learning_rate: 0.1
+      loss: auto
+      max_bins: 256
+      max_iter: 100
+      max_leaf_nodes: 31
+      min_samples_leaf: 20
+      tol: 1e-07
+      validation_fraction: 0.1
+      verbose: 0
+  model:
+    model_class: sklearn.ensemble.HistGradientBoostingClassifier
+    model_type: classification

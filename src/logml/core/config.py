@@ -16,6 +16,8 @@ CONFIG_CROSS_VALIDATION = 'cross_validation'
 CONFIG_DATASET = 'dataset'
 CONFIG_DATASET_EXPLORE = 'dataset_explore'
 CONFIG_DATASET_FEATURE_IMPORTANCE = "dataset_feature_importance"
+CONFIG_DATASET_PREPROCESS = 'dataset_preprocess'
+CONFIG_DATASET_TRANSFORM = 'dataset_transform'
 CONFIG_FUNCTIONS = 'functions'
 CONFIG_HYPER_PARAMETER_OPTMIMIZATION = 'hyper_parameter_optimization'
 CONFIG_LOGGER = 'logger'
@@ -61,6 +63,14 @@ class Config(MlFiles):
         Returns True on success, False on failure
         '''
         return True
+
+    def copy(self, disable_all=False):
+        ''' Create a copy of the config, disable all sections if 'disable_all' is true '''
+        conf = copy.deepcopy(self)
+        if disable_all:
+            for sec in [CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH]:
+                conf.set_enable(sec, enable=False)
+        return conf
 
     def get_parameters(self, section):
         ''' Get 'section' parameters '''
@@ -123,6 +133,10 @@ class Config(MlFiles):
         self._debug(f"params: {self.parameters}")
         self._set_from_config()
         return self._config_sanity_check()
+
+    def set_enable(self, section, enable=True):
+        if section in self.parameters:
+            self.parameters[section]['enable'] = enable
 
     def update(self, params):
         '''

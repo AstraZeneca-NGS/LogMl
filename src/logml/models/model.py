@@ -1,5 +1,7 @@
 
 import datetime
+import math
+import time
 
 from ..core.config import CONFIG_MODEL
 from ..core.files import MlFiles
@@ -21,6 +23,7 @@ class Model(MlFiles):
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
         self.datasets = datasets
+        self.elapsed_time = 0
         self.enable = True
         self.is_save_model_pickle = False
         self.is_save_model_method = False
@@ -31,6 +34,7 @@ class Model(MlFiles):
         self.is_save_validate_pickle = False
         self.is_test_model = True
         self.model = None
+        self.model_class = self.__class__.__name__
         self.model_name = None
         self.model_path = None
         self.model_type = None
@@ -69,6 +73,7 @@ class Model(MlFiles):
         if not self.save_params():
             self._error("Could not save parameters")
             return False
+        time_start = time.process_time()
         # Fit model and save it
         ret = self.model_train()
         if not ret:
@@ -88,7 +93,9 @@ class Model(MlFiles):
             if not self.save_test_results():
                 self._info("Could not save test results")
         else:
-            self._info("Could not test model")
+            self._debug("Could not test model")
+        time_end = time.process_time()
+        self.elapsed_time = time_end - time_start
         return True
 
     def _config_sanity_check(self):
@@ -124,7 +131,12 @@ class Model(MlFiles):
 
     def fit(self, x, y):
         """ model.fit() is an alias to model.model_train() """
-        return self.invoke_model_train(x, y)
+        try:
+            ret = self.invoke_model_train(x, y)
+            return ret
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return None
 
     def get_file_name(self, file_type=None, ext='pkl'):
         ''' Create a file name for training data '''
@@ -144,11 +156,15 @@ class Model(MlFiles):
 
     def invoke_model_evaluate(self, x, y, name):
         ''' Invoke model evaluate '''
-        args = [self.model, x, y]
-        (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
-        if invoked:
-            self._info(f"Model evaluate {name} returned: '{ret}'")
-        return invoked, ret
+        try:
+            args = [self.model, x, y]
+            (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
+            if invoked:
+                self._info(f"Model evaluate {name} returned: '{ret}'")
+            return invoked, ret
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return True, math.nan
 
     def invoke_model_save(self):
         " Invoke user defined function '@model_save' "

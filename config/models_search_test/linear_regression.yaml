@@ -1,0 +1,9 @@
+LinearRegression:
+  functions:
+    model_create:
+      copy_X: true
+      fit_intercept: true
+      normalize: true
+  model:
+    model_class: sklearn.linear_model.LinearRegression
+    model_type: regression

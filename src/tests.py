@@ -15,10 +15,43 @@ from logml.models import Model
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
 
 
+# Create dataset
+def create_dataset():
+    # Number of samples
+    num = 1000
+    # Inputs: x1, .. ., xn
+    x1 = np.exp(np.random.rand(num))
+    x2 = np.maximum(np.random.rand(num) - 0.1, 0)
+    x3 = np.random.normal(0, 1, num)
+    x4 = np.random.rand(num) * 5 + 7
+    x5 = np.random.rand(num) * 5 + 7
+    x6 = 2 * np.random.rand(num) - 1
+    x7 = np.random.normal(3, 4, num)
+    x8 = np.random.rand(num) * 2 + 3
+    # Noise
+    n = np.random.normal(0, 1, num)
+    # Output
+    y = 3. * x1 - 1. * x2 + 0.5 * x3 + 0.1 * n
+    # Categorical output
+    y_str = np.array([to_class(c) for c in y])
+    # Create dataFrame
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4, 'x5': x5, 'x6': x6, 'x7': x7, 'y': y_str})
+    df.to_csv('test_dataset_preprpocess_001.csv', index=False)
+    return df
+
+
 def rm(file):
     ''' Delete file, if it exists '''
     if os.path.exists(file):
         os.remove(file)
+
+
+def to_class(c):
+    if c < -3:
+        return 'low'
+    if c < 3:
+        return 'mid'
+    return 'high'
 
 
 class TestLogMl(unittest.TestCase):
@@ -497,6 +530,45 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
         # Check that the result is arround 5
         self.assertEqual(dlen, 87)
+
+    def test_dataset_preprocess_001(self):
+        ''' Checking dataset preprocess for dataframe '''
+        config_file = os.path.join('tests', 'ml.test_dataset_preprocess_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # x1
+        self.assertTrue(np.min(df.x1) >= 0.0)
+        self.assertTrue(np.max(df.x1) <= 1.0)
+        # x2
+        self.assertTrue(np.min(df.x2) >= 0.0)
+        self.assertTrue(np.max(df.x2) <= 1.0)
+        # x3
+        self.assertTrue(np.max(df.x3) <= 1.0)
+        self.assertTrue(abs(np.min(df.x3)) <= 1.0)
+        # x4
+        self.assertTrue(np.min(df.x4) >= 0.0)
+        self.assertTrue(np.min(df.x4) < 0.0001)
+        self.assertTrue(np.max(df.x4) > 0.9999)
+        self.assertTrue(np.max(df.x4) <= 1.0)
+        # x5
+        self.assertTrue(np.min(df.x5) >= -1.0)
+        self.assertTrue(np.min(df.x5) < -0.9999)
+        self.assertTrue(np.max(df.x5) > 0.9999)
+        self.assertTrue(np.max(df.x5) <= 1.0)
+        # x6
+        x6_mean = np.mean(df.x6)
+        x6_std = np.std(df.x6)
+        self.assertTrue(abs(x6_mean) < 0.001)
+        self.assertTrue(abs(x6_std - 1) <= 0.001)
+        # x7
+        x7_mean = np.mean(df.x7)
+        x7_std = np.std(df.x7)
+        self.assertTrue(abs(x7_mean) < 0.001)
+        self.assertTrue(abs(x7_std - 1) <= 0.001)
 
 
 if __name__ == '__main__':

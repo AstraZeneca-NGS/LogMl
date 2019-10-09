@@ -1,0 +1,9 @@
+AdaBoostRegressor:
+  functions:
+    model_create:
+      learning_rate: 1.0
+      loss: linear
+      n_estimators: 50
+  model:
+    model_class: sklearn.ensemble.AdaBoostRegressor
+    model_type: regression

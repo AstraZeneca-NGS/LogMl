@@ -3,7 +3,7 @@ import copy
 import logml
 import yaml
 
-from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
+from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
 from .sklearn_model import SkLearnModel
 
@@ -40,6 +40,9 @@ class ModelSearch(MlFiles):
         # For each model in 'models' secction: Create a nea LogMl ofbjec with these parameters and run it
         for model_def in self.models:
             name, params = next(iter(model_def.items()))
+            if 'enable' in params and not params['enable']:
+                self._debug(f"Model '{name}' is disabled (enable='{params['enable']}')")
+                continue
             if 'model' not in params:
                 self._debug(f"Model '{name}' does not have a 'model' section, ignoring")
                 continue
@@ -57,16 +60,20 @@ class ModelSearch(MlFiles):
         return True
 
     def search_model(self, model_class, params):
-        ''' Create model and train it '''
+        '''
+        Create model and train it.
+        Creates a new config, a new LogMl, adds the model to it and then runs
+        the new LogMl
+        '''
         self._debug(f"Searching model: model_class={model_class}\tparameters={params}")
         enable = params.get('enable', True)
         if not enable:
-            self._debug(f"Searching model: Model disabled (enable={enable}), skipping")
+            self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
             return
-        # Create updated config, make sure.
-        # Disable 'model_search' to avoid infinite recursion
-        conf = self.config.update_section(None, params)
-        conf.parameters['model_search']['enable'] = False
+        # Disable some sections to avoid repetition (e.g. 'model_search' to avoid infinite recursion)
+        # Create updated config
+        conf = self.config.copy(disable_all=True)
+        conf = conf.update_section(None, params)
         self._debug(f"New config: {conf}")
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
@@ -75,6 +82,8 @@ class ModelSearch(MlFiles):
         # Create LogMl
         self._debug(f"Creating new LogMl")
         lml = logml.LogMl(config=conf, datasets=datasets)
+        lml.display_model_results = False  # Don't display results each time
         # Run model
         self._debug(f"Running new LogMl")
         lml()
+        self.logml.model_results.add_row_df(lml.model_results.df)  # Collect results for later use
