@@ -8,7 +8,7 @@ export PS1=""
 source ./bin/activate
 
 TEST_NAME=""
-TEST_NAME="TestLogMl.test_dataset_preprocess_001"
+# TEST_NAME="TestLogMl.test_dataset_preprocess_001"
 
 if [ -z "$TEST_NAME" ]; then
     time coverage run src/tests.py -v --failfast 2>&1 | tee tests.out
