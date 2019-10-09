@@ -1,0 +1,25 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_preprpocess_001'
+    dataset_path: 'tests/tmp'
+    dataset_type: 'df'
+    is_use_default_split: False
+
+dataset_transform:
+  categories:
+    UsageBand: ['Low', 'Medium', 'High']
+    ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
+  dates: ['saledate']
+
+# Dataset prerpocessing
+dataset_preprocess:
+  enable: true
+  normalize:
+    log: ['x6']
+    logp1: ['x7', 'x8']
+    maxabs: ['x4', 'x5']
+    minmax: ['x2', 'x3']
+    quantile: ['x9']
+    skip: ['x10', 'x11']
+    standard: true

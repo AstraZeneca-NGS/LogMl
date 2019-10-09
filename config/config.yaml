@@ -29,11 +29,16 @@ dataset:
   # If set, saving dataset will be skipped
   do_not_save: false
 
+  # Use all inputs, no outputs.
+  # I.e. do not split in/out.
+  # E.g. unsupervised learning
+  is_use_all_inputs: false
+
   # Use default 'in_out' method
   is_use_default_in_out: true
 
-  # Use all inputs, no outputs. I.e. do not split in/out. E.g. unsupervised learning
-  is_use_all_inputs: false
+  # Use default preprocess
+  is_use_default_preprocess: true
 
   # Use (internal) 'split' function if none is provided by the user?
   # Note: This function returns dataset as a list
@@ -68,7 +73,6 @@ dataset_transform:
   # Drop columns having standard deviation below this limit
   std_threshold: 0.0001
 
-
 #---
 # Dataset augmentation: Add variable interaction terms
 #---
@@ -77,6 +81,9 @@ dataset_augment:
   enable: true
   add_interactions: ['*', '-', '+', '/']
 
+#---
+# Dataset prerpocessing
+#---
 dataset_preprocess:
   # Set to 'false' to disable this step
   enable: true

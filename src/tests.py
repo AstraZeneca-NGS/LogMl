@@ -498,6 +498,12 @@ class TestLogMl(unittest.TestCase):
         # Check that the result is arround 5
         self.assertEqual(dlen, 87)
 
+    def test_dataset_preprocess_001(self):
+        ''' Checking dataset preprocess for dataframe '''
+        config_file = os.path.join('tests', 'ml.test_dataset_preprocess_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+
 
 if __name__ == '__main__':
     unittest.main()

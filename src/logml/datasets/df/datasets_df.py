@@ -25,6 +25,7 @@ class DatasetsDf(Datasets):
         self.count_na = dict()  # Count missing values for each field
         self.categories = dict()  # Convert these fields to categorical
         self.dataset_ori = None
+        self.dataset_transform = None
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
         if set_config:
             self._set_from_config()
@@ -57,12 +58,26 @@ class DatasetsDf(Datasets):
             x, y = df, None
         return InOut(x, y)
 
+    def default_preprocess(self):
+        " Default implementation for '@dataset_preprocess' "
+        self._debug(f"Using default dataset preprocess for dataset type 'DataFrame': Start")
+        if self.dataset_ori is None:
+            # Keep a copy of the original dataset
+            self.dataset_ori = self.dataset
+        dfp = DfPreprocess(self.dataset, self.config)
+        self.dataset = dfp()
+        self._debug(f"Dataset preprocess: End")
+        return True
+        return False
+
     def default_transform(self):
         " Default implementation for '@dataset_transform' "
-        self._debug(f"Using default dataset transform for DataFrame")
-        self.dataset_ori = self.dataset  # Keep a copy of the original dataset
-        dft = DfTransform(self.dataset, self.config)
-        self.dataset = dft()
+        self._debug(f"Using default dataset transform for dataset type 'DataFrame'")
+        if self.dataset_ori is None:
+            # Keep a copy of the original dataset
+            self.dataset_ori = self.dataset
+        self.dataset_transform = DfTransform(self.dataset, self.config)
+        self.dataset = self.dataset_transform()
         self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
         return True
 

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import re
 
-from ...core.config import CONFIG_DATASET
+from ...core.config import CONFIG_DATASET_TRANSFORM
 from ...core.log import MlLog
 
 sanitize_valid_chars = set('_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')

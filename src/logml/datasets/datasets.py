@@ -36,8 +36,9 @@ class Datasets(MlFiles):
         self.do_not_load_pickle = False
         self.do_not_save = False
         self.enable = True
-        self.is_use_default_in_out = True
         self.is_use_all_inputs = False
+        self.is_use_default_in_out = True
+        self.is_use_default_preprocess = True
         self.is_use_default_split = True
         self.is_use_default_transform = True
         self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
@@ -118,6 +119,11 @@ class Datasets(MlFiles):
             self.operations = ds.operations
             self.operations_done = ds.operations_done
         return ds is not None
+
+    def default_preprocess(self):
+        " Default implementation for '@dataset_preprocess' "
+        self._debug(f"Default dataset preprocess not defined, skipping")
+        return False
 
     def default_save(self):
         ''' Default implementation of '@dataset_save' '''
@@ -329,7 +335,13 @@ class Datasets(MlFiles):
         return False
 
     def preprocess(self):
-        return self.invoke_preprocess()
+        ret = self.invoke_preprocess()
+        if ret:
+            return ret
+        # We provide a default implementation
+        if self.is_use_default_preprocess:
+            return self.default_preprocess()
+        return False
 
     def reset(self):
         ''' Reset fields '''
@@ -370,7 +382,7 @@ class Datasets(MlFiles):
         return True
 
     def transform(self):
-        " Transform dataset "
+        ''' Transform dataset '''
         ret = self.invoke_transform()
         if ret:
             return ret

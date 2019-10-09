@@ -16,6 +16,7 @@ CONFIG_CROSS_VALIDATION = 'cross_validation'
 CONFIG_DATASET = 'dataset'
 CONFIG_DATASET_EXPLORE = 'dataset_explore'
 CONFIG_DATASET_FEATURE_IMPORTANCE = "dataset_feature_importance"
+CONFIG_DATASET_PREPROCESS = 'dataset_preprocess'
 CONFIG_DATASET_TRANSFORM = 'dataset_transform'
 CONFIG_FUNCTIONS = 'functions'
 CONFIG_HYPER_PARAMETER_OPTMIMIZATION = 'hyper_parameter_optimization'
