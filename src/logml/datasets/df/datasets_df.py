@@ -9,6 +9,7 @@ import pickle
 import tensorflow as tf
 
 from ..datasets import Datasets, InOut
+from .df_preprocess import DfPreprocess
 from .df_transform import DfTransform
 
 from sklearn.ensemble import RandomForestRegressor
@@ -76,7 +77,7 @@ class DatasetsDf(Datasets):
         if self.dataset_ori is None:
             # Keep a copy of the original dataset
             self.dataset_ori = self.dataset
-        self.dataset_transform = DfTransform(self.dataset, self.config)
+        self.dataset_transform = DfTransform(self.dataset, self.config, self.outputs)
         self.dataset = self.dataset_transform()
         self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
         return True

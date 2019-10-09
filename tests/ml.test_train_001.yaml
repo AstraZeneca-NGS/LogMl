@@ -6,9 +6,9 @@ dataset:
     is_use_default_split: True
 
 model:
+    enable: True
     model_name: 'model_test_train_001'
     model_path: 'tests/tmp/model'
-    enable: True
     is_save_model_pickle: True
     is_save_model_method: False
     is_save_model_method_ext: 'model'
