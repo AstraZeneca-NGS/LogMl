@@ -22,7 +22,6 @@ class DfPreprocess(MlLog):
         self.df = df
         self.normalize = dict()
         if set_config:
-            self._debug("SET FROM CONFIG!!!!!!!!!!!")
             self._set_from_config()
         self._init_methods()
         self._set_normalize_method_default()

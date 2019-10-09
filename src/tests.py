@@ -58,7 +58,7 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        MlLog().set_log_level(logging.DEBUG)
+        # MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_config_001(self):
@@ -539,6 +539,36 @@ class TestLogMl(unittest.TestCase):
         ds = DatasetsDf(config)
         rm(ds.get_file_name())
         ret = ds()
+        df = ds.dataset
+        # x1
+        self.assertTrue(np.min(df.x1) >= 0.0)
+        self.assertTrue(np.max(df.x1) <= 1.0)
+        # x2
+        self.assertTrue(np.min(df.x2) >= 0.0)
+        self.assertTrue(np.max(df.x2) <= 1.0)
+        # x3
+        self.assertTrue(np.max(df.x3) <= 1.0)
+        self.assertTrue(abs(np.min(df.x3)) <= 1.0)
+        # x4
+        self.assertTrue(np.min(df.x4) >= 0.0)
+        self.assertTrue(np.min(df.x4) < 0.0001)
+        self.assertTrue(np.max(df.x4) > 0.9999)
+        self.assertTrue(np.max(df.x4) <= 1.0)
+        # x5
+        self.assertTrue(np.min(df.x5) >= -1.0)
+        self.assertTrue(np.min(df.x5) < -0.9999)
+        self.assertTrue(np.max(df.x5) > 0.9999)
+        self.assertTrue(np.max(df.x5) <= 1.0)
+        # x6
+        x6_mean = np.mean(df.x6)
+        x6_std = np.std(df.x6)
+        self.assertTrue(abs(x6_mean) < 0.001)
+        self.assertTrue(abs(x6_std - 1) <= 0.001)
+        # x7
+        x7_mean = np.mean(df.x7)
+        x7_std = np.std(df.x7)
+        self.assertTrue(abs(x7_mean) < 0.001)
+        self.assertTrue(abs(x7_std - 1) <= 0.001)
 
 
 if __name__ == '__main__':
