@@ -35,6 +35,7 @@ class DfPreprocess(MlLog):
         self.normalize_methods['minmax_neg'] = NormalizationMethod(method=self._normalize_minmax_neg, fields=self.get_normalize_list('minmax_neg'))
         self.normalize_methods['quantile'] = NormalizationMethod(method=self._normalize_quantile, fields=self.get_normalize_list('quantile'))
         self.normalize_methods['standard'] = NormalizationMethod(method=self._normalize_standard, fields=self.get_normalize_list('standard'))
+        self.normalize_skip = self.get_normalize_list('skip')
 
     def __call__(self):
         """
@@ -48,6 +49,9 @@ class DfPreprocess(MlLog):
 
     def find_normalize_method(self, col_name):
         ''' Find a normalizetion method for this column '''
+        if col_name in self.normalize_skip:
+            self._debug(f"Normalize variable '{self.normalize_skip}' in skip list: skipping")
+            return
         for nm_name, nm in self.normalize_methods.items():
             if nm.fields is True:
                 continue

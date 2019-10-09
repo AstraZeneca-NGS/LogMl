@@ -18,36 +18,45 @@ dataset:
 # Dataset exploration
 #---
 dataset_explore:
-  enable: True
+  enable: true
+
+#---
+# Dataset prerpocessing
+#---
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
 
 #---
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
-  enable: True
+  enable: true
 
 #---
 # Model definition and parameters
 #---
 model:
-  enable: True
+  enable: true
   model_type: classification
   model_name: 'class3'
   model_class: sklearn.ensemble.RandomForestClassifier
   model_path: 'data/class3/model'
-  is_save_model_pickle: True
-  is_save_model_method: True
+  is_save_model_pickle: true
+  is_save_model_method: true
   is_save_model_method_ext: 'model'
-  is_save_params: True
-  is_save_test_pickle: True
-  is_save_train_pickle: False
-  is_save_validate_pickle: False
+  is_save_params: true
+  is_save_test_pickle: true
+  is_save_train_pickle: false
+  is_save_validate_pickle: false
 
 #---
 # Cross validation methodology
 #---
 cross_validation:
-    enable: False
+    enable: false
     KFold:
         n_splits: 5
 
@@ -55,10 +64,10 @@ cross_validation:
 # Hyper-parameter optimization.
 #---
 hyper_parameter_optimization:
-    # Set this to 'True' to enable hyper-parameter optimization
-    enable: True
+    # Set this to 'true' to enable hyper-parameter optimization
+    enable: true
     # Show progress bar
-    show_progressbar: True
+    show_progressbar: true
     # Algorithm:
     #   - 'tpe': Bayesian Tree of Parzen Estimators (this should be the default)
     #   - 'random': Random search
@@ -89,7 +98,7 @@ hyper_parameter_optimization:
 #      These parameters will also be saved to the training-specific YAML
 #      file, so you can easily keep track of them
 #
-# Note: To disable individual items, you can add an 'enable: False' parameter
+# Note: To disable individual items, you can add an 'enable: false' parameter
 #---
 functions:
     # User defined function: Dataset augmentation
@@ -147,5 +156,5 @@ functions:
 # Model search
 #---
 model_search:
-  enable: True
+  enable: true
   models: !include models_search/*.yaml
