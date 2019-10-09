@@ -27,6 +27,15 @@ dataset_feature_importance:
   enable: True
 
 #---
+# Dataset prerpocessing
+#---
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
+
+#---
 # Model definition and parameters
 #---
 model:

@@ -151,7 +151,8 @@ class Datasets(MlFiles):
         split_test, split_validate = kwargs['split_test'], kwargs['split_validate']
         # Split dataset into three lists
         idx_train, idx_validate, idx_test = list(), list(), list()
-        for idx in range(len(self.dataset)):
+        len_tot = len(self.dataset)
+        for idx in range(len_tot):
             r = random.random()
             if r <= split_validate:
                 idx_validate.append(idx)
@@ -159,6 +160,7 @@ class Datasets(MlFiles):
                 idx_test.append(idx)
             else:
                 idx_train.append(idx)
+        self._info(f"Splitting dataset: train={len(idx_train) / len_tot}, validate={len(idx_validate) / len_tot}, test={len(idx_test) / len_tot}")
         idx_train, idx_validate, idx_test = np.array(idx_train), np.array(idx_validate), np.array(idx_test)
         return self.split_idx(idx_train, idx_validate, idx_test)
 

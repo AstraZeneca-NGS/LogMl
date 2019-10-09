@@ -264,6 +264,10 @@ functions:
     # Returns: A dataset
     dataset_load:
 
+    # Split dataset's inputs and outputs
+    # Returns a tuple (inputs, outputs)
+    dataset_inout:
+
     # User defined function: Save dataset
     # Parameters: First four parameters are 'dataset, dataset_train, dataset_test, dataset_validate'
     dataset_save:
