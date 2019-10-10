@@ -157,11 +157,10 @@ class Config(MlFiles):
         parameters = config_new.parameters[section] if section is not None else config_new.parameters
         if params:
             for param_type in params.keys():
-                if param_type in parameters:
-                    if parameters[param_type] is None:
-                        parameters[param_type] = dict()
-                    parameters[param_type].update(params[param_type])
-                    self._debug(f"Updating {param_type}: {params[param_type]}")
+                if (param_type not in parameters) or (parameters[param_type] is None):
+                    parameters[param_type] = dict()
+                parameters[param_type].update(params[param_type])
+                self._debug(f"Updating {param_type}: {params[param_type]}")
         return config_new
 
     def __str__(self):

@@ -74,7 +74,6 @@ class ModelSearch(MlFiles):
         # Create updated config
         conf = self.config.copy(disable_all=True)
         conf = conf.update_section(None, params)
-        self._debug(f"New config: {conf}")
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
         datasets = copy.copy(self.logml.datasets)

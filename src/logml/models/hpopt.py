@@ -41,7 +41,7 @@ class HyperOpt(MlLog):
         '''
         model_enable = self.config.get_parameters(CONFIG_MODEL).get('enable')
         if self.enable and not model_enable:
-            self._fatal_error(f"Config file '{self.config.config_file}', section {CONFIG_HYPER_PARAMETER_OPTMIMIZATION} incopnsistency: Hyper-parameter search is enabled, but model is disabled (section {CONFIG_MODEL}, enable:{model_enable})")
+            self._fatal_error(f"Config file '{self.config.config_file}', section {CONFIG_HYPER_PARAMETER_OPTMIMIZATION} incnsistency: Hyper-parameter search is enabled, but model is disabled (section {CONFIG_MODEL}, enable:{model_enable})")
         return True
 
     def create_objective_function(self):
