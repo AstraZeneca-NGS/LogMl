@@ -69,12 +69,15 @@ class DfPreprocess(MlLog):
         fields_normalized = set()
         for c in fields_to_normalize:
             nm = self.find_normalize_method(c)
+            xi = self.df[c]
+            self._debug(f"Before normalization '{c}': mean={np.mean(xi)}, std={np.std(xi)}")
             if nm is None:
                 self._debug(f"Normalize field '{c}': No method defined, skipping")
             else:
                 self._info(f"Normalizing field '{c}', method {nm.__name__}")
                 # Normalize and replace column
-                xi = nm(self.df[c])
+                xi = nm(xi)
+                self._debug(f"After normalization '{c}': mean={np.mean(xi)}, std={np.std(xi)}")
                 self.df[c] = xi
         self._debug("Normalizing dataset (dataframe): End")
 
