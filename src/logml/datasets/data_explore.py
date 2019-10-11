@@ -24,8 +24,6 @@ class DataExplore(MlFiles):
     '''
     Perform data exploratory analysis.
     There are two types of analysis being performed here:
-        1) Basic data exploration
-        2) ML-based exploration
     '''
 
     def __init__(self, datasets_df, config, set_config=True):
