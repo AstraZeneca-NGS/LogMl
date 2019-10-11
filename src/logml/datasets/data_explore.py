@@ -42,6 +42,7 @@ class DataExplore(MlFiles):
         self.is_dendogram = True
         self.is_describe_all = True
         self.figsize = (20, 20)
+        self.plot_pairs_max = 20
         self.shapiro_wilks_threshold = 0.1
         if set_config:
             self._set_from_config()
@@ -49,7 +50,7 @@ class DataExplore(MlFiles):
     def __call__(self):
         ''' Explore dataset '''
         if not self.enable:
-            self._debug(f"Dataset exploration disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
+            self._debug(f"Dataset explore disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
             return True
         self._info("Explore data: Start")
         if self.is_use_ori:
@@ -259,6 +260,9 @@ class DataExplore(MlFiles):
         if not self.is_plot_pairs:
             return
         dfs = self.keep_uniq(df)
+        if len(dfs.columns) > self.plot_pairs_max:
+                self._debug(f"Plot pairs: Too many columns to compare ({len(dfs.columns)}), skipping")
+                return
         print(f"Plotting pairs for columns: {dfs.columns}")
         sns.set_style('darkgrid')
         sns.set()

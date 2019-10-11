@@ -94,6 +94,9 @@ class DfTransform(MlLog):
         Preprocess and create a new dataframe from pre-processing transformations
         Returns a new (transformed) dataset
         """
+        if not self.enable:
+            self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
+            return self.df
         self.transform()
         self.df = self.create()
         self.drop_zero_std()
@@ -238,7 +241,8 @@ class DfTransform(MlLog):
         xi = self.df[field_name]
         xi_cat = xi.astype('category')
         count_cats = len(xi_cat.cat.categories)
-        return count_cats <= self.one_hot_max_cardinality
+        # Note: If there are only two categories, it already is "one-hot"
+        return count_cats > 2 and count_cats <= self.one_hot_max_cardinality
 
     def transform(self):
         '''

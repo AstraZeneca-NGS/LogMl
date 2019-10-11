@@ -12,7 +12,6 @@ dataset:
   dataset_name: 'linear3'
   dataset_path: 'data/linear3'
   outputs: ['y']
-  std_threshold: 0.0001
 
 #---
 # Dataset exploration

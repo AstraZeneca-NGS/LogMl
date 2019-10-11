@@ -6,7 +6,6 @@ dataset:
   dataset_name: 'linear3c'
   dataset_path: 'data/linear3c'
   outputs: ['y']
-  std_threshold: 0.0001
 
 dataset_explore:
   enable: true

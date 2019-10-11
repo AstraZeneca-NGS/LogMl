@@ -60,7 +60,8 @@ class DfPreprocess(MlLog):
         return self.normalize_method_default
 
     def get_normalize_list(self, name):
-        return self.normalize.get(name, list())
+        li = self.normalize.get(name, list())
+        return list() if li is None else li
 
     def _normalize(self):
         ''' Normalize variables '''
