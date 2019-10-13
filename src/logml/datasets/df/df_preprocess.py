@@ -17,10 +17,11 @@ class DfPreprocess(MlLog):
     DataFrame preprocessing: Normalize / re-scale inputs
     '''
 
-    def __init__(self, df, config, set_config=True):
+    def __init__(self, df, config, outputs, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS)
         self.df = df
         self.normalize = dict()
+        self.outputs = outputs
         if set_config:
             self._set_from_config()
         self._init_methods()
