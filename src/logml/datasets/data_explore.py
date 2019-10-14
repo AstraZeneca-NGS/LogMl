@@ -138,10 +138,11 @@ class DataExplore(MlFiles):
         descr = ResultsDf()
         for c in sorted(dfs.columns):
             xi = dfs[c]
-            df_desc = self.describe(xi, c)
+            xi_no_na = xi[~np.isnan(xi).any(axis=1)]  # Remove 'nan'
+            df_desc = self.describe(xi_no_na, c)
             descr.add_df(df_desc)
-            bins = min(len(xi.unique()), max_bins)
-            sns.distplot(xi, bins=bins)
+            bins = min(len(xi_no_na.unique()), max_bins)
+            sns.distplot(xi_no_na, bins=bins)
             plt.title(c)
             plt.show()
         self.print_all('Summary description', descr.df)
@@ -213,7 +214,8 @@ class DataExplore(MlFiles):
         self._info("Missing values analysis")
         nas_count = df.isna().sum().sort_values(ascending=False)
         nas_perc = nas_count / len(df)
-        dfnas = pd.DataFrame({'count': nas_count, 'percent': nas_perc})
+        keep = nas_count > 0
+        dfnas = pd.DataFrame({'count': nas_count[keep], 'percent': nas_perc[keep]})
         self.print_all("Missing by column", dfnas)
         # Show plot of percent of missing values
         plt.plot(nas_perc)

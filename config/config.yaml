@@ -73,6 +73,9 @@ dataset_transform:
   # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
   one_hot_max_cardinality: 7
 
+  # Remove roxs having missing output/s
+  remove_missing_outputs: true
+ 
   # Drop columns having standard deviation below this limit
   std_threshold: 0.0001
 
