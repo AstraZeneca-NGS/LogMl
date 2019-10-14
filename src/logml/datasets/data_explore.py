@@ -138,7 +138,7 @@ class DataExplore(MlFiles):
         descr = ResultsDf()
         for c in sorted(dfs.columns):
             xi = dfs[c]
-            xi_no_na = xi[~np.isnan(xi).any(axis=1)]  # Remove 'nan'
+            xi_no_na = xi[~np.isnan(xi)]  # Remove 'nan'
             df_desc = self.describe(xi_no_na, c)
             descr.add_df(df_desc)
             bins = min(len(xi_no_na.unique()), max_bins)
