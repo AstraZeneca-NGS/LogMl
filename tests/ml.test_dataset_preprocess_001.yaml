@@ -8,7 +8,7 @@ dataset:
     outputs: ['y']
 
 dataset_transform:
-  enable: false
+  enable: true
 
 # Dataset prerpocessing
 dataset_preprocess:
