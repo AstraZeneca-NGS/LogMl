@@ -51,7 +51,7 @@ class DfPreprocess(MlLog):
     def find_normalize_method(self, col_name):
         ''' Find a normalizetion method for this column '''
         if col_name in self.normalize_skip:
-            self._debug(f"Normalize variable '{self.normalize_skip}' in skip list: skipping")
+            self._debug(f"Normalize variable '{col_name}' in skip list: skipping")
             return
         for nm_name, nm in self.normalize_methods.items():
             if nm.fields is True:
@@ -64,12 +64,26 @@ class DfPreprocess(MlLog):
         li = self.normalize.get(name, list())
         return list() if li is None else li
 
+    def is_range_01(self, col_name):
+        '''
+        Is this variable in [0,1] range?
+        We say the varaible is in [0.0, 1.0] range if the min is
+        in [0.0 , 0.1] and the max is in [0.9, 1.0]
+        '''
+        xi = self.df[col_name]
+        xi_min = xi.unique().min()
+        xi_max = xi.unique().max()
+        return 0.0 <= xi_min and xi_min <= 0.1 and 0.9 <= xi_max and xi_max <= 1.0
+
     def _normalize(self):
         ''' Normalize variables '''
         self._debug("Normalizing dataset (dataframe): Start")
         fields_to_normalize = list(self.df.columns)
         fields_normalized = set()
         for c in fields_to_normalize:
+            if self.is_range_01(c):
+                self._debug(f"Normalize variable '{c}' is in [0, 1]: skipping")
+                continue
             nm = self.find_normalize_method(c)
             xi = self.df[c]
             self._debug(f"Before normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}")

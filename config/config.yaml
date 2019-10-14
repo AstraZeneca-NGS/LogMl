@@ -75,7 +75,7 @@ dataset_transform:
 
   # Remove roxs having missing output/s
   remove_missing_outputs: true
- 
+
   # Drop columns having standard deviation below this limit
   std_threshold: 0.0001
 
@@ -98,11 +98,10 @@ dataset_preprocess:
   # Normalization methods followed by list of variables or 'true' meaning
   # that all variables shoudl be normalized using this method
   normalize:
-    # Use median for all variables not explicitly define elsewhere
-    median: true
-
     # Transform so that mean(x)=0 var(x)=1
-    standard: ['x1', 'x4']
+    # Set to 'true' means to use as default (i.e. use this normalization
+    # for all variables not explicitly define elsewhere)
+    standard: true
 
     # Normalize dividing by max(abs(x_i))
     maxabs: ['x2', 'x5']
@@ -152,6 +151,22 @@ dataset_explore:
 
   # Descrive all variables
   is_describe_all: true
+
+  # Consider variables 'highly correlated' if over this threshold
+  corr_thresdold: 0.7
+
+  # Do not plot pairs if there are more than 'correlation_analysis_max' varaibles
+  correlation_analysis_max: 100
+
+  # Do not perform dendogram plot for more than 'dendogram_max' varaibles
+  dendogram_max: 100
+
+  # Do not plot pairs if there are more than 'plot_pairs_max' varaibles
+  plot_pairs_max: 20
+
+  # Consider a varaible 'normal' or 'log normal' if Shapiro-Wilks test is over this threshold
+  shapiro_wilks_threshold: 0.1
+
 
 #---
 # Dataset: Feature importance / feature selection
