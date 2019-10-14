@@ -29,7 +29,9 @@ class DataExplore(MlFiles):
     def __init__(self, datasets_df, config, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
         self.corr_thresdold = 0.7
+        self.correlation_analysis_max = 100
         self.datasets_df = datasets_df
+        self.dendogram_max = 100
         self.df = self.datasets_df.dataset
         self.df_ori = self.datasets_df.dataset_ori
         self.is_use_ori = False
@@ -85,6 +87,9 @@ class DataExplore(MlFiles):
         if not self.is_correlation_analysis:
             return
         self._debug("Correlation analysis")
+        if len(df.columns) > self.correlation_analysis_max:
+            self._debug(f"Correlation analysis: Too many columns to compare ({len(df.columns)}), skipping")
+            return
         corr = self.rank_correlation(df)
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
@@ -114,6 +119,9 @@ class DataExplore(MlFiles):
         """
         if not self.is_dendogram:
             return
+        if len(df.columns) > self.dendogram_max:
+            self._debug(f"Dendogram: Too many columns to compare ({len(df.columns)}), skipping")
+            return
         corr = self.rank_correlation(df)
         corr = np.round(corr, 4)
         # Convert to distance
@@ -138,10 +146,11 @@ class DataExplore(MlFiles):
         descr = ResultsDf()
         for c in sorted(dfs.columns):
             xi = dfs[c]
-            df_desc = self.describe(xi, c)
+            xi_no_na = xi[~np.isnan(xi)]  # Remove 'nan'
+            df_desc = self.describe(xi_no_na, c)
             descr.add_df(df_desc)
-            bins = min(len(xi.unique()), max_bins)
-            sns.distplot(xi, bins=bins)
+            bins = min(len(xi_no_na.unique()), max_bins)
+            sns.distplot(xi_no_na, bins=bins)
             plt.title(c)
             plt.show()
         self.print_all('Summary description', descr.df)
@@ -213,7 +222,8 @@ class DataExplore(MlFiles):
         self._info("Missing values analysis")
         nas_count = df.isna().sum().sort_values(ascending=False)
         nas_perc = nas_count / len(df)
-        dfnas = pd.DataFrame({'count': nas_count, 'percent': nas_perc})
+        keep = nas_count > 0
+        dfnas = pd.DataFrame({'count': nas_count[keep], 'percent': nas_perc[keep]})
         self.print_all("Missing by column", dfnas)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
@@ -259,8 +269,8 @@ class DataExplore(MlFiles):
             return
         dfs = self.keep_uniq(df)
         if len(dfs.columns) > self.plot_pairs_max:
-                self._debug(f"Plot pairs: Too many columns to compare ({len(dfs.columns)}), skipping")
-                return
+            self._debug(f"Plot pairs: Too many columns to compare ({len(dfs.columns)}), skipping")
+            return
         print(f"Plotting pairs for columns: {dfs.columns}")
         sns.set_style('darkgrid')
         sns.set()

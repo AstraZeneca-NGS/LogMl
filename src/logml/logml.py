@@ -75,7 +75,7 @@ class LogMl(MlFiles):
             self._error("Could not load or create dataset")
             return False
         # Explore dataset
-        if not self._explore():
+        if not self._dataset_explore():
             self._debug("Could not explore dataset")
         if not self._feature_importance():
             self._debug("Could not perform feature importance / feature selection")
@@ -89,13 +89,13 @@ class LogMl(MlFiles):
         self._debug("End")
         return True
 
-    def _explore(self):
+    def _dataset_explore(self):
         " Explore dataset "
         if not self.is_dataset_df():
             self._debug("Dataset exploration only available for dataset type 'df'")
             return True
-        de = DataExplore(self.datasets, self.config)
-        return de()
+        self.dataset_explore = DataExplore(self.datasets, self.config)
+        return self.dataset_explore()
 
     def _feature_importance(self):
         " Feature importance / feature selection "
