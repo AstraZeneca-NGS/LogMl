@@ -5,6 +5,7 @@ import pandas as pd
 import os
 import random
 import sys
+import time
 import unittest
 
 from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
@@ -62,6 +63,32 @@ def create_dataset_transform_001():
     return df
 
 
+def create_dataset_transform_002():
+    num = 1000
+    # Inputs: x1, .. ., xn
+    x1 = np.random.normal(0, 1, num)
+    x2 = np.random.rand(num) * 5 + 7
+    d1 = np.array([rand_date() for _ in range(num)], dtype="datetime64[s]")
+    n = np.random.normal(0, 1, num)
+    y = 3. * x1 - 1. * x2 + 0.1 * n
+    # Set some 'na'
+    d1_na = (np.random.rand(num) < 0.1)
+    d1[d1_na] = np.datetime64("NaT")
+    # Create dataFrame
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'd1': d1, 'y': y})
+    print(df.head())
+    file = 'test_dataset_transform_002.csv'
+    print(f"Saving dataset to file '{file}'")
+    df.to_csv(file, index=False)
+    return df
+
+
+def rand_date():
+    max_time = int(time.time())
+    t = random.randint(0, max_time)
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
+
+
 def rm(file):
     ''' Delete file, if it exists '''
     if os.path.exists(file):
@@ -80,7 +107,7 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        # MlLog().set_log_level(logging.DEBUG)
+        MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_config_001(self):
@@ -594,7 +621,6 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_transform_001(self):
         ''' Checking dataset transform: Remove missing output rows '''
-        create_dataset_transform_001()
         config_file = os.path.join('tests', 'ml.test_dataset_transform_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -604,6 +630,20 @@ class TestLogMl(unittest.TestCase):
         df = ds.dataset
         # Check that rows in 'y' have been removed
         self.assertTrue(df.shape[0] < 990)
+
+    def test_dataset_transform_002(self):
+        ''' Checking dataset transform: Remove missing output rows '''
+        # create_dataset_transform_002()
+        config_file = os.path.join('tests', 'ml.test_dataset_transform_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        for c in ['d1Year', 'd1Month', 'd1Week', 'd1Day', 'd1Dayofweek', 'd1Dayofyear', 'd1Is_month_end', 'd1Is_month_start', 'd1Is_quarter_end', 'd1Is_quarter_start', 'd1Is_year_end', 'd1Is_year_start', 'd1Hour', 'd1Minute', 'd1Second', 'd1Elapsed']:
+            x = df[c]
+            self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
 
 
 if __name__ == '__main__':

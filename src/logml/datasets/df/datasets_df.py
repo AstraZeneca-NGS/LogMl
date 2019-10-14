@@ -65,8 +65,8 @@ class DatasetsDf(Datasets):
         if self.dataset_ori is None:
             # Keep a copy of the original dataset
             self.dataset_ori = self.dataset
-        dfp = DfPreprocess(self.dataset, self.config, self.outputs)
-        self.dataset = dfp()
+        self.dataset_preprocess = DfPreprocess(self.dataset, self.config, self.outputs)
+        self.dataset = self.dataset_preprocess()
         self._debug(f"Dataset preprocess: End")
         return True
         return False
