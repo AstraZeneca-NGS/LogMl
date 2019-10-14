@@ -43,6 +43,25 @@ def create_dataset_preprocess_001():
     return df
 
 
+# Create dataset
+def create_dataset_transform_001():
+    # Number of samples
+    num = 1000
+    # Inputs: x1, .. ., xn
+    x1 = np.random.normal(0, 1, num)
+    x2 = np.random.rand(num) * 5 + 7
+    n = np.random.normal(0, 1, num)
+    y = 3. * x1 - 1. * x2 + 0.1 * n
+    y_na = (np.random.rand(num) < 0.1)
+    y[y_na] = np.nan
+    # Create dataFrame
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'y': y})
+    file = 'test_dataset_transform_001.csv'
+    print(f"Saving dataset to file '{file}'")
+    df.to_csv(file, index=False)
+    return df
+
+
 def rm(file):
     ''' Delete file, if it exists '''
     if os.path.exists(file):
@@ -572,6 +591,19 @@ class TestLogMl(unittest.TestCase):
         x7_std = np.std(df.x7)
         self.assertTrue(abs(x7_mean) < 0.001)
         self.assertTrue(abs(x7_std - 1) <= 0.001)
+
+    def test_dataset_transform_001(self):
+        ''' Checking dataset transform: Remove missing output rows '''
+        create_dataset_transform_001()
+        config_file = os.path.join('tests', 'ml.test_dataset_transform_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Check that rows in 'y' have been removed
+        self.assertTrue(df.shape[0] < 990)
 
 
 if __name__ == '__main__':
