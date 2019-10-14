@@ -6,13 +6,12 @@ dataset:
   dataset_name: 'linear3c'
   dataset_path: 'data/linear3c'
   outputs: ['y']
-  std_threshold: 0.0001
 
 dataset_explore:
-  enable: true
+  enable: false
 
 dataset_feature_importance:
-  enable: true
+  enable: false
 
 dataset_preprocess:
   enable: true
@@ -20,8 +19,12 @@ dataset_preprocess:
     standard: true
     skip: ['y']
 
-model:
+dataset_transform:
   enable: true
+  remove_missing_outputs: true
+
+model:
+  enable: false
   model_type: regression
   model_name: 'linear3c'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -62,5 +65,5 @@ functions:
     model_train:
 
 model_search:
-  enable: True
+  enable: False
   models: !include models_search/*.yaml

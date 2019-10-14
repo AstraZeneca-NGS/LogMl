@@ -1,6 +1,7 @@
 
 import logging
 import numpy as np
+import pandas as pd
 import os
 import random
 import sys
@@ -16,7 +17,7 @@ from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DAT
 
 
 # Create dataset
-def create_dataset():
+def create_dataset_preprocess_001():
     # Number of samples
     num = 1000
     # Inputs: x1, .. ., xn
@@ -25,7 +26,7 @@ def create_dataset():
     x3 = np.random.normal(0, 1, num)
     x4 = np.random.rand(num) * 5 + 7
     x5 = np.random.rand(num) * 5 + 7
-    x6 = 2 * np.random.rand(num) - 1
+    x6 = np.random.normal(2, 3, num)
     x7 = np.random.normal(3, 4, num)
     x8 = np.random.rand(num) * 2 + 3
     # Noise
@@ -36,7 +37,28 @@ def create_dataset():
     y_str = np.array([to_class(c) for c in y])
     # Create dataFrame
     df = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4, 'x5': x5, 'x6': x6, 'x7': x7, 'y': y_str})
-    df.to_csv('test_dataset_preprpocess_001.csv', index=False)
+    file = 'test_dataset_preprpocess_001.csv'
+    print(f"Saving dataset to file '{file}'")
+    df.to_csv(file, index=False)
+    return df
+
+
+# Create dataset
+def create_dataset_transform_001():
+    # Number of samples
+    num = 1000
+    # Inputs: x1, .. ., xn
+    x1 = np.random.normal(0, 1, num)
+    x2 = np.random.rand(num) * 5 + 7
+    n = np.random.normal(0, 1, num)
+    y = 3. * x1 - 1. * x2 + 0.1 * n
+    y_na = (np.random.rand(num) < 0.1)
+    y[y_na] = np.nan
+    # Create dataFrame
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'y': y})
+    file = 'test_dataset_transform_001.csv'
+    print(f"Saving dataset to file '{file}'")
+    df.to_csv(file, index=False)
     return df
 
 
@@ -67,7 +89,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
         mldataset = Datasets(config)
-        logml = LogMl(config)
+        logml = LogMl(config=config)
         mltrain = Model(config, mldataset)
         self.assertTrue(ret)
         self.assertEqual(mltrain.model_name, 'model_001')
@@ -82,7 +104,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(os.path.join('tests', 'ml.test_config_002.yaml'), argv=list())
         ret = config()
         config.exit_on_fatal_error = False
-        logml = LogMl(config)
+        logml = LogMl(config=config)
         self.assertEqual(logml._config_sanity_check(), False)
         self.assertEqual(logml.cross_validation.enable, True)
         self.assertEqual(logml.hyper_parameter_optimization.enable, True)
@@ -377,7 +399,7 @@ class TestLogMl(unittest.TestCase):
         rm(os.path.join('tests', 'tmp', 'test_train_001.pkl'))
         # Create LogMl
         random.seed(20190705)
-        logml = LogMl(config)
+        logml = LogMl(config=config)
         ret = logml()
         # Check values
         mltrain = logml.model
@@ -431,7 +453,7 @@ class TestLogMl(unittest.TestCase):
         rm(os.path.join('tests', 'tmp', 'test_train_002_cross_validate.pkl'))
         # Create LogMl
         random.seed(20190706)
-        logml = LogMl(config)
+        logml = LogMl(config=config)
         ret = logml()
         # Check values
         cv = logml.cross_validation
@@ -480,7 +502,7 @@ class TestLogMl(unittest.TestCase):
         # Cleanup old files
         rm(os.path.join('tests', 'tmp', 'test_train_003_hyper_opt.pkl'))
         # Create LogMl
-        logml = LogMl(config)
+        logml = LogMl(config=config)
         ret = logml()
         # Check values
         ho = logml.hyper_parameter_optimization
@@ -522,7 +544,7 @@ class TestLogMl(unittest.TestCase):
         # Cleanup old files
         rm(os.path.join('tests', 'tmp', 'test_train_004_hyper_opt.pkl'))
         # Create LogMl
-        logml = LogMl(config)
+        logml = LogMl(config=config)
         ret = logml()
         # Check values
         ho = logml.hyper_parameter_optimization
@@ -562,13 +584,26 @@ class TestLogMl(unittest.TestCase):
         # x6
         x6_mean = np.mean(df.x6)
         x6_std = np.std(df.x6)
-        self.assertTrue(abs(x6_mean) < 0.001)
-        self.assertTrue(abs(x6_std - 1) <= 0.001)
+        self.assertTrue(abs(x6_mean - 2) < 0.2)
+        self.assertTrue(abs(x6_std - 3) <= 0.1)
         # x7
         x7_mean = np.mean(df.x7)
         x7_std = np.std(df.x7)
         self.assertTrue(abs(x7_mean) < 0.001)
         self.assertTrue(abs(x7_std - 1) <= 0.001)
+
+    def test_dataset_transform_001(self):
+        ''' Checking dataset transform: Remove missing output rows '''
+        create_dataset_transform_001()
+        config_file = os.path.join('tests', 'ml.test_dataset_transform_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Check that rows in 'y' have been removed
+        self.assertTrue(df.shape[0] < 990)
 
 
 if __name__ == '__main__':

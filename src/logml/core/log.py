@@ -4,6 +4,8 @@ import logging
 import os
 import sys
 
+from IPython import display
+
 
 def _create_logml_logger():
     ''' Create and set-up a logml_logger for this module '''
@@ -119,6 +121,9 @@ class MlLog:
         if self.config.exit_on_fatal_error:
             sys.exit(1)
 
+    def _html(self, msg):
+        display.HTML(msg)
+
     def _info(self, msg):
         ''' Show an INFO message '''
         logml_logger.info(f"{msg}")
@@ -160,6 +165,9 @@ class MlLog:
         ''' A shortcut to setting log level '''
         logml_logger.setLevel(level)
 
+    def _subtitle(self, msg):
+        display.HTML(f"<h3>{msg}</h3>")
+
     def tee(self, close=False):
         ''' Copy STDOUT / STDERR to file '''
         if close:
@@ -176,6 +184,9 @@ class MlLog:
                 self.tee_stdout = Tee(self.file_stdout)
             if self.file_stderr:
                 self.tee_stderr = Tee(self.file_stderr, True)
+
+    def _title(self, msg):
+        display.HTML(f"<h1>{msg}</h1>")
 
     def _warning(self, msg):
         ''' Show a warning message '''

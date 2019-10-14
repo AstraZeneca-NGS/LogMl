@@ -56,6 +56,7 @@ class DfTransform(MlLog):
         self.one_hot = list()  # Convert these fields to 'one hot encoding'
         self.one_hot_max_cardinality = 7
         self.outputs = outputs
+        self.remove_missing_outputs = True
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
@@ -94,6 +95,10 @@ class DfTransform(MlLog):
         Preprocess and create a new dataframe from pre-processing transformations
         Returns a new (transformed) dataset
         """
+        if not self.enable:
+            self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
+            return self.df
+        self._remove_missing_outputs()
         self.transform()
         self.df = self.create()
         self.drop_zero_std()
@@ -220,6 +225,18 @@ class DfTransform(MlLog):
         self.skip_nas.add(field_name)
         return True
 
+    def _remove_missing_outputs(self):
+        ''' Remove rows if output variable/s are missing '''
+        if not self.remove_missing_outputs:
+            self._debug("Remove missing outputs disabled, skipping")
+            return
+        self._debug(f"Remove missing outputs: Start")
+        self.df_ori = self.df
+        outs_na = self.df[self.outputs].isna().any(axis=1)
+        self.df = self.df.loc[~outs_na]
+        self._info(f"Remove rows with missing outputs: Removed: {outs_na.sum()} rows, dataFrame previous shape: {self.df_ori.shape}, new shape: {self.df.shape}")
+        self._debug(f"Remove missing outputs: End")
+
     def rename_category_cols(self, df, prepend):
         '''
         Rename dataFrame columns by prepending a string and sanitizing the name
@@ -238,7 +255,8 @@ class DfTransform(MlLog):
         xi = self.df[field_name]
         xi_cat = xi.astype('category')
         count_cats = len(xi_cat.cat.categories)
-        return count_cats <= self.one_hot_max_cardinality
+        # Note: If there are only two categories, it already is "one-hot"
+        return count_cats > 2 and count_cats <= self.one_hot_max_cardinality
 
     def transform(self):
         '''

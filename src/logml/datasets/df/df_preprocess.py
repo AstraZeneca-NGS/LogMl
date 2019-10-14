@@ -17,10 +17,11 @@ class DfPreprocess(MlLog):
     DataFrame preprocessing: Normalize / re-scale inputs
     '''
 
-    def __init__(self, df, config, set_config=True):
+    def __init__(self, df, config, outputs, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS)
         self.df = df
         self.normalize = dict()
+        self.outputs = outputs
         if set_config:
             self._set_from_config()
         self._init_methods()
@@ -60,7 +61,8 @@ class DfPreprocess(MlLog):
         return self.normalize_method_default
 
     def get_normalize_list(self, name):
-        return self.normalize.get(name, list())
+        li = self.normalize.get(name, list())
+        return list() if li is None else li
 
     def _normalize(self):
         ''' Normalize variables '''
@@ -69,12 +71,15 @@ class DfPreprocess(MlLog):
         fields_normalized = set()
         for c in fields_to_normalize:
             nm = self.find_normalize_method(c)
+            xi = self.df[c]
+            self._debug(f"Before normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}")
             if nm is None:
                 self._debug(f"Normalize field '{c}': No method defined, skipping")
             else:
                 self._info(f"Normalizing field '{c}', method {nm.__name__}")
                 # Normalize and replace column
-                xi = nm(self.df[c])
+                xi = nm(xi)
+                self._debug(f"After normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}")
                 self.df[c] = xi
         self._debug("Normalizing dataset (dataframe): End")
 
@@ -112,8 +117,8 @@ class DfPreprocess(MlLog):
 
     def _normalize_standard(self, xi):
         ''' Normalize using 'standard' method '''
-        me = np.mean(xi)
-        std = np.std(xi)
+        me = np.nanmean(xi)
+        std = np.nanstd(xi)
         if std <= 0.0:
             return (xi - me)
         return (xi - me) / std

@@ -1,5 +1,6 @@
 import copy
 import datetime
+import logging
 
 from .core import Config, CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .core.files import MlFiles
@@ -15,7 +16,15 @@ class LogMl(MlFiles):
     ML Logger definition
     Note: This class is used as a singleton
     '''
-    def __init__(self, config=None, datasets=None):
+    def __init__(self, config_file=None, config=None, datasets=None, verbose=False, debug=False):
+        if config is None and config_file is not None:
+            config = Config(config_file=config_file)
+            config()
+        if config is not None:
+            if verbose:
+                config.set_log_level(logging.INFO)
+            if debug:
+                config.set_log_level(logging.DEBUG)
         super().__init__(config, config_section=CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0

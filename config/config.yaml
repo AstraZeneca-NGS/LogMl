@@ -54,6 +54,9 @@ dataset:
 # Dataset transformations: Conver to categorical variable, dates, one hot, etc.
 #---
 dataset_transform:
+  # Set to 'false' to disable this step
+  enable: true
+
   # Categorical data
   # A list of categorical input variables
   # Can be followed by a list of categories to enforce some type of categorical order in the codes
@@ -102,7 +105,10 @@ dataset_preprocess:
     maxabs: ['x2', 'x5']
 
     # Use min/max normalizer, i.e. transform to interval [0,1]
-    minmax: ['x3', 'x6']
+    minmax: ['x3']
+
+    # Use min/max normalizer with negative values, i.e. transform to interval [-1,1]
+    minmax_neg: ['x6']
 
     # Apply log(x)
     log: ['x9']
@@ -156,7 +162,7 @@ dataset_feature_importance:
 #---
 model:
   # Set to 'false' to disable model learning (e.g. if we only want to perform data exploration)
-  enable: false
+  enable: true
 
   # Type of model: {'clasification', 'regression', 'unsupervised'}
   model_type: regression
@@ -276,7 +282,8 @@ functions:
     # Parameters: First parameter is always 'dataset'
     # Returns: Dataset split into three parts: 'dataset_train, dataset_test, dataset_validate'
     dataset_split:
-      n: 1000
+      split_validate: 0.2
+      split_test: 0.0
 
     # User defined function: Dataset pre-processing
     # Parameters: First parameter is always 'dataset'
@@ -310,7 +317,7 @@ functions:
 #---
 model_search:
   # Set this to 'true' to enable model search
-  enable: false
+  enable: true
 
   # Include all models in 'model_search' directory
   models: !include models_search/*.yaml
