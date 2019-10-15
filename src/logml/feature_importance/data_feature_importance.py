@@ -24,7 +24,6 @@ from ..util.results_df import ResultsDf
 EPSILON = 1.0e-4
 
 
-# TODO: Add a summary table with results from all feature importance methods
 class DataFeatureImportance(MlFiles):
     '''
     Perform feature importance / feature selection analysis
@@ -33,6 +32,21 @@ class DataFeatureImportance(MlFiles):
     def __init__(self, datasets, config, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
+        self.is_fim_random_forest = True
+        self.is_fim_extra_trees = True
+        self.is_fim_gradient_boosting = True
+        self.is_regularization_lasso = True
+        self.is_regularization_ridge = True
+        self.is_regularization_lars = True
+        self.is_rfe_model = True
+        self.is_rfe_model_lasso = True
+        self.is_rfe_model_ridge = True
+        self.is_rfe_model_lars_aic = True
+        self.is_rfe_model_lars_bic = True
+        self.is_rfe_model_random_forest = True
+        self.is_rfe_model_extra_trees = True
+        self.is_rfe_model_gradient_boosting = True
+        self.is_select = True
         self.model_type = model_type
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
@@ -72,7 +86,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance: Adding 'rank of rank_sum' column")
         self.results.add_rank_of_ranksum()
         self.results.sort('rank_of_ranksum')
-        display(self.results.df)
+        self._display(self.results.df)
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         self._info("Feature importance / feature selection: End")
@@ -80,9 +94,12 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model(self.fit_random_forest(), 'RandomForest')
-        self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees')
-        self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting')
+        if self.is_fim_random_forest:
+            self.feature_importance_model(self.fit_random_forest(), 'RandomForest')
+        if self.is_fim_extra_trees:
+            self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees')
+        if self.is_fim_gradient_boosting:
+            self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting')
 
     def feature_importance_model(self, model, model_name):
         """
@@ -211,14 +228,23 @@ class DataFeatureImportance(MlFiles):
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''
         self._debug(f"Feature importance: Recursive feature elimination")
+        if not self.is_rfe_model:
+            return
         if self.is_regression():
-            self.recursive_feature_elimination_model(self.fit_lasso(), 'Lasso')
-            self.recursive_feature_elimination_model(self.fit_ridge(), 'Ridge')
-            self.recursive_feature_elimination_model(self.fit_lars_aic(), 'Lars_AIC')
-            self.recursive_feature_elimination_model(self.fit_lars_bic(), 'Lars_BIC')
-        self.recursive_feature_elimination_model(self.fit_random_forest(), 'RandomForest')
-        self.recursive_feature_elimination_model(self.fit_extra_trees(), 'ExtraTrees')
-        self.recursive_feature_elimination_model(self.fit_gradient_boosting(), 'GradientBoosting')
+            if self.is_rfe_model_lasso:
+                self.recursive_feature_elimination_model(self.fit_lasso(), 'Lasso')
+            if self.is_rfe_model_ridge:
+                self.recursive_feature_elimination_model(self.fit_ridge(), 'Ridge')
+            if self.is_rfe_model_lars_aic:
+                self.recursive_feature_elimination_model(self.fit_lars_aic(), 'Lars_AIC')
+            if self.is_rfe_model_lars_bic:
+                self.recursive_feature_elimination_model(self.fit_lars_bic(), 'Lars_BIC')
+        if self.is_rfe_model_random_forest:
+            self.recursive_feature_elimination_model(self.fit_random_forest(), 'RandomForest')
+        if self.is_rfe_model_extra_trees:
+            self.recursive_feature_elimination_model(self.fit_extra_trees(), 'ExtraTrees')
+        if self.is_rfe_model_gradient_boosting:
+            self.recursive_feature_elimination_model(self.fit_gradient_boosting(), 'GradientBoosting')
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
@@ -236,14 +262,17 @@ class DataFeatureImportance(MlFiles):
             return
         self._info(f"Feature importance: Regularization")
         # LassoCV
-        lassocv = self.regularization_model(self.fit_lasso())
-        self.plot_lasso_alphas(lassocv)
+        if self.is_regularization_lasso:
+            lassocv = self.regularization_model(self.fit_lasso())
+            self.plot_lasso_alphas(lassocv)
         # RidgeCV
-        ridgecv = self.regularization_model(self.fit_ridge())
+        if self.is_regularization_ridge:
+            ridgecv = self.regularization_model(self.fit_ridge())
         # LARS
-        lars_aic = self.regularization_model(self.fit_lars_aic(), 'Lars_AIC')
-        lars_bic = self.regularization_model(self.fit_lars_bic(), 'Lars_BIC')
-        self.plot_lars(lars_aic, lars_bic)
+        if self.is_regularization_lars:
+            lars_aic = self.regularization_model(self.fit_lars_aic(), 'Lars_AIC')
+            lars_bic = self.regularization_model(self.fit_lars_bic(), 'Lars_BIC')
+            self.plot_lars(lars_aic, lars_bic)
 
     def regularization_model(self, model, model_name=None):
         ''' Fit a modelularization model and show non-zero coefficients '''
@@ -260,6 +289,8 @@ class DataFeatureImportance(MlFiles):
         Use different functions, depending on model_type and inputs
         '''
         # Select functions to use, defined as dictionary {function: has_pvalue}
+        if not self.is_select:
+            return True
         if self.is_regression():
             funcs = {f_regression: True, mutual_info_regression: False}
         elif self.is_classification():
@@ -310,4 +341,4 @@ class DataFeatureImportance(MlFiles):
         args = ['dot', '-Tpng', file_dot, '-o', 'tree.png']
         subprocess.run(args)
         print(f"Created image: '{file_png}'")
-        display(Image(filename=file_png))
+        self._display(Image(filename=file_png))

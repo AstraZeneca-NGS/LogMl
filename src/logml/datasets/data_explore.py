@@ -280,7 +280,7 @@ class DataExplore(MlFiles):
     def print_all(self, msg, df):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             print(msg)
-            display(df)
+            self._display(df)
 
     def rank_correlation(self, df):
         " Rank correlation (Spearman's R)"

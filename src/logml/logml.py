@@ -3,7 +3,7 @@ import datetime
 import logging
 
 from .core import Config, CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
-from .core.files import MlFiles
+from .core.files import MlFiles, DISABLE_PLOTS
 from .core.registry import MODEL_CREATE
 from .datasets import Datasets, DatasetsDf, DataExplore
 from .feature_importance import DataFeatureImportance
@@ -29,7 +29,10 @@ class LogMl(MlFiles):
         self.datasets = datasets
         self._id_counter = 0
         self.cross_validation = None
+        self.disable_plots = False
         self.display_model_results = True
+        self.display_max_columns = 1000
+        self.display.max_rows = 1000
         self.hyper_parameter_optimization = None
         self.model = None
         self.model_ori = None
@@ -124,6 +127,10 @@ class LogMl(MlFiles):
             self.cross_validation = CrossValidation(self)
         if self.model_search is None:
             self.model_search = ModelSearch(self)
+        # Table width
+        pd.set_option('display.max_columns', self.display_max_columns)
+        pd.set_option('display.max_rows', self.display.max_rows)
+        DISABLE_PLOTS = sefl.disable_plots
         return self._config_sanity_check()
 
     def is_dataset_df(self):

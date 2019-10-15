@@ -11,6 +11,9 @@ from yamlinclude import YamlIncludeConstructor
 
 from .log import MlLog
 
+# Should we disable plots
+DISABLE_PLOTS = False
+
 
 class MlFiles(MlLog):
     '''
@@ -18,6 +21,9 @@ class MlFiles(MlLog):
     '''
     def __init__(self, config=None, config_section=None):
         super().__init__(config, config_section)
+
+    def _display(self, obj):
+        display(obj)
 
     def _get_file_name(self, path, name, file_type=None, ext='pkl', _id=None):
         ''' Create a file name
@@ -60,6 +66,8 @@ class MlFiles(MlLog):
 
     def _plot_show(self):
         ''' Show a plot in a way that we can continue processing '''
+        if DISABLE_PLOTS:
+            return
         plt.draw()  # Show plot in a non-blocking maner
         plt.pause(0.1)  # Pause, so that GUI can update the images
 
