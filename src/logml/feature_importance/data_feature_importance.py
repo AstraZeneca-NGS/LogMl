@@ -47,6 +47,7 @@ class DataFeatureImportance(MlFiles):
         self.is_rfe_model_extra_trees = True
         self.is_rfe_model_gradient_boosting = True
         self.is_select = True
+        self.is_tree_graph = True
         self.model_type = model_type
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
@@ -326,6 +327,8 @@ class DataFeatureImportance(MlFiles):
 
     def tree_graph(self, file_dot='tree.dot', file_png='tree.png'):
         """ Simple tree representation """
+        if not self.is_tree_graph:
+            return
         self._info(f"Tree graph: Random Forest")
         # Train a single tree with all the samples
         m = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)

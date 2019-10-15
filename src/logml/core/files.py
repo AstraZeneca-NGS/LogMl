@@ -7,6 +7,7 @@ import os
 import sys
 import yaml
 
+from IPython.core.display import display
 from yamlinclude import YamlIncludeConstructor
 
 from .log import MlLog

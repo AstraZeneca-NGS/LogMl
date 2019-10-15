@@ -1,6 +1,7 @@
 import copy
 import datetime
 import logging
+import pandas as pd
 
 from .core import Config, CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .core.files import MlFiles, DISABLE_PLOTS
@@ -32,7 +33,7 @@ class LogMl(MlFiles):
         self.disable_plots = False
         self.display_model_results = True
         self.display_max_columns = 1000
-        self.display.max_rows = 1000
+        self.display_max_rows = 1000
         self.hyper_parameter_optimization = None
         self.model = None
         self.model_ori = None
@@ -129,8 +130,8 @@ class LogMl(MlFiles):
             self.model_search = ModelSearch(self)
         # Table width
         pd.set_option('display.max_columns', self.display_max_columns)
-        pd.set_option('display.max_rows', self.display.max_rows)
-        DISABLE_PLOTS = sefl.disable_plots
+        pd.set_option('display.max_rows', self.display_max_rows)
+        DISABLE_PLOTS = self.disable_plots
         return self._config_sanity_check()
 
     def is_dataset_df(self):
