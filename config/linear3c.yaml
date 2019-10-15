@@ -8,10 +8,10 @@ dataset:
   outputs: ['y']
 
 dataset_explore:
-  enable: false
+  enable: true
 
 dataset_feature_importance:
-  enable: false
+  enable: true
 
 dataset_preprocess:
   enable: true
@@ -24,22 +24,22 @@ dataset_transform:
   remove_missing_outputs: true
 
 model:
-  enable: false
+  enable: true
   model_type: regression
   model_name: 'linear3c'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/linear3c/model'
-  is_save_model_pickle: True
-  is_save_model_method: True
+  is_save_model_pickle: true
+  is_save_model_method: true
   is_save_model_method_ext: 'model'
-  is_save_params: True
-  is_save_test_pickle: True
+  is_save_params: true
+  is_save_test_pickle: true
   is_save_train_pickle: false
   is_save_validate_pickle: false
 
 hyper_parameter_optimization:
     enable: false
-    show_progressbar: True
+    show_progressbar: true
     algorithm: 'tpe'
     max_evals: 5
     space:
@@ -65,5 +65,5 @@ functions:
     model_train:
 
 model_search:
-  enable: False
+  enable: true
   models: !include models_search/*.yaml

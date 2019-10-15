@@ -189,7 +189,7 @@ class DataFeatureImportance(MlFiles):
         self.plot_ic_criterion(model_bic, 'BIC', 'r')
         plt.legend()
         plt.title('Information-criterion for model selection')
-        plt.show()
+        self._plot_show()
 
     def plot_lasso_alphas(self, model):
         '''
@@ -206,7 +206,7 @@ class DataFeatureImportance(MlFiles):
         plt.ylabel('Mean square error')
         plt.title('Mean square error on each fold: coordinate descent')
         plt.axis('tight')
-        plt.show()
+        self._plot_show()
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''

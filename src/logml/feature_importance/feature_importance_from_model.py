@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import MinMaxScaler
 
+from ..core.files import MlFiles
 
-class FeatureImportanceFromModel:
+
+class FeatureImportanceFromModel(MlFiles):
     '''
     Estimate feature importance based on a model.
     How it works: Suffle a column and analyze how model performance is
@@ -74,7 +76,7 @@ class FeatureImportanceFromModel:
         # plt.figure(figsize=self.figsize)
         # plt.plot(imp_x, imp_y)
         # plt.title(f"Feature importance {self.model_name}")
-        plt.show()
+        self._plot_show()
 
     def rmse(self, x, y):
         return math.sqrt(((x - y)**2).mean())

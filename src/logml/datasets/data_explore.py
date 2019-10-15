@@ -109,7 +109,7 @@ class DataExplore(MlFiles):
         df_corr = pd.DataFrame(corr, columns=df.columns, index=df.columns)
         sns.heatmap(df_corr, square=True)
         plt.title('Correlation (numeric features)')
-        plt.show()
+        self._plot_show()
 
     def dendogram(self, df, name):
         """
@@ -131,11 +131,11 @@ class DataExplore(MlFiles):
         plt.figure(figsize=self.figsize)
         den = hc.dendrogram(z, labels=df.columns, orientation='left', leaf_font_size=16)
         plt.title(f"Dendogram rank correlation: {name}")
-        plt.show()
+        self._plot_show()
         # Another method for the same
         msno.dendrogram(df)
         plt.title(f"Dendogram: {name}")
-        plt.show()
+        self._plot_show()
 
     def describe_all(self, df, max_bins=100):
         " Show basic stats and histograms for every column "
@@ -152,7 +152,7 @@ class DataExplore(MlFiles):
             bins = min(len(xi_no_na.unique()), max_bins)
             sns.distplot(xi_no_na, bins=bins)
             plt.title(c)
-            plt.show()
+            self._plot_show()
         self.print_all('Summary description', descr.df)
 
     def describe(self, x, field_name):
@@ -228,7 +228,7 @@ class DataExplore(MlFiles):
         # Show plot of percent of missing values
         plt.plot(nas_perc)
         plt.title("Percent of missing values")
-        plt.show()
+        self._plot_show()
         # Missing values plots
         self.na_plots(df, "all")
         # Create a plot of missing values: Only numeric types
@@ -240,15 +240,15 @@ class DataExplore(MlFiles):
         # Show missing values in data frame
         msno.matrix(df)
         plt.title(f"Missing value dataFrame plot ({name})")
-        plt.show()
+        self._plot_show()
         # Barplot of number of misisng values
         msno.bar(df)
         plt.title(f"Missing value by column ({name})")
-        plt.show()
+        self._plot_show()
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
         plt.title(f"Nullity correlation ({name})")
-        plt.show()
+        self._plot_show()
 
     def numeric_non_zero_std(self, df, std_threshold=0.0):
         " Return a new dataFrame with only numeric columns having stdev > std_threshold"
@@ -275,7 +275,7 @@ class DataExplore(MlFiles):
         sns.set_style('darkgrid')
         sns.set()
         sns.pairplot(dfs, kind='scatter', diag_kind='kde')
-        plt.show()
+        self._plot_show()
 
     def print_all(self, msg, df):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):

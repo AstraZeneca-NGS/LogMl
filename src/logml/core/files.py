@@ -1,10 +1,12 @@
 
 import inspect
 import logging
+import matplotlib.pyplot as plt
 import pickle
 import os
 import sys
 import yaml
+
 from yamlinclude import YamlIncludeConstructor
 
 from .log import MlLog
@@ -55,6 +57,11 @@ class MlFiles(MlLog):
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=yaml_dir)
         with open(file_yaml) as yaml_file:
             return yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+    def _plot_show(self):
+        ''' Show a plot in a way that we can continue processing '''
+        plt.draw()  # Show plot in a non-blocking maner
+        plt.pause(0.1)  # Pause, so that GUI can update the images
 
     def _save_pickle(self, file_pickle, tag, data):
         ''' Save a pickle file, return True (on success) or False (on failure) '''
