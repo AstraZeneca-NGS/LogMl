@@ -99,7 +99,10 @@ class DfTransform(MlLog):
             self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
             return self.df
         self._remove_missing_outputs()
-        self.transform()
+        self.convert_dates()
+        self.create_categories()
+        self.df = self.create()  # We have to create the new df before replacing nas, in case the dates have missing data
+        self.nas()
         self.df = self.create()
         self.drop_zero_std()
         return self.df
@@ -114,6 +117,9 @@ class DfTransform(MlLog):
         for c in self.columns_to_add:
             df_new = df_new.join(self.columns_to_add[c])
         self.df_new = df_new
+        # Reset columns
+        self.columns_to_add = dict()
+        self.columns_to_remove = set()
         return df_new
 
     def create_categories(self):
@@ -265,6 +271,3 @@ class DfTransform(MlLog):
             - Convert on-hot encoding
             - Convert dates into multiple columns
         '''
-        self.convert_dates()
-        self.create_categories()
-        self.nas()

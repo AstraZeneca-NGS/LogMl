@@ -103,8 +103,8 @@ class LogMl(MlFiles):
             self._debug("Dataset feature importance only available for dataset type 'df'")
             return True
         model_type = self.model_ori.model_type
-        dfi = DataFeatureImportance(self.datasets, self.config, model_type)
-        return dfi()
+        self.dataset_feature_importance = DataFeatureImportance(self.datasets, self.config, model_type)
+        return self.dataset_feature_importance()
 
     def get_model_validate(self):
         ''' Get model validate results '''
