@@ -6,6 +6,7 @@ import time
 from ..core.config import CONFIG_MODEL
 from ..core.files import MlFiles
 from ..core.registry import MlRegistry, MODEL_CREATE, MODEL_EVALUATE, MODEL_SAVE, MODEL_TRAIN
+from ..util.results_df import ResultsDf
 
 
 class Model(MlFiles):
@@ -44,6 +45,7 @@ class Model(MlFiles):
         self.train_results = None
         if set_config:
             self._set_from_config()
+        self.model_results = ResultsDf()
 
     def __call__(self):
         ''' Execute model trainig '''
@@ -98,8 +100,12 @@ class Model(MlFiles):
                 self._info("Could not save test results")
         else:
             self._debug("Could not test model")
+        # Update results
         time_end = time.process_time()
         self.elapsed_time = time_end - time_start
+        model_results = {'train': self.eval_train, 'validation': self.eval_validate, 'time': self.elapsed_time}
+        model_results.update(self.config.get_parameters_functions(MODEL_CREATE))
+        self.model_results.add_row(f"{self.model_class}.{self._id}", model_results)
         return True
 
     def _config_sanity_check(self):

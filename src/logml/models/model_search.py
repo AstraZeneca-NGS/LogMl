@@ -81,7 +81,9 @@ class ModelSearch(MlFiles):
         # Create LogMl
         self._debug(f"Creating new LogMl")
         lml = logml.LogMl(config=conf, datasets=datasets)
-        lml.display_model_results = False  # Don't display results each time
+        # Don't display or save (partial) results each time
+        lml.display_model_results = False
+        lml.save_model_results = False
         # Run model
         self._debug(f"Running new LogMl")
         lml()

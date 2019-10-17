@@ -86,10 +86,14 @@ class DataFeatureImportance(MlFiles):
         # Use ranks from all previously calculated models
         self._info(f"Feature importance: Adding 'rank of rank_sum' column")
         self.results.add_rank_of_ranksum()
-        self.results.sort('rank_of_ranksum')
-        self._display(self.results.df)
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
+        # Display results
+        self.results.sort('rank_of_ranksum')
+        self._display(self.results.df)
+        # Save results
+        file_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
+        self._save_csv(file_csv, "Dataset feature importance", self.results.df, save_index=True)
         self._info("Feature importance / feature selection: End")
         return True
 

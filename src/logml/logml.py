@@ -39,6 +39,7 @@ class LogMl(MlFiles):
         self.model_ori = None
         self.model_search = None
         self.model_analysis = None
+        self.save_model_results = True
         self._set_from_config()
         if self.config:
             self.initialize()
@@ -87,9 +88,14 @@ class LogMl(MlFiles):
         if not self.models_train():
             self._error("Could not train model")
             return False
+        # Show model/s results
         if self.display_model_results:
             self.model_results.sort('validation')
             self.model_results.display()
+        if self.save_model_results and self.model_results is not None:
+            m = self.model_ori if self.model is None else self.model
+            file_csv = m.get_file_name('models', ext=f"csv")
+            self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
         self._debug("End")
         return True
 
@@ -144,10 +150,8 @@ class LogMl(MlFiles):
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
-        # Add results and parametres
-        model_results = {'train': self.model.eval_train, 'validation': self.model.eval_validate, 'time': self.model.elapsed_time}
-        model_results.update(self.model.config.get_parameters_functions(MODEL_CREATE))
-        self.model_results.add_row(f"{self.model.model_class}.{self.model._id}", model_results)
+        # Add results
+        self.model_results.add_row_df(self.model.model_results.df)
         self._debug(f"End")
         return ret
 

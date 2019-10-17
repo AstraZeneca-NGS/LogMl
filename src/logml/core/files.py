@@ -72,6 +72,14 @@ class MlFiles(MlLog):
         plt.draw()  # Show plot in a non-blocking maner
         plt.pause(0.1)  # Pause, so that GUI can update the images
 
+    def _save_csv(self, file_csv, tag, df, save_index=False):
+        ''' Save a dataFrame to a CSV file, return True (on success) or False (on failure) '''
+        if not file_csv:
+            self._debug(f"{tag}: Empty file name, skipping")
+            return False
+        self._debug(f"{tag}: Saving CSV file '{file_csv}'")
+        df.to_csv(file_csv, index=save_index)
+
     def _save_pickle(self, file_pickle, tag, data):
         ''' Save a pickle file, return True (on success) or False (on failure) '''
         if not file_pickle:
