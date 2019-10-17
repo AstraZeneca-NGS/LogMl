@@ -151,7 +151,7 @@ class HyperOpt(MlLog):
         # Train and evaluate model
         ret_train = self.logml.model_train(config_new, dataset)
         self._debug(f"Model train returned: {ret_train}")
-        ret_val = self.logml.get_model_validate()
+        ret_val = self.logml.get_model_eval_validate()
         if ret_val is None:
             raise ValueError(f"Model test evaluation is 'None'. Either the `@model_evaluate` funciton returned 'None' or it was not executed")
         self._debug(f"Model validation returned: {ret_val}")

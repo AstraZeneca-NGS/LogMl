@@ -33,14 +33,15 @@ class Model(MlFiles):
         self.is_save_train_pickle = False
         self.is_save_validate_pickle = False
         self.is_test_model = True
+        self.eval_test = None
+        self.eval_train = None
+        self.eval_validate = None
         self.model = None
         self.model_class = self.__class__.__name__
         self.model_name = None
         self.model_path = None
         self.model_type = None
         self.train_results = None
-        self.test_results = None
-        self.validate_results = None
         if set_config:
             self._set_from_config()
 
@@ -82,14 +83,17 @@ class Model(MlFiles):
         self.model_save()
         if not self.save_train_results():
             self._info("Could not save train results")
+        # Evaluate on 'train' dataset
+        if not self.model_eval_train():
+            self._info("Could not evaluate on 'train' dataset")
         # Validate & save results
-        if self.model_validate():
+        if self.model_eval_validate():
             if not self.save_validate_results():
                 self._info("Could not save validation results")
         else:
-            self._info("Could not run model validation")
+            self._info("Could not evaluate model on 'validate' dataset")
         # Test & save results
-        if self.model_test():
+        if self.model_eval_test():
             if not self.save_test_results():
                 self._info("Could not save test results")
         else:
@@ -130,7 +134,7 @@ class Model(MlFiles):
         return False
 
     def fit(self, x, y):
-        """ model.fit() is an alias to model.model_train() """
+        """ Fit the model using training data """
         try:
             ret = self.invoke_model_train(x, y)
             return ret
@@ -209,7 +213,7 @@ class Model(MlFiles):
         ret = self.invoke_model_save()
         return ret if ret else self.default_model_save()
 
-    def model_test(self):
+    def model_eval_test(self):
         if not self.is_test_model:
             self._debug(f"Model testing disabled, skipping (is_test_model={self.is_test_model})")
             return None
@@ -218,7 +222,30 @@ class Model(MlFiles):
             self._debug(f"Test dataset not found, skipping")
             return False
         ret = self.model_evaluate(x, y, 'test')
-        self.test_results = ret
+        self.eval_test = ret
+        return ret is not None
+
+    def model_eval_train(self):
+        """ Evaluate on train dataset """
+        self._debug(f"Model eval train: Start")
+        x, y = self.datasets.get_train_xy()
+        if x is None:
+            self._warning("Model train: Cannot get training dataset")
+            return False
+        ret = self.fit(x, y)
+        self._debug(f"Model eval train: End")
+        ret = self.model_evaluate(x, y, 'train')
+        self.eval_train = ret
+        return ret is not None
+
+    def model_eval_validate(self):
+        ''' Validate model: Evaluate on validation dataset '''
+        x, y = self.datasets.get_validate_xy()
+        if x is None:
+            self._debug(f"Validation dataset not found, skipping")
+            return False
+        ret = self.model_evaluate(x, y, 'validate')
+        self.eval_validate = ret
         return ret is not None
 
     def model_train(self):
@@ -231,16 +258,6 @@ class Model(MlFiles):
         ret = self.fit(x, y)
         self._debug(f"Model train: End")
         return ret
-
-    def model_validate(self):
-        ''' Validate model: Evaluate on validation dataset '''
-        x, y = self.datasets.get_validate_xy()
-        if x is None:
-            self._debug(f"Validation dataset not found, skipping")
-            return False
-        ret = self.model_evaluate(x, y, 'validate')
-        self.validate_results = ret
-        return ret is not None
 
     def _new_id(self):
         ''' Create a new Model._id '''
@@ -279,12 +296,12 @@ class Model(MlFiles):
         if not self.is_save_test_pickle:
             self._debug(f"is_save_test_pickle={self.is_save_test_pickle}, skiping")
             return True
-        if self.test_results is None:
+        if self.eval_test is None:
             self._debug(f"No test results available, skiping")
             return False
         file_name = self.get_file_name('test_results')
         self._debug(f"Saving to pickle file '{file_name}'")
-        self._save_pickle(file_name, 'test_results', self.test_results)
+        self._save_pickle(file_name, 'test_results', self.eval_test)
         return True
 
     def save_validate_results(self):
@@ -292,10 +309,10 @@ class Model(MlFiles):
         if not self.is_save_validate_pickle:
             self._debug(f"is_save_validate_pickle={self.is_save_validate_pickle}, skiping")
             return True
-        if self.validate_results is None:
+        if self.eval_validate is None:
             self._debug(f"No test results available, skiping")
             return False
         file_name = self.get_file_name('validate_results')
         self._debug(f"Saving to pickle file '{file_name}'")
-        self._save_pickle(file_name, 'validate_results', self.validate_results)
+        self._save_pickle(file_name, 'validate_results', self.eval_validate)
         return True

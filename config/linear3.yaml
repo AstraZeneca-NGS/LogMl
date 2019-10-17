@@ -1,149 +1,42 @@
-
-#---
-# LogMl parameters
-#---
 logger:
 
-#---
-# Dataset parameters
-#---
 dataset:
   dataset_type: 'df'
   dataset_name: 'linear3'
   dataset_path: 'data/linear3'
   outputs: ['y']
 
-#---
-# Dataset exploration
-#---
 dataset_explore:
-  enable: False
+  enable: true
 
-#---
-# Dataset: Feature importance / feature selection
-#---
 dataset_feature_importance:
-  enable: False
+  enable: true
 
-#---
-# Model definition and parameters
-#---
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
+
+dataset_transform:
+  enable: true
+
 model:
-  enable: True
+  enable: true
   model_type: regression
   model_name: 'linear3'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/linear3/model'
-  is_save_model_pickle: True
-  is_save_model_method: True
-  is_save_model_method_ext: 'model'
-  is_save_params: True
-  is_save_test_pickle: True
-  is_save_train_pickle: False
-  is_save_validate_pickle: False
 
-#---
-# Cross validation methodology
-#---
-cross_validation:
-    enable: False
-    KFold:
-        n_splits: 5
-
-#---
-# Hyper-parameter optimization.
-#---
-hyper_parameter_optimization:
-    # Set this to 'True' to enable hyper-parameter optimization
-    enable: True
-    # Show progress bar
-    show_progressbar: True
-    # Algorithm:
-    #   - 'tpe': Bayesian Tree of Parzen Estimators (this should be the default)
-    #   - 'random': Random search
-    algorithm: 'tpe'
-    # Max number of hyper-parameter evaluations. Keep in mnd that each evaluation is a full model training
-    max_evals: 5
-    # Parameter space to explore
-    space:
-        # Parameters space for 'train_model'. Names have to match exactly the ones in 'train_model' parameters section
-        # The format is:
-        #     parameter_name: ['distribution', distribution)parameters...]
-        # For distribution names and parametres, see:
-        #     https://github.com/hyperopt/hyperopt/wiki/FMin
-        #     (section 'Parameter Expressions')
-        model_create:
-            n_estimators: ['randint', 1000]
-            min_samples_leaf: ['randint', 100]
-            max_features: ['uniform', 0.0, 1.0]
-
-#---
-# User defined functions
-# Parameters that are passed to the respective functions.
-#
-# E.g. If you have the parameter 'learn_reate = 0.01234' in 'train_model'
-#      section, when your train function is invokde, it will be invoked as:
-#           train_model(...., learn_reate=0.01234)
-#      i.e. it will have kwargs={learn_reate:0.01234}
-#      These parameters will also be saved to the training-specific YAML
-#      file, so you can easily keep track of them
-#
-# Note: To disable individual items, you can add an 'enable: False' parameter
-#---
 functions:
-    # User defined function: Dataset augmentation
-    # Parameters: First parameter is always 'dataset'
-    # Returns: Augmented dataset
-    dataset_augment:
-
-    # User defined function: Create dataset
-    # Returns: A dataset
-    dataset_create:
-
-    # User defined function: Load dataset
-    # Returns: A dataset
-    dataset_load:
-
-    # User defined function: Save dataset
-    # Parameters: First four parameters are 'dataset, dataset_train, dataset_test, dataset_validate'
-    dataset_save:
-
-    # User defined function: Split dataset
-    # Parameters: First parameter is always 'dataset'
-    # Returns: Dataset split into three parts: 'dataset_train, dataset_test, dataset_validate'
     dataset_split:
-      n: 1000
-
-    # User defined function: Dataset pre-processing
-    # Parameters: First parameter is always 'dataset'
-    # Returns: Pre-processed dataset
-    dataset_preprocess:
-
-    # User defined function: Create model
-    # Parameters: First parameter is 'dataset_train' (or 'dataset' if there is no dataset_test)
-    # Returns: A model to be traind on dataset_train
+        split_validate: 0.2
+        split_test: 0.0
     model_create:
       n_estimators: 30
       min_samples_leaf: 3
       max_features: 0.7
 
-    # User defined function: Evaluate model
-    # Parameters: First parameter is dataset to evaluate (usually dataset_test or dataset_validate)
-    # Returns: Results from evaliating the dataset (usually a loss)
-    model_evaluate:
-
-    # User defined function: Save model
-    # Parameters: First parameter is 'model'
-    model_save:
-
-    # User defined function: Training
-    # Parameters: First parameters are 'model' and dataset (usually dataset_train)
-    # Returns: Results from evaliating the dataset (usually a loss)
-    model_train:
-
-#---
-# Model search
-#---
 model_search:
-  enable: True
-  models: !include models_search_test/*.yaml
+  enable: true
+  models: !include models_search/*.yaml

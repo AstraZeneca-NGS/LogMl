@@ -90,14 +90,12 @@ class DataExplore(MlFiles):
         if len(df.columns) > self.correlation_analysis_max:
             self._debug(f"Correlation analysis: Too many columns to compare ({len(df.columns)}), skipping")
             return
-        corr = self.rank_correlation(df)
+        corr, cols = self.rank_correlation(df)
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
-        cols = self.df.columns
         # Create a dataframe of high correlated / annti-correlated variables
         df_corr = pd.DataFrame()
         add_idx = 0
-        cols = list()
         for idx in range(len(ind[0])):
             i, j = ind[0][-idx], ind[1][-idx]
             if i < j and abs(corr[i, j]) > self.corr_thresdold:
@@ -107,8 +105,8 @@ class DataExplore(MlFiles):
         self.print_all("Correlations", df_corr)
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
-        self._debug(f"COLS: {df.columns}")
-        df_corr = pd.DataFrame(corr, columns=df.columns, index=df.columns)
+        self._info(f"COLS: {df.columns} => {cols}")
+        df_corr = pd.DataFrame(corr, columns=cols, index=cols)
         sns.heatmap(df_corr, square=True)
         plt.title('Correlation (numeric features)')
         self._plot_show()
@@ -124,14 +122,14 @@ class DataExplore(MlFiles):
         if len(df.columns) > self.dendogram_max:
             self._debug(f"Dendogram: Too many columns to compare ({len(df.columns)}), skipping")
             return
-        corr = self.rank_correlation(df)
+        corr, cols = self.rank_correlation(df)
         corr = np.round(corr, 4)
         # Convert to distance
         dist = 1 - corr
         corr_condensed = hc.distance.squareform(dist)
         z = hc.linkage(corr_condensed, method='average')
         plt.figure(figsize=self.figsize)
-        den = hc.dendrogram(z, labels=df.columns, orientation='left', leaf_font_size=16)
+        den = hc.dendrogram(z, labels=cols, orientation='left', leaf_font_size=16)
         plt.title(f"Dendogram rank correlation: {name}")
         self._plot_show()
         # Another method for the same
@@ -293,7 +291,7 @@ class DataExplore(MlFiles):
         df_copy.drop(cols_na, inplace=True, axis=1)
         # Calculate spearsman's correlation
         sp_r = scipy.stats.spearmanr(df_copy, nan_policy='omit')
-        return sp_r.correlation
+        return sp_r.correlation, df_copy.columns
 
     def summary(self, df):
         " Look into basic column statistics"

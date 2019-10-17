@@ -1,4 +1,3 @@
-
 logger:
 
 dataset:
@@ -21,7 +20,6 @@ dataset_preprocess:
 
 dataset_transform:
   enable: true
-  remove_missing_outputs: true
 
 model:
   enable: true
@@ -29,40 +27,15 @@ model:
   model_name: 'linear3c'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/linear3c/model'
-  is_save_model_pickle: true
-  is_save_model_method: true
-  is_save_model_method_ext: 'model'
-  is_save_params: true
-  is_save_test_pickle: true
-  is_save_train_pickle: false
-  is_save_validate_pickle: false
-
-hyper_parameter_optimization:
-    enable: false
-    show_progressbar: true
-    algorithm: 'tpe'
-    max_evals: 5
-    space:
-        model_create:
-            n_estimators: ['randint', 1000]
-            min_samples_leaf: ['randint', 100]
-            max_features: ['uniform', 0.0, 1.0]
 
 functions:
-    dataset_augment:
-    dataset_create:
-    dataset_load:
-    dataset_save:
     dataset_split:
-      n: 1000
-    dataset_preprocess:
+        split_validate: 0.2
+        split_test: 0.0
     model_create:
       n_estimators: 30
       min_samples_leaf: 3
       max_features: 0.7
-    model_evaluate:
-    model_save:
-    model_train:
 
 model_search:
   enable: true
