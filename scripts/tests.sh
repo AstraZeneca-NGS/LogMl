@@ -1,26 +1,31 @@
 #!/bin/bash -eu
 set -o pipefail
 
-DIR="$(cd $(dirname $0) ; pwd -P)"
-
-export PS1=""
-
-source ./bin/activate
-
+# Setting the first command line option to anything except 'false' will run integration tests
 test_integration="${1:-false}"
 
-# Only perform one test
-TEST_NAME=""
-# TEST_NAME="TestLogMl.test_dataset_transform_002"
+# Activate virtual environment
+DIR="$(cd $(dirname $0) ; pwd -P)"
+export PS1=""
+source ./bin/activate
 
+# If these variables are set, only perform one unit/integration test
+TEST_UNIT_NAME=""
+TEST_INTEGRATION_NAME=""
+# TEST_UNIT_NAME="TestLogMl.test_dataset_transform_002"
+# TEST_INTEGRATION_NAME="TestLogMl.test_dataset_transform_002"
+
+#---
+# Unit testing
+#---
 echo
 echo
-if [ -z "$TEST_NAME" ]; then
+if [ -z "$TEST_UNIT_NAME" ]; then
     echo "Unit tests: All "
     time coverage run src/tests.py -v --failfast 2>&1 | tee tests.unit.out
 else
-    echo "Unit test: '$TEST_NAME' "
-    time coverage run src/tests.py -v --failfast "$TEST_NAME" 2>&1 | tee tests.unit.out
+    echo "Unit test: '$TEST_UNIT_NAME' "
+    time coverage run src/tests.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
 fi
 
 coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
@@ -30,11 +35,19 @@ if [ "$test_integration" eq 'false']; do
   exit
 fi
 
+#---
+# Integration testing
+#---
 echo
 echo
-echo "Integration tests"
 
-./src/tests_integration.py -v --failfast 2>&1 | tee tests.integration.out
+if [ -z "$TEST_INTEGRATION_NAME" ]; then
+    echo "Integration tests: All "
+    time coverage run src/tests_integraton.py -v --failfast 2>&1 | tee tests.integration.out
+else
+    echo "Integration test: '$TEST_INTEGRATION_NAME' "
+    time coverage run src/tests_integraton.py -v --failfast "$TEST_INTEGRATION_NAME" 2>&1 | tee tests.integration.out
+fi
 
 echo
 echo
