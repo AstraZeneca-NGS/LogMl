@@ -112,7 +112,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_config_001(self):
         ''' Test objects parameters from config and file names '''
-        config_file = os.path.join('tests', 'ml.test_config_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_config_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
         mldataset = Datasets(config)
@@ -128,7 +128,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_config_002(self):
         ''' Test sanity check: hyper-param and cross-validation both enabled '''
-        config = Config(os.path.join('tests', 'ml.test_config_002.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_config_002.yaml'), argv=list())
         ret = config()
         config.exit_on_fatal_error = False
         logml = LogMl(config=config)
@@ -137,7 +137,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(logml.hyper_parameter_optimization.enable, True)
 
     def test_config_003(self):
-        config = Config(os.path.join('tests', 'ml.test_config_003.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_config_003.yaml'), argv=list())
         ret = config()
         logml = LogMl(config=config)
         hopt = logml.hyper_parameter_optimization
@@ -156,7 +156,7 @@ class TestLogMl(unittest.TestCase):
 
         MlRegistry().register(DATASET_CREATE, test_dataset_001_create)
         MlRegistry().register(DATASET_AUGMENT, test_dataset_001_augment)
-        config = Config(os.path.join('tests', 'ml.test_dataset_001.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_001.yaml'), argv=list())
         config()
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
         self.assertEqual(config.get_parameters_functions('dataset_create'), {'num_create': 42})
@@ -198,7 +198,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(DATASET_PREPROCESS, test_dataset_002_preprocess)
         MlRegistry().register(DATASET_SPLIT, test_dataset_002_split)
         # Read config
-        config = Config(os.path.join('tests', 'ml.test_dataset_002.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_002.yaml'), argv=list())
         config()
         # Create dataset
         ds = Datasets(config)
@@ -248,7 +248,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(DATASET_AUGMENT, test_dataset_003_augment)
         MlRegistry().register(DATASET_SPLIT, test_dataset_003_split)
         # Read config
-        config = Config(os.path.join('tests', 'ml.test_dataset_003.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_003.yaml'), argv=list())
         config()
         # Create dataset
         ds = Datasets(config)
@@ -269,7 +269,7 @@ class TestLogMl(unittest.TestCase):
         # Register functions
         MlRegistry().register(DATASET_CREATE, test_dataset_004_create)
         # Read config
-        config = Config(os.path.join('tests', 'ml.test_dataset_004.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_004.yaml'), argv=list())
         config()
         # Create dataset
         ds = Datasets(config)
@@ -292,7 +292,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_005(self):
         " Test split_idx method "
-        config = Config(os.path.join('tests', 'ml.test_dataset_005.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_005.yaml'), argv=list())
         config()
         ds = Datasets(config)
         ds.dataset = np.array([i + 100 for i in range(10)])
@@ -306,7 +306,7 @@ class TestLogMl(unittest.TestCase):
     def test_dataset_006(self):
         ''' DatasetsDf test (load dataframe) and expand date/time columns and '_na' columns '''
         # Create dataset
-        config = Config(os.path.join('tests', 'ml.test_dataset_006.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_006.yaml'), argv=list())
         config()
         ds = DatasetsDf(config)
         rm(ds.get_file_name())
@@ -324,7 +324,7 @@ class TestLogMl(unittest.TestCase):
     def test_dataset_007(self):
         ''' Test DfTransform 'drop_zero_std' feature '''
         # Create dataset
-        config = Config(os.path.join('tests', 'ml.test_dataset_007.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_007.yaml'), argv=list())
         config()
         ds = DatasetsDf(config)
         rm(ds.get_file_name())
@@ -419,7 +419,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_001_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_001_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'ml.test_train_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_train_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -473,7 +473,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_002_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_002_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'ml.test_train_002_cross_validate.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_train_002_cross_validate.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -523,7 +523,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_003_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_003_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'ml.test_train_003_hyper_opt.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_train_003_hyper_opt.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -565,7 +565,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_004_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_004_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'ml.test_train_004_hyper_opt_create.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_train_004_hyper_opt_create.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -582,7 +582,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe '''
-        config_file = os.path.join('tests', 'ml.test_dataset_preprocess_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_preprocess_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -621,7 +621,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_transform_001(self):
         ''' Checking dataset transform: Remove missing output rows '''
-        config_file = os.path.join('tests', 'ml.test_dataset_transform_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_transform_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -634,7 +634,7 @@ class TestLogMl(unittest.TestCase):
     def test_dataset_transform_002(self):
         ''' Checking dataset transform: Remove missing output rows '''
         # create_dataset_transform_002()
-        config_file = os.path.join('tests', 'ml.test_dataset_transform_002.yaml')
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_transform_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)

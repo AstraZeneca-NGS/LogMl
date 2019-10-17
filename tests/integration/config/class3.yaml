@@ -1,0 +1,42 @@
+logger:
+
+dataset:
+  dataset_type: 'df'
+  dataset_name: 'class3'
+  dataset_path: 'data/class3'
+  outputs: ['y']
+
+dataset_explore:
+  enable: true
+
+dataset_feature_importance:
+  enable: true
+
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
+
+dataset_transform:
+  enable: true
+
+model:
+  enable: true
+  model_type: classification
+  model_name: 'class3'
+  model_class: sklearn.ensemble.RandomForestClassifier
+  model_path: 'data/class3/model'
+
+functions:
+    dataset_split:
+        split_validate: 0.2
+        split_test: 0.0
+    model_create:
+      n_estimators: 30
+      min_samples_leaf: 3
+      max_features: 0.7
+
+model_search:
+  enable: true
+  models: !include models_search/*.yaml
