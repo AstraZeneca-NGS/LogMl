@@ -48,7 +48,8 @@ class FeatureImportanceFromModel(MlFiles):
         # List of items sorted by importance (most important first)
         self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
         p = np.array(perf)
-        self.performance_norm = (p - p.min()) / (p.max() - p.min())
+        delta_p = p.max() - p.min()
+        self.performance_norm = (p - p.min()) / delta_p if delta_p > 0.0 else p
         return True
 
     def most_important(self, importance_threshold=None, ratio_to_most_important=100, df=None):
