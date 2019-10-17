@@ -94,9 +94,10 @@ class DataExplore(MlFiles):
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
         cols = self.df.columns
-        # Create a dataframe of high correlated / anit-correlated variables
+        # Create a dataframe of high correlated / annti-correlated variables
         df_corr = pd.DataFrame()
         add_idx = 0
+        cols = list()
         for idx in range(len(ind[0])):
             i, j = ind[0][-idx], ind[1][-idx]
             if i < j and abs(corr[i, j]) > self.corr_thresdold:
@@ -106,6 +107,7 @@ class DataExplore(MlFiles):
         self.print_all("Correlations", df_corr)
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
+        self._debug(f"COLS: {df.columns}")
         df_corr = pd.DataFrame(corr, columns=df.columns, index=df.columns)
         sns.heatmap(df_corr, square=True)
         plt.title('Correlation (numeric features)')

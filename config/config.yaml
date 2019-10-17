@@ -220,7 +220,7 @@ model:
   # Set to 'false' to disable model learning (e.g. if we only want to perform data exploration)
   enable: true
 
-  # Type of model: {'clasification', 'regression', 'unsupervised'}
+  # Type of model: {'classification', 'regression', 'unsupervised'}
   model_type: regression
 
   # Model name: A simple string to use for file names related to this model

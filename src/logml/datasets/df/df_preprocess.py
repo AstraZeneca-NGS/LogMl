@@ -64,6 +64,9 @@ class DfPreprocess(MlLog):
         li = self.normalize.get(name, list())
         return list() if li is None else li
 
+    def is_numertic(self, col_name):
+        return np.issubdtype(self.df[col_name].dtype, np.number)
+
     def is_range_01(self, col_name):
         '''
         Is this variable in [0,1] range?
@@ -71,6 +74,7 @@ class DfPreprocess(MlLog):
         in [0.0 , 0.1] and the max is in [0.9, 1.0]
         '''
         xi = self.df[col_name]
+        self._debug(f"DTYPE: {col_name}\t{xi.dtype}")
         xi_min = xi.unique().min()
         xi_max = xi.unique().max()
         return 0.0 <= xi_min and xi_min <= 0.1 and 0.9 <= xi_max and xi_max <= 1.0
@@ -81,8 +85,11 @@ class DfPreprocess(MlLog):
         fields_to_normalize = list(self.df.columns)
         fields_normalized = set()
         for c in fields_to_normalize:
+            if not self.is_numertic(c):
+                self._debug(f"Normalize variable '{c}' is not numeric, skipping")
+                continue
             if self.is_range_01(c):
-                self._debug(f"Normalize variable '{c}' is in [0, 1]: skipping")
+                self._debug(f"Normalize variable '{c}' is in [0, 1], skipping")
                 continue
             nm = self.find_normalize_method(c)
             xi = self.df[c]
