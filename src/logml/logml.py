@@ -88,7 +88,7 @@ class LogMl(MlFiles):
             self._error("Could not train model")
             return False
         if self.display_model_results:
-            self.model_results.sort('validate')
+            self.model_results.sort('validation')
             self.model_results.display()
         self._debug("End")
         return True
@@ -110,13 +110,13 @@ class LogMl(MlFiles):
         self.dataset_feature_importance = DataFeatureImportance(self.datasets, self.config, model_type)
         return self.dataset_feature_importance()
 
-    def get_model_validate(self):
-        ''' Get model validate results '''
-        return self.model.validate_results
-
-    def get_model_test(self):
+    def get_model_eval_test(self):
         ''' Get model test results '''
-        return self.model.test_results
+        return self.model.eval_test
+
+    def get_model_eval_validate(self):
+        ''' Get model validate results '''
+        return self.model.eval_validate
 
     def initialize(self):
         ''' Initialize objects after config is setup '''
@@ -145,7 +145,7 @@ class LogMl(MlFiles):
         self.model = self._new_model(config, dataset)
         ret = self.model()
         # Add results and parametres
-        model_results = {'train': self.model.validate_results, 'validate': self.model.validate_results, 'time': self.model.elapsed_time}
+        model_results = {'train': self.model.eval_train, 'validation': self.model.eval_validate, 'time': self.model.elapsed_time}
         model_results.update(self.model.config.get_parameters_functions(MODEL_CREATE))
         self.model_results.add_row(f"{self.model.model_class}.{self.model._id}", model_results)
         self._debug(f"End")

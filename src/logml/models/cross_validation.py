@@ -64,7 +64,7 @@ class CrossValidation(MlLog):
             ret_train = self.logml.model_train()
             self._debug(f"Model train returned: {ret_train}")
             # Test
-            ret_validate = self.logml.get_model_validate()
+            ret_validate = self.logml.get_model_eval_validate()
             self._debug(f"Model validate returned: {ret_validate}")
             # Save validate results
             self.scores.append(ret_validate)
