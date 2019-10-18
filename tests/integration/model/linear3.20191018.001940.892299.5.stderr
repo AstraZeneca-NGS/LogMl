@@ -1,6 +1,0 @@
-/home/pcingola/logml/src/logml/models/sklearn_model.py:23: DeprecationWarning: inspect.getargspec() is deprecated since Python 3.0, use inspect.signature() or inspect.getfullargspec()
-  args_spec = inspect.getargspec(class_reference.__init__)
-/home/pcingola/logml/src/logml/models/model_base.py:40: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.train_results = self.model.fit(x, y)
-/home/pcingola/logml/src/logml/models/model_base.py:40: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples,), for example using ravel().
-  self.train_results = self.model.fit(x, y)
