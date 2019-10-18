@@ -14,22 +14,22 @@ source ./bin/activate
 TEST_UNIT_NAME=""
 TEST_INTEGRATION_NAME=""
 # TEST_UNIT_NAME="TestLogMl.test_dataset_transform_002"
-TEST_INTEGRATION_NAME="TestLogMlIntegration.test_class3"
+# TEST_INTEGRATION_NAME="TestLogMlIntegration.test_class3"
 
 #---
 # Unit testing
 #---
 echo
 echo
-# if [ -z "$TEST_UNIT_NAME" ]; then
-#     echo "Unit tests: All "
-#     time coverage run src/tests_unit.py -v --failfast 2>&1 | tee tests.unit.out
-# else
-#     echo "Unit test: '$TEST_UNIT_NAME' "
-#     time coverage run src/tests_unit.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
-# fi
-#
-# coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
+if [ -z "$TEST_UNIT_NAME" ]; then
+    echo "Unit tests: All "
+    time coverage run src/tests_unit.py -v --failfast 2>&1 | tee tests.unit.out
+else
+    echo "Unit test: '$TEST_UNIT_NAME' "
+    time coverage run src/tests_unit.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
+fi
+
+coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
 
 # Should we do integration testing?
 if [ "$test_integration" == 'false' ]; then
