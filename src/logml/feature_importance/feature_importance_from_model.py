@@ -72,12 +72,7 @@ class FeatureImportanceFromModel(MlFiles):
         # Show bar plot
         plt.figure(figsize=self.figsize)
         plt.barh(imp_x, imp_y)
-        plt.title(f"Feature importance {self.model_name}")
-        # # Show line plot
-        # plt.figure(figsize=self.figsize)
-        # plt.plot(imp_x, imp_y)
-        # plt.title(f"Feature importance {self.model_name}")
-        self._plot_show()
+        self._plot_show(f"Feature importance {self.model_name}", 'dataset_feature_importance')
 
     def rmse(self, x, y):
         return math.sqrt(((x - y)**2).mean())

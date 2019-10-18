@@ -6,7 +6,7 @@ import re
 
 from ...core.config import CONFIG_DATASET_TRANSFORM
 from ...core.log import MlLog
-from ..util.sanitize import sanitize_name
+from ...util.sanitize import sanitize_name
 
 
 class DfTransform(MlLog):
