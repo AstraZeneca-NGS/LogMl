@@ -112,7 +112,7 @@ class TestLogMlIntegration(unittest.TestCase):
         mrdf = ml.model_results.df
         modsearch_best = mrdf.index[0]
         modsearch_first = mrdf.iloc[0]
-        self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
+        self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LogisticRegressionCV"))
         self.assertTrue(modsearch_first.train < 0.1)
         self.assertTrue(modsearch_first.validation < 0.1)
 
