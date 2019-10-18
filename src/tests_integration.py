@@ -63,14 +63,17 @@ class TestLogMlIntegration(unittest.TestCase):
         df = ml.datasets.dataset
         # Check data transform: Remove 'missing output rows' (1% of rows removed)
         self.assertTrue(df.shape[0] < 1990)
+        # Check data transform: Convert to one hot
+        for c in ['c1_high', 'c1_mid', 'c1_low', 'c2_very_high', 'c2_high', 'c2_mid', 'c2_low', 'c2_very_low']:
+            self.assertTrue(c in df.columns, f"Missing one-hot column {c}, {df.columns}")
+        # Check data transform: Add 'na' columns
+        for c in ['x1_na', 'x2_na', 'x3_na']:
+            self.assertTrue(c in df.columns, f"Missing '*_na' column {c}: {df.columns}")
         # Check data preprocessing: Normalization
         epsilon = 0.001
         for xi in ['x1', 'x2', 'x3']:
             self.assertTrue(abs(df[xi].mean()) < epsilon)
             self.assertTrue(abs(df[xi].std() - 1) < epsilon)
-        for xi in ['c1', 'c2']:
-            self.assertTrue(df[xi].max() <= 1.0)
-            self.assertTrue(df[xi].min() >= 0.0)
         # Check feature feature importance
         fidf = ml.dataset_feature_importance.results.df
         print(fidf)
@@ -97,6 +100,9 @@ class TestLogMlIntegration(unittest.TestCase):
         df = ml.datasets.dataset
         # Check data transform: Remove 'missing output rows' (1% of rows removed)
         self.assertTrue(df.shape[0] < 1990)
+        # Check data transform: Add 'na' columns
+        for c in ['x1_na', 'x2_na', 'x3_na']:
+            self.assertTrue(c in df.columns, f"Missing '*_na' column {c}: {df.columns}")
         # Check data preprocessing: Normalization
         epsilon = 0.001
         for xi in ['x1', 'x2', 'x3']:
