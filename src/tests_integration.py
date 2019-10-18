@@ -26,24 +26,27 @@ class TestLogMlIntegration(unittest.TestCase):
 
     def test_linear3(self):
         ''' Simple linear model (without any noise) '''
-        config_file = os.path.join('tests', 'integration', 'config' , 'linear3.yaml')
+        config_file = os.path.join('tests', 'integration', 'config', 'linear3.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
         ml = LogMl(config=config)
         ml()
         # Check data preprocessing
-        !!!!!!!!!!!!
-        # Check data transform
-        !!!!!!!!!!!!
-        ml.datasets.df.shape    # Remove missing rows
+        dp = ml.datasets.dataset_preprocess
+        df = ml.datasets.dataset
+        epsilon = 0.001
+        for xi in ['x1', 'x2', 'x3']:
+            self.assertTrue(abs(df[xi].mean()) < epsilon)
+            self.assertTrue(abs(df[xi].std() - 1) < epsilon)
         # Check feature feature importance
-        fi = ml.dataset_feature_importance
-        !!!!!!!!!!!!!!
+        fidf = ml.dataset_feature_importance.results.df
+        self.assertEqual('x1', fidf.index[0])
+        self.assertEqual('x2', fidf.index[1])
+        self.assertEqual('x3', fidf.index[2])
         # Check model search results
         mrdf = ml.model_results.df
         modsearch_best = mrdf.index[0]
         modsearch_first = mrdf.iloc[0]
-        print(f"modsearch_best = {modsearch_best}")
         self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
         self.assertEqual(modsearch_first.train, 0.0)
         self.assertEqual(modsearch_first.validation, 0.0)
@@ -57,7 +60,7 @@ class TestLogMlIntegration(unittest.TestCase):
     #     ml()
     #     mrdf = ml.model_results.df
     #     modsearch_best = mrdf.index[0]
-    #     modsearch_first = mrdf.iloc[0]
+    #     modsearch_first = mrdf.iloc[0]:question
     #     print(f"modsearch_best = {modsearch_best}")
     #     self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
     #     self.assertEqual(modsearch_first.train, 0.0)

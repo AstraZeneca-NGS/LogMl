@@ -1,0 +1,2 @@
+/Users/kqrw311/logml/src/logml/models/sklearn_model.py:23: DeprecationWarning: inspect.getargspec() is deprecated since Python 3.0, use inspect.signature() or inspect.getfullargspec()
+  args_spec = inspect.getargspec(class_reference.__init__)
