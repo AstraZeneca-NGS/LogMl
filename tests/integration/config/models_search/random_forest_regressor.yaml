@@ -14,7 +14,7 @@ RandomForestRegressor:
       verbose: 0
       warm_start: false
   hyper_parameter_optimization:
-    enable: false
+    enable: true
     algorithm: tpe
     max_evals: 3
     show_progressbar: true

@@ -4,7 +4,8 @@ logger:
 dataset:
   dataset_type: 'df'
   dataset_name: 'linear3c'
-  dataset_path: 'data/linear3c'
+  dataset_path: 'tests/integration/data'
+  do_not_load_pickle: true
   outputs: ['y']
 
 dataset_explore:
@@ -17,6 +18,7 @@ dataset_preprocess:
   enable: true
   normalize:
     standard: true
+    minmax: ['c1', 'c2']
     skip: ['y']
 
 dataset_transform:
@@ -27,7 +29,7 @@ model:
   model_type: regression
   model_name: 'linear3c'
   model_class: sklearn.ensemble.RandomForestRegressor
-  model_path: 'data/linear3c/model'
+  model_path: 'tests/integration/model'
 
 functions:
     dataset_split:
