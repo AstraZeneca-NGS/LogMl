@@ -1,9 +1,11 @@
 logger:
+  disable_plots: true
 
 dataset:
   dataset_type: 'df'
   dataset_name: 'class3'
-  dataset_path: 'data/class3'
+  dataset_path: 'tests/integration/data'
+  do_not_load_pickle: true
   outputs: ['y']
 
 dataset_explore:
@@ -16,6 +18,7 @@ dataset_preprocess:
   enable: true
   normalize:
     standard: true
+    minmax: ['c1', 'c2']
     skip: ['y']
 
 dataset_transform:
@@ -26,7 +29,7 @@ model:
   model_type: classification
   model_name: 'class3'
   model_class: sklearn.ensemble.RandomForestClassifier
-  model_path: 'data/class3/model'
+  model_path: 'tests/integration/model'
 
 functions:
     dataset_split:

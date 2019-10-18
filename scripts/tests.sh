@@ -14,7 +14,7 @@ source ./bin/activate
 TEST_UNIT_NAME=""
 TEST_INTEGRATION_NAME=""
 # TEST_UNIT_NAME="TestLogMl.test_dataset_transform_002"
-TEST_INTEGRATION_NAME="TestLogMlIntegration.test_linear3c"
+TEST_INTEGRATION_NAME="TestLogMlIntegration.test_class3"
 
 #---
 # Unit testing

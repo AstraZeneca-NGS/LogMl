@@ -10,10 +10,9 @@ def create_dataset():
     # Number of samples
     num = 1000
     # Inputs: x1, x2, x3
-    x1 = np.random.normal(0, 1, num)
+    x1 = np.random.normal(0, 4, num)
     x2 = np.random.normal(2, 3, num)
-    x3 = np.random.normal(-3, 5, num)
-
+    x3 = np.random.normal(-2, 3, num)
     # Categorical input: c1
     c1 = (3 * np.random.rand(num)).astype(int)
     c1_classes = {0: 'low', 1: 'mid', 2: 'high'}
@@ -25,7 +24,7 @@ def create_dataset():
     # Noise
     n = np.random.normal(0, 1, num)
     # Output
-    y = 3. * x1 - 1. * x2 + 0.5 * x3 + 0.5 * c1 - 0.3 * c2 + 0.1 * n
+    y = 3. * x1 - 2. * x2 + 0.5 * x3 + 0.5 * c1 - 0.3 * c2 + 0.1 * n
     # Add missing data
     x1_na = (np.random.rand(num) < 0.01)
     x2_na = (np.random.rand(num) < 0.01)

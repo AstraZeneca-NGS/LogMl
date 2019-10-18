@@ -58,9 +58,46 @@ class TestLogMlIntegration(unittest.TestCase):
         ret = config()
         ml = LogMl(config=config)
         ml()
-        # Check data preprocessing
+        # Check results
         dp = ml.datasets.dataset_preprocess
         df = ml.datasets.dataset
+        # Check data transform: Remove 'missing output rows' (1% of rows removed)
+        self.assertTrue(df.shape[0] < 1990)
+        # Check data preprocessing: Normalization
+        epsilon = 0.001
+        for xi in ['x1', 'x2', 'x3']:
+            self.assertTrue(abs(df[xi].mean()) < epsilon)
+            self.assertTrue(abs(df[xi].std() - 1) < epsilon)
+        for xi in ['c1', 'c2']:
+            self.assertTrue(df[xi].max() <= 1.0)
+            self.assertTrue(df[xi].min() >= 0.0)
+        # Check feature feature importance
+        fidf = ml.dataset_feature_importance.results.df
+        print(fidf)
+        self.assertEqual('x1', fidf.index[0])
+        self.assertEqual('x2', fidf.index[1])
+        self.assertEqual('x3', fidf.index[2])
+        # Check model search results
+        mrdf = ml.model_results.df
+        modsearch_best = mrdf.index[0]
+        modsearch_first = mrdf.iloc[0]
+        self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
+        self.assertTrue(modsearch_first.train < 0.1)
+        self.assertTrue(modsearch_first.validation < 0.1)
+
+    def test_class3(self):
+        ''' Classification problem (with noise and missing values) '''
+        config_file = os.path.join('tests', 'integration', 'config', 'class3.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        ret = config()
+        ml = LogMl(config=config)
+        ml()
+        # Check results
+        dp = ml.datasets.dataset_preprocess
+        df = ml.datasets.dataset
+        # Check data transform: Remove 'missing output rows' (1% of rows removed)
+        self.assertTrue(df.shape[0] < 1990)
+        # Check data preprocessing: Normalization
         epsilon = 0.001
         for xi in ['x1', 'x2', 'x3']:
             self.assertTrue(abs(df[xi].mean()) < epsilon)
@@ -76,15 +113,9 @@ class TestLogMlIntegration(unittest.TestCase):
         modsearch_best = mrdf.index[0]
         modsearch_first = mrdf.iloc[0]
         self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
-        self.assertEqual(modsearch_first.train, 0.0)
-        self.assertEqual(modsearch_first.validation, 0.0)
+        self.assertTrue(modsearch_first.train < 0.1)
+        self.assertTrue(modsearch_first.validation < 0.1)
 
-    # def test_linear3c(self):
-    #     pass
-    #
-    # def test_class3(self):
-    #     pass
-    #
     # def test_example1(self):
     #     pass
     #
