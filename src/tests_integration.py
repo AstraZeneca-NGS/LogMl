@@ -25,24 +25,27 @@ class TestLogMlIntegration(unittest.TestCase):
         MlRegistry().reset()
 
     def test_linear3(self):
-        config_file = os.path.join('tests', 'integration', 'test_linear3.yaml')
-
+        config_file = os.path.join('tests', 'integration', 'config' , 'linear3.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        ret = config()
+        ml = LogMl(config=config)
+        ml()
         pass
 
-    def test_linear3c(self):
-        pass
-
-    def test_class3(self):
-        pass
-
-    def test_example1(self):
-        pass
-
-    def test_example2(self):
-        pass
-
-    def test_example3(self):
-        pass
+    # def test_linear3c(self):
+    #     pass
+    #
+    # def test_class3(self):
+    #     pass
+    #
+    # def test_example1(self):
+    #     pass
+    #
+    # def test_example2(self):
+    #     pass
+    #
+    # def test_example3(self):
+    #     pass
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,7 +4,7 @@ import logging
 import pandas as pd
 
 from .core import Config, CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
-from .core.files import MlFiles, DISABLE_PLOTS
+from .core.files import MlFiles, disable_plots
 from .core.registry import MODEL_CREATE
 from .datasets import Datasets, DatasetsDf, DataExplore
 from .feature_importance import DataFeatureImportance
@@ -137,7 +137,7 @@ class LogMl(MlFiles):
         # Table width
         pd.set_option('display.max_columns', self.display_max_columns)
         pd.set_option('display.max_rows', self.display_max_rows)
-        DISABLE_PLOTS = self.disable_plots
+        disable_plots(self.disable_plots)
         return self._config_sanity_check()
 
     def is_dataset_df(self):

@@ -1,9 +1,10 @@
 logger:
+  disable_plots: true
 
 dataset:
   dataset_type: 'df'
   dataset_name: 'linear3'
-  dataset_path: 'data/linear3'
+  dataset_path: 'tests/integration/data'
   outputs: ['y']
 
 dataset_explore:
@@ -26,7 +27,7 @@ model:
   model_type: regression
   model_name: 'linear3'
   model_class: sklearn.ensemble.RandomForestRegressor
-  model_path: 'data/linear3/model'
+  model_path: 'tests/integration/model'
 
 functions:
     dataset_split:

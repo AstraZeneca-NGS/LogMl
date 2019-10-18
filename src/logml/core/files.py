@@ -15,6 +15,10 @@ from .log import MlLog
 # Should we disable plots
 DISABLE_PLOTS = False
 
+def disable_plots(v):
+    global DISABLE_PLOTS
+    DISABLE_PLOTS = v
+
 
 class MlFiles(MlLog):
     '''
