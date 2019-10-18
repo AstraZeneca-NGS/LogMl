@@ -11,6 +11,7 @@ from IPython.core.display import display
 from yamlinclude import YamlIncludeConstructor
 
 from .log import MlLog
+from ..util.sanitize import sanitize_name
 
 # Should we disable plots
 DISABLE_PLOTS = False
@@ -22,6 +23,7 @@ class MlFiles(MlLog):
     '''
     def __init__(self, config=None, config_section=None):
         super().__init__(config, config_section)
+        self.disable_plots = DISABLE_PLOTS
 
     def _display(self, obj):
         display(obj)
@@ -65,12 +67,19 @@ class MlFiles(MlLog):
         with open(file_yaml) as yaml_file:
             return yaml.load(yaml_file, Loader=yaml.FullLoader)
 
-    def _plot_show(self):
+    def _plot_show(self, title, section):
         ''' Show a plot in a way that we can continue processing '''
         if DISABLE_PLOTS:
             return
-        plt.draw()  # Show plot in a non-blocking maner
-        plt.pause(0.1)  # Pause, so that GUI can update the images
+        plt.title(title)
+        if SHOW_PLOTS:
+            plt.draw()  # Show plot in a non-blocking maner
+            plt.pause(0.1)  # Pause, so that GUI can update the images
+        if SAVE_PLOTS:
+            name = name if name else 'plot'
+            file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
+            self._debug("Saving plot '{title}' to '{file}'")
+            plt.savefig(file)
 
     def _save_csv(self, file_csv, tag, df, save_index=False):
         ''' Save a dataFrame to a CSV file, return True (on success) or False (on failure) '''

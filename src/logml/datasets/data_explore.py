@@ -108,8 +108,7 @@ class DataExplore(MlFiles):
         self._info(f"COLS: {df.columns} => {cols}")
         df_corr = pd.DataFrame(corr, columns=cols, index=cols)
         sns.heatmap(df_corr, square=True)
-        plt.title('Correlation (numeric features)')
-        self._plot_show()
+        self._plot_show('Correlation (numeric features)')
 
     def dendogram(self, df, name):
         """
