@@ -21,16 +21,47 @@ class TestLogMlIntegration(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        # MlLog().set_log_level(logging.DEBUG)
+        MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_linear3(self):
+        ''' Simple linear model (without any noise) '''
         config_file = os.path.join('tests', 'integration', 'config' , 'linear3.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
         ml = LogMl(config=config)
         ml()
-        pass
+        # Check data preprocessing
+        !!!!!!!!!!!!
+        # Check data transform
+        !!!!!!!!!!!!
+        ml.datasets.df.shape    # Remove missing rows
+        # Check feature feature importance
+        fi = ml.dataset_feature_importance
+        !!!!!!!!!!!!!!
+        # Check model search results
+        mrdf = ml.model_results.df
+        modsearch_best = mrdf.index[0]
+        modsearch_first = mrdf.iloc[0]
+        print(f"modsearch_best = {modsearch_best}")
+        self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
+        self.assertEqual(modsearch_first.train, 0.0)
+        self.assertEqual(modsearch_first.validation, 0.0)
+
+    # def test_linear3c(self):
+    #     ''' Linear model (with noise and missing values) '''
+    #     config_file = os.path.join('tests', 'integration', 'config' , 'linear3c.yaml')
+    #     config = Config(argv=['logml.py', '-c', config_file])
+    #     ret = config()
+    #     ml = LogMl(config=config)
+    #     ml()
+    #     mrdf = ml.model_results.df
+    #     modsearch_best = mrdf.index[0]
+    #     modsearch_first = mrdf.iloc[0]
+    #     print(f"modsearch_best = {modsearch_best}")
+    #     self.assertTrue(modsearch_best.startswith("sklearn.linear_model.LinearRegression"))
+    #     self.assertEqual(modsearch_first.train, 0.0)
+    #     self.assertEqual(modsearch_first.validation, 0.0)
 
     # def test_linear3c(self):
     #     pass

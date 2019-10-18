@@ -81,6 +81,9 @@ class MlFiles(MlLog):
         if not file_csv:
             self._debug(f"{tag}: Empty file name, skipping")
             return False
+        if df is None:
+            self._debug(f"{tag}: DataFrame is None, skipping")
+            return False
         self._debug(f"{tag}: Saving CSV file '{file_csv}'")
         df.to_csv(file_csv, index=save_index)
 

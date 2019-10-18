@@ -1,4 +1,5 @@
 logger:
+  disable_plots: true
 
 dataset:
   dataset_type: 'df'

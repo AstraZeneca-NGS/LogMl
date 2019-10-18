@@ -66,4 +66,6 @@ class ResultsDf:
         return x if x.ndim == 1 else x.flatten()
 
     def sort(self, col_name):
+        if self.df is None:
+            return
         self.df.sort_values(col_name, inplace=True)
