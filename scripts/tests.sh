@@ -31,6 +31,8 @@ fi
 
 coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
 
+echo "Test cases (unit): OK"
+
 # Should we do integration testing?
 if [ "$test_integration" == 'false' ]; then
   exit
@@ -52,4 +54,4 @@ fi
 
 echo
 echo
-echo "Done: All tests passed"
+echo "Test cases (integration): OK"

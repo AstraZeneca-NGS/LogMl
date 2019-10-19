@@ -56,13 +56,14 @@ class DataExplore(MlFiles):
         if self.is_use_ori:
             self.explore(self.df_ori, "Original dataset")
         self.explore(self.df, "Transformed dataset")
+        return True
 
     def explore(self, df, name):
         # Analysis: Single variable analysis
         if df is None:
             self._debug(f"Explore data '{name}': DataFrame is None, skipping.")
             return
-        self._info(f"Explore data '{name}': End")
+        self._info(f"Explore data '{name}': Start")
         print(f"Summary: {name}")
         self.summary(df)
         print(f"Missing data: {name}")
@@ -105,7 +106,6 @@ class DataExplore(MlFiles):
         self.print_all("Correlations", df_corr)
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
-        self._info(f"COLS: {df.columns} => {cols}")
         df_corr = pd.DataFrame(corr, columns=cols, index=cols)
         sns.heatmap(df_corr, square=True)
         self._plot_show('Correlation (numeric features)', 'dataset_explore')
@@ -254,7 +254,7 @@ class DataExplore(MlFiles):
             if stdev <= std_threshold:
                 self._debug(f"Dropping column '{c}': stdev {stdev}")
                 to_drop.append(c)
-        df_copy = df.drop(to_drop, axis=1) if to_drop else df
+        df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
         return df_copy
 
     def plots_pairs(self, df):
@@ -281,7 +281,8 @@ class DataExplore(MlFiles):
         df_copy = self.numeric_non_zero_std(df)
         # Remove column names ending with '_na'
         cols_na = [c for c in df.columns if c.endswith('_na') or c.endswith('_nan')]
-        df_copy.drop(cols_na, inplace=True, axis=1)
+        if cols_na:
+            df_copy.drop(cols_na, inplace=True, axis=1)
         # Calculate spearsman's correlation
         sp_r = scipy.stats.spearmanr(df_copy, nan_policy='omit')
         return sp_r.correlation, df_copy.columns
