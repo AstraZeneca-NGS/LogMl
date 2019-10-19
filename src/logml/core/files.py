@@ -84,6 +84,7 @@ class MlFiles(MlLog):
     def _plot_show(self, title, section):
         ''' Show a plot in a way that we can continue processing '''
         if DISABLE_PLOTS:
+            plt.close('all')
             return
         plt.title(title)
         if SHOW_PLOTS:
