@@ -141,18 +141,6 @@ dataset_explore:
   # Set to 'false' to disable this step
   enable: true
 
-  # Also explore 'original' dataset (i.e. before transforming)
-  is_use_ori: true
-
-  # Create summary
-  is_summary: true
-
-  # Perform 'missing data' analysis
-  is_nas: true
-
-  # Plot pairs of variables
-  is_plot_pairs: true
-
   # Perform correlation analysis
   is_correlation_analysis: true
 
@@ -162,10 +150,22 @@ dataset_explore:
   # Descrive all variables
   is_describe_all: true
 
+  # Perform 'missing data' analysis
+  is_nas: true
+
+  # Plot pairs of variables
+  is_plot_pairs: true
+
+  # Create summary
+  is_summary: true
+
+  # Also explore 'original' dataset (i.e. before transforming)
+  is_use_ori: false
+
   # Consider variables 'highly correlated' if over this threshold
   corr_thresdold: 0.7
 
-  # Do not plot pairs if there are more than 'correlation_analysis_max' varaibles
+  # Do not plot pairs if there are more than 'correlation_analysis_max' variables
   correlation_analysis_max: 100
 
   # Do not perform dendogram plot for more than 'dendogram_max' varaibles

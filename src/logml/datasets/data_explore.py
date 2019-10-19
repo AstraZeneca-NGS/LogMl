@@ -54,8 +54,8 @@ class DataExplore(MlFiles):
             return True
         self._info("Explore data: Start")
         if self.is_use_ori:
-            self.explore(self.df_ori, "Original dataset")
-        self.explore(self.df, "Transformed dataset")
+            self.explore(self.df_ori, "original")
+        self.explore(self.df, "transformed")
         return True
 
     def explore(self, df, name):
@@ -73,10 +73,12 @@ class DataExplore(MlFiles):
         # Analysis: Pairs of variables
         print(f"Show pair-plot: {name}")
         self.plots_pairs(df)
+        print(f"Correlation analysis: {name}")
         self.correlation_analysis(df)
-        # Analysis: Multiple variables analysis
         print(f"Dendogram: {name}")
         self.dendogram(df, name)
+        print(f"Dendogram of missing values: {name}")
+        self.dendogram_na(df, name)
         # TODO: Dimmensionality reduction {PCA, LDA, tSNE, KL}
         # TODO: Remove outliers
         # TODO: Multimodal analysys
@@ -89,25 +91,28 @@ class DataExplore(MlFiles):
             return
         self._debug("Correlation analysis")
         if len(df.columns) > self.correlation_analysis_max:
-            self._debug(f"Correlation analysis: Too many columns to compare ({len(df.columns)}), skipping")
+            self._debug(f"Correlation analysis: Too many columns to compare ({len(df.columns)} > correlation_analysis_max), skipping")
             return
         corr, cols = self.rank_correlation(df)
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
         # Create a dataframe of high correlated / annti-correlated variables
-        df_corr = pd.DataFrame()
+        self.top_correlations = pd.DataFrame()
         add_idx = 0
         for idx in range(len(ind[0])):
             i, j = ind[0][-idx], ind[1][-idx]
             if i < j and abs(corr[i, j]) > self.corr_thresdold:
                 row = pd.DataFrame({'col_i': cols[i], 'col_j': cols[j], 'i': i, 'j': j, 'corr': corr[i, j]}, index=[add_idx])
                 add_idx += 1
-                df_corr = pd.concat([df_corr, row], ignore_index=True)
-        self.print_all("Correlations", df_corr)
+                self.top_correlations = pd.concat([self.top_correlations, row], ignore_index=True)
+        if self.top_correlations.shape[0] > 0:
+            self.print_all(f"Top correlations: {self.top_correlations.shape}  {self.top_correlations.shape[0]}", self.top_correlations)
+        else:
+            print(f"Top correlations: There are no variables correlated over corr_thresdold={self.corr_thresdold}")
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
-        df_corr = pd.DataFrame(corr, columns=cols, index=cols)
-        sns.heatmap(df_corr, square=True)
+        self.correlation_df = pd.DataFrame(corr, columns=cols, index=cols)
+        sns.heatmap(self.correlation_df, square=True)
         self._plot_show('Correlation (numeric features)', 'dataset_explore')
 
     def dendogram(self, df, name):
@@ -130,9 +135,15 @@ class DataExplore(MlFiles):
         plt.figure(figsize=self.figsize)
         den = hc.dendrogram(z, labels=cols, orientation='left', leaf_font_size=16)
         self._plot_show(f"Dendogram rank correlation: {name}", 'dataset_explore')
-        # Another method for the same
+
+    def dendogram_na(self, df, name):
+        ''' Dendogram of missing values '''
+        count_na = df.isna().sum().sum()
+        if count_na <= 0:
+            self._debug("Dendogram of missing values: No missing values, skipping")
+            return
         msno.dendrogram(df)
-        self._plot_show(f"Dendogram: {name}", 'dataset_explore')
+        self._plot_show(f"Dendogram (msno): {name}", 'dataset_explore')
 
     def describe_all(self, df, max_bins=100):
         " Show basic stats and histograms for every column "
@@ -243,31 +254,20 @@ class DataExplore(MlFiles):
         msno.heatmap(df)
         self._plot_show(f"Nullity correlation ({name})", 'dataset_explore')
 
-    def numeric_non_zero_std(self, df, std_threshold=0.0):
-        " Return a new dataFrame with only numeric columns having stdev > std_threshold"
-        to_drop = list()
-        for c in df.columns:
-            if not self.is_numeric(df[c]):
-                to_drop.append(c)
-                continue
-            stdev = df[c].std()
-            if stdev <= std_threshold:
-                self._debug(f"Dropping column '{c}': stdev {stdev}")
-                to_drop.append(c)
-        df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
-        return df_copy
-
     def plots_pairs(self, df):
         if not self.is_plot_pairs:
             return
-        dfs = self.keep_uniq(df)
-        if len(dfs.columns) > self.plot_pairs_max:
-            self._debug(f"Plot pairs: Too many columns to compare ({len(dfs.columns)}), skipping")
+        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.keep_uniq(df)))
+        if len(df_copy.columns) == 0:
+            self._debug(f"Plot pairs: No columns left after removing missing values ({len(df_copy.columns)}), skipping")
             return
-        print(f"Plotting pairs for columns: {dfs.columns}")
+        if len(df_copy.columns) > self.plot_pairs_max:
+            self._debug(f"Plot pairs: Too many columns to compare ({len(df_copy.columns)}), skipping")
+            return
+        print(f"Plotting pairs for columns: {df_copy.columns}")
         sns.set_style('darkgrid')
         sns.set()
-        sns.pairplot(dfs, kind='scatter', diag_kind='kde')
+        sns.pairplot(df_copy, kind='scatter', diag_kind='kde')
         self._plot_show("Pairs", 'dataset_explore')
 
     def print_all(self, msg, df):
@@ -277,15 +277,42 @@ class DataExplore(MlFiles):
 
     def rank_correlation(self, df):
         " Rank correlation (Spearman's R)"
-        # Drop columns having zero variance
-        df_copy = self.numeric_non_zero_std(df)
-        # Remove column names ending with '_na'
-        cols_na = [c for c in df.columns if c.endswith('_na') or c.endswith('_nan')]
-        if cols_na:
-            df_copy.drop(cols_na, inplace=True, axis=1)
+        # Drop columns having zero variance and non-numeric
+        df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(df))
         # Calculate spearsman's correlation
         sp_r = scipy.stats.spearmanr(df_copy, nan_policy='omit')
         return sp_r.correlation, df_copy.columns
+
+    def remove_na_cols(self, df):
+        """ Remove 'na' columns """
+        # Remove column names ending with '_na'
+        df_copy = df.copy()
+        cols_na = [c for c in df.columns if df[c].isna().sum() > 0 or c.endswith('_na') or c.endswith('_nan')]
+        if cols_na:
+            df_copy.drop(cols_na, inplace=True, axis=1)
+        return df_copy
+
+    def remove_non_numeric_cols(self, df):
+        ''' Return a new dataFrame with only numeric columns '''
+        to_drop = list()
+        for c in df.columns:
+            if not self.is_numeric(df[c]):
+                to_drop.append(c)
+        df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
+        return df_copy
+
+    def remove_zero_std_cols(self, df, std_threshold=0.0):
+        ''' Return a new dataFrame with numeric columns having stdev < std_threshold removed '''
+        to_drop = list()
+        for c in df.columns:
+            if not self.is_numeric(df[c]):
+                continue
+            stdev = df[c].std()
+            if stdev <= std_threshold:
+                self._debug(f"Dropping column '{c}': stdev {stdev}")
+                to_drop.append(c)
+        df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
+        return df_copy
 
     def summary(self, df):
         " Look into basic column statistics"

@@ -153,7 +153,8 @@ class HyperOpt(MlLog):
         self._debug(f"Model train returned: {ret_train}")
         ret_val = self.logml.get_model_eval_validate()
         if ret_val is None:
-            raise ValueError(f"Model test evaluation is 'None'. Either the `@model_evaluate` funciton returned 'None' or it was not executed")
+            self._warning(f"Model test evaluation is 'None'. Either the `@model_evaluate` function returned 'None' or it was not executed")
+            return np.nan
         self._debug(f"Model validation returned: {ret_val}")
         # Update best fit
         if self.best_fit is None or ret_val < self.best_fit:

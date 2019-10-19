@@ -94,6 +94,8 @@ class MlFiles(MlLog):
             file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
             self._debug(f"Saving plot '{title}' to '{file}'")
             plt.savefig(file)
+        if not SHOW_PLOTS:
+            plt.close('all')
 
     def _save_csv(self, file_csv, tag, df, save_index=False):
         ''' Save a dataFrame to a CSV file, return True (on success) or False (on failure) '''

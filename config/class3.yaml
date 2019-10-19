@@ -8,9 +8,10 @@ dataset:
 
 dataset_explore:
   enable: true
+  is_use_ori: true
 
 dataset_feature_importance:
-  enable: true
+  enable: false
 
 dataset_preprocess:
   enable: true
@@ -22,7 +23,7 @@ dataset_transform:
   enable: true
 
 model:
-  enable: true
+  enable: false
   model_type: classification
   model_name: 'class3'
   model_class: sklearn.ensemble.RandomForestClassifier
@@ -38,5 +39,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: true
+  enable: false
   models: !include models_search/*.yaml

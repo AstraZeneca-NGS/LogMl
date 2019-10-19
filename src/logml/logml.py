@@ -105,6 +105,7 @@ class LogMl(MlFiles):
 
     def _dataset_explore(self):
         " Explore dataset "
+        # FIXME: Use two DataExplore objects: One for original, one for transform datasets
         if not self.is_dataset_df():
             self._debug("Dataset exploration only available for dataset type 'df'")
             return True
