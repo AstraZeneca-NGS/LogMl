@@ -1,7 +1,0 @@
-,train,validation,time,n_estimators,criterion,min_samples_split,min_samples_leaf,min_weight_fraction_leaf,max_features,min_impurity_decrease,bootstrap,oob_score,n_jobs,verbose,warm_start,Cs,cv,dual,fit_intercept,intercept_scaling,max_iter,multi_class,penalty,refit,solver,tol
-sklearn.linear_model.LogisticRegressionCV.20191019.002627.004481.9,0.007561436672967825,0.015151515151515138,1.8429929999999999,,,,,,,,,,,0,,10.0,5.0,False,True,1.0,100.0,auto,l2,True,lbfgs,0.0001
-sklearn.ensemble.RandomForestClassifier.20191019.002616.982083.3,0.07309388783868931,0.08333333333333337,2.382025999999998,347.0,gini,2.0,21.0,0.0,0.9323676823588012,0.0,True,False,-1.0,0,False,,,,,,,,,,,
-sklearn.ensemble.RandomForestClassifier.20191019.002620.100089.5,0.08758664146187778,0.11363636363636365,3.8099039999999995,688.0,gini,2.0,55.0,0.0,0.6452670931407686,0.0,True,False,-1.0,0,False,,,,,,,,,,,
-sklearn.ensemble.RandomForestClassifier.20191019.002618.525324.4,0.10207939508506614,0.12878787878787878,1.9046169999999982,366.0,gini,2.0,30.0,0.0,0.46880786543671477,0.0,True,False,-1.0,0,False,,,,,,,,,,,
-sklearn.ensemble.RandomForestClassifier.20191019.002623.017976.6,0.12602394454946442,0.148989898989899,3.1712249999999997,523.0,gini,2.0,77.0,0.0,0.8701808092088137,0.0,True,False,-1.0,0,False,,,,,,,,,,,
-sklearn.ensemble.RandomForestClassifier.20191019.002625.283553.7,0.13421550094517953,0.148989898989899,1.9833819999999989,383.0,gini,2.0,48.0,0.0,0.44854315723267535,0.0,True,False,-1.0,0,False,,,,,,,,,,,
