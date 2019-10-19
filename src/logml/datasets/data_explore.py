@@ -34,13 +34,13 @@ class DataExplore(MlFiles):
         self.dendogram_max = 100
         self.df = self.datasets_df.dataset
         self.df_ori = self.datasets_df.dataset_ori
-        self.is_use_ori = False
-        self.is_summary = True
-        self.is_nas = True
-        self.is_plot_pairs = True
-        self.is_correlation_analysis = True
         self.is_dendogram = True
         self.is_describe_all = True
+        self.is_correlation_analysis = True
+        self.is_nas = True
+        self.is_plot_pairs = True
+        self.is_summary = True
+        self.is_use_ori = False
         self.figsize = (20, 20)
         self.plot_pairs_max = 20
         self.shapiro_wilks_threshold = 0.1
@@ -56,13 +56,14 @@ class DataExplore(MlFiles):
         if self.is_use_ori:
             self.explore(self.df_ori, "Original dataset")
         self.explore(self.df, "Transformed dataset")
+        return True
 
     def explore(self, df, name):
         # Analysis: Single variable analysis
         if df is None:
             self._debug(f"Explore data '{name}': DataFrame is None, skipping.")
             return
-        self._info(f"Explore data '{name}': End")
+        self._info(f"Explore data '{name}': Start")
         print(f"Summary: {name}")
         self.summary(df)
         print(f"Missing data: {name}")
@@ -105,10 +106,9 @@ class DataExplore(MlFiles):
         self.print_all("Correlations", df_corr)
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
-        self._info(f"COLS: {df.columns} => {cols}")
         df_corr = pd.DataFrame(corr, columns=cols, index=cols)
         sns.heatmap(df_corr, square=True)
-        self._plot_show('Correlation (numeric features)')
+        self._plot_show('Correlation (numeric features)', 'dataset_explore')
 
     def dendogram(self, df, name):
         """
@@ -129,12 +129,10 @@ class DataExplore(MlFiles):
         z = hc.linkage(corr_condensed, method='average')
         plt.figure(figsize=self.figsize)
         den = hc.dendrogram(z, labels=cols, orientation='left', leaf_font_size=16)
-        plt.title(f"Dendogram rank correlation: {name}")
-        self._plot_show()
+        self._plot_show(f"Dendogram rank correlation: {name}", 'dataset_explore')
         # Another method for the same
         msno.dendrogram(df)
-        plt.title(f"Dendogram: {name}")
-        self._plot_show()
+        self._plot_show(f"Dendogram: {name}", 'dataset_explore')
 
     def describe_all(self, df, max_bins=100):
         " Show basic stats and histograms for every column "
@@ -149,9 +147,9 @@ class DataExplore(MlFiles):
             df_desc = self.describe(xi_no_na, c)
             descr.add_df(df_desc)
             bins = min(len(xi_no_na.unique()), max_bins)
+            plt.figure()
             sns.distplot(xi_no_na, bins=bins)
-            plt.title(c)
-            self._plot_show()
+            self._plot_show(f"Distribution {c}", 'dataset_explore')
         self.print_all('Summary description', descr.df)
 
     def describe(self, x, field_name):
@@ -226,8 +224,7 @@ class DataExplore(MlFiles):
         self.print_all("Missing by column", dfnas)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
-        plt.title("Percent of missing values")
-        self._plot_show()
+        self._plot_show("Percent of missing values", 'dataset_explore')
         # Missing values plots
         self.na_plots(df, "all")
         # Create a plot of missing values: Only numeric types
@@ -238,16 +235,13 @@ class DataExplore(MlFiles):
         " Plot missing values "
         # Show missing values in data frame
         msno.matrix(df)
-        plt.title(f"Missing value dataFrame plot ({name})")
-        self._plot_show()
+        self._plot_show(f"Missing value dataFrame plot ({name})", 'dataset_explore')
         # Barplot of number of misisng values
         msno.bar(df)
-        plt.title(f"Missing value by column ({name})")
-        self._plot_show()
+        self._plot_show(f"Missing value by column ({name})", 'dataset_explore')
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
-        plt.title(f"Nullity correlation ({name})")
-        self._plot_show()
+        self._plot_show(f"Nullity correlation ({name})", 'dataset_explore')
 
     def numeric_non_zero_std(self, df, std_threshold=0.0):
         " Return a new dataFrame with only numeric columns having stdev > std_threshold"
@@ -260,7 +254,7 @@ class DataExplore(MlFiles):
             if stdev <= std_threshold:
                 self._debug(f"Dropping column '{c}': stdev {stdev}")
                 to_drop.append(c)
-        df_copy = df.drop(to_drop, axis=1) if to_drop else df
+        df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
         return df_copy
 
     def plots_pairs(self, df):
@@ -274,7 +268,7 @@ class DataExplore(MlFiles):
         sns.set_style('darkgrid')
         sns.set()
         sns.pairplot(dfs, kind='scatter', diag_kind='kde')
-        self._plot_show()
+        self._plot_show("Pairs", 'dataset_explore')
 
     def print_all(self, msg, df):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
@@ -287,7 +281,8 @@ class DataExplore(MlFiles):
         df_copy = self.numeric_non_zero_std(df)
         # Remove column names ending with '_na'
         cols_na = [c for c in df.columns if c.endswith('_na') or c.endswith('_nan')]
-        df_copy.drop(cols_na, inplace=True, axis=1)
+        if cols_na:
+            df_copy.drop(cols_na, inplace=True, axis=1)
         # Calculate spearsman's correlation
         sp_r = scipy.stats.spearmanr(df_copy, nan_policy='omit')
         return sp_r.correlation, df_copy.columns

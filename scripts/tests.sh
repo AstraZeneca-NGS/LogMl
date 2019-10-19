@@ -1,20 +1,57 @@
 #!/bin/bash -eu
 set -o pipefail
 
+# Setting the first command line option to anything except 'false' will run integration tests
+test_integration="${1:-false}"
+echo "test_integration:'$test_integration'"
+
+# Activate virtual environment
 DIR="$(cd $(dirname $0) ; pwd -P)"
-
 export PS1=""
-
 source ./bin/activate
 
-TEST_NAME=""
-# TEST_NAME="TestLogMl.test_dataset_transform_002"
+# If these variables are set, only perform one unit/integration test
+TEST_UNIT_NAME=""
+TEST_INTEGRATION_NAME=""
+# TEST_UNIT_NAME="TestLogMl.test_dataset_transform_002"
+# TEST_INTEGRATION_NAME="TestLogMlIntegration.test_class3"
 
-if [ -z "$TEST_NAME" ]; then
-    time coverage run src/tests.py -v --failfast 2>&1 | tee tests.out
+#---
+# Unit testing
+#---
+echo
+echo
+if [ -z "$TEST_UNIT_NAME" ]; then
+    echo "Unit tests: All "
+    time coverage run src/tests_unit.py -v --failfast 2>&1 | tee tests.unit.out
 else
-    time coverage run src/tests.py -v --failfast "$TEST_NAME" 2>&1 | tee tests.out
+    echo "Unit test: '$TEST_UNIT_NAME' "
+    time coverage run src/tests_unit.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
 fi
 
-coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.out
-echo "Done: All tests passed"
+coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
+
+echo "Test cases (unit): OK"
+
+# Should we do integration testing?
+if [ "$test_integration" == 'false' ]; then
+  exit
+fi
+
+#---
+# Integration testing
+#---
+echo
+echo
+
+if [ -z "$TEST_INTEGRATION_NAME" ]; then
+    echo "Integration tests: All "
+    time coverage run src/tests_integration.py -v --failfast 2>&1 | tee tests.integration.out
+else
+    echo "Integration test: '$TEST_INTEGRATION_NAME' "
+    time coverage run src/tests_integration.py -v --failfast "$TEST_INTEGRATION_NAME" 2>&1 | tee tests.integration.out
+fi
+
+echo
+echo
+echo "Test cases (integration): OK"

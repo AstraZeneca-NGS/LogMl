@@ -1,0 +1,5 @@
+,train,validation,time,copy_X,fit_intercept,normalize,bootstrap,criterion,max_features,min_impurity_decrease,min_samples_leaf,min_samples_split,min_weight_fraction_leaf,n_jobs,n_estimators,oob_score,verbose,warm_start
+sklearn.linear_model.LinearRegression.20191018.002302.532080.3,0.0,0.0,0.027082419000000968,True,True,True,,,,,,,,,,,,
+sklearn.ensemble.RandomForestRegressor.20191018.002303.547848.6,0.12168450532071895,0.08531493208068164,1.4199647649999996,,,,True,mse,0.9896363020696994,0.0,60.0,2.0,0.0,-1.0,324.0,False,0.0,False
+sklearn.ensemble.RandomForestRegressor.20191018.002304.885453.7,0.21326048391573837,0.17618225864754156,3.0635873290000006,,,,True,mse,0.49074683799826624,0.0,40.0,2.0,0.0,-1.0,749.0,False,0.0,False
+sklearn.ensemble.RandomForestRegressor.20191018.002302.635498.5,0.2443847915134154,0.20769256882823406,0.9582716810000012,,,,True,mse,0.428250858372361,0.0,49.0,2.0,0.0,-1.0,225.0,False,0.0,False

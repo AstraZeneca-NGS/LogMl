@@ -13,8 +13,23 @@ from yamlinclude import YamlIncludeConstructor
 from .log import MlLog
 from ..util.sanitize import sanitize_name
 
-# Should we disable plots
+# Default plot preferences
 DISABLE_PLOTS = False
+SHOW_PLOTS = True
+SAVE_PLOTS = True
+PLOTS_PATH = 'logml_plots'
+
+
+def set_plots(disable=None, show=None, save=None, path=None):
+    global DISABLE_PLOTS, SHOW_PLOTS, SAVE_PLOTS, PLOTS_PATH
+    if disable is not None:
+        DISABLE_PLOTS = disable
+    if show is not None:
+        SHOW_PLOTS = show
+    if save is not None:
+        SAVE_PLOTS = save
+    if path is not None:
+        PLOTS_PATH = path
 
 
 class MlFiles(MlLog):
@@ -23,7 +38,6 @@ class MlFiles(MlLog):
     '''
     def __init__(self, config=None, config_section=None):
         super().__init__(config, config_section)
-        self.disable_plots = DISABLE_PLOTS
 
     def _display(self, obj):
         display(obj)
@@ -76,7 +90,6 @@ class MlFiles(MlLog):
             plt.draw()  # Show plot in a non-blocking maner
             plt.pause(0.1)  # Pause, so that GUI can update the images
         if SAVE_PLOTS:
-            name = name if name else 'plot'
             file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
             self._debug("Saving plot '{title}' to '{file}'")
             plt.savefig(file)
@@ -85,6 +98,9 @@ class MlFiles(MlLog):
         ''' Save a dataFrame to a CSV file, return True (on success) or False (on failure) '''
         if not file_csv:
             self._debug(f"{tag}: Empty file name, skipping")
+            return False
+        if df is None:
+            self._debug(f"{tag}: DataFrame is None, skipping")
             return False
         self._debug(f"{tag}: Saving CSV file '{file_csv}'")
         df.to_csv(file_csv, index=save_index)

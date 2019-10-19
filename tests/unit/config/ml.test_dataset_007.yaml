@@ -2,7 +2,7 @@ logger:
 
 dataset:
   dataset_name: 'test_dataset_007'
-  dataset_path: 'tests/data'
+  dataset_path: 'tests/unit/data'
   dataset_type: 'df'
   is_use_default_split: False
 

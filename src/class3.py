@@ -18,9 +18,9 @@ def create_dataset():
     # Number of samples
     num = 2000
     # Inputs: x1, x2, x3
-    x1 = np.random.normal(0, 1, num)
+    x1 = np.random.normal(0, 4, num)
     x2 = np.random.normal(2, 3, num)
-    x3 = np.random.normal(-3, 5, num)
+    x3 = np.random.normal(-2, 3, num)
     # Noise
     n = np.random.normal(0, 1, num)
     # Output

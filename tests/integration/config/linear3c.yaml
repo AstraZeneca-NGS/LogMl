@@ -1,0 +1,45 @@
+logger:
+  disable_plots: true
+
+dataset:
+  dataset_type: 'df'
+  dataset_name: 'linear3c'
+  dataset_path: 'tests/integration/data'
+  do_not_load_pickle: true
+  outputs: ['y']
+
+dataset_explore:
+  enable: true
+
+dataset_feature_importance:
+  enable: true
+
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    minmax: ['c1', 'c2']
+    skip: ['y']
+
+dataset_transform:
+  enable: true
+
+model:
+  enable: true
+  model_type: regression
+  model_name: 'linear3c'
+  model_class: sklearn.ensemble.RandomForestRegressor
+  model_path: 'tests/integration/model'
+
+functions:
+    dataset_split:
+        split_validate: 0.2
+        split_test: 0.0
+    model_create:
+      n_estimators: 30
+      min_samples_leaf: 3
+      max_features: 0.7
+
+model_search:
+  enable: true
+  models: !include models_search/*.yaml

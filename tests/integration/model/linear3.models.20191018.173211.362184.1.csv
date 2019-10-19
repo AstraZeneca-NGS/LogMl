@@ -1,0 +1,3 @@
+,train,validation,time,copy_X,fit_intercept,normalize,bootstrap,criterion,max_features,min_impurity_decrease,min_samples_leaf,min_samples_split,min_weight_fraction_leaf,n_jobs,n_estimators,oob_score,verbose,warm_start
+sklearn.linear_model.LinearRegression.20191018.173220.137178.3,0.0,0.0,0.04765899999999945,True,True,True,,,,,,,,,,,,
+sklearn.ensemble.RandomForestRegressor.20191018.173220.307927.5,0.0010774385191288927,0.006163011534165763,0.8302410000000009,,,,True,mse,auto,0.0,1.0,2.0,0.0,-1.0,100.0,False,0.0,False
