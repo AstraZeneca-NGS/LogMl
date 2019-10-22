@@ -25,15 +25,36 @@ GradientBoostingClassifier:
       model_create:
         criterion:
           - choice: ['friedman_mse', 'mse', 'mae']
-        learning_rate: ['uniform', 0.0001, 1.0]
+        learning_rate:
+          - uniform
+          - 0.0001
+          - 1.0
         loss:
           - choice: ['deviance', 'exponential']
-        max_depth: ['quniform', 2, 10]
-        max_features: ['uniform', 0.3, 1.0]
-        min_samples_split: ['quniform', 2 20]
-        min_samples_leaf: ['quniform', 1, 100]
-        n_estimators: ['quniform', 2, 10000]
-        subsample: ['uniform', 0.1, 1.0]
+        max_depth:
+          - quniform
+          - 2
+          - 10
+        max_features:
+          - uniform
+          - 0.3
+          - 1.0
+        min_samples_split:
+          - quniform
+          - 2
+          - 20
+        min_samples_leaf:
+          - quniform
+          - 1
+          - 100
+        n_estimators:
+          - quniform
+          - 2
+          - 1000
+        subsample:
+          - uniform
+          - 0.1
+          - 1.0
   model:
     model_class: sklearn.ensemble.GradientBoostingClassifier
     model_type: classification

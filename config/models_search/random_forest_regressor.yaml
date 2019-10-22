@@ -20,11 +20,26 @@ RandomForestRegressor:
     show_progressbar: true
     space:
       model_create:
-        max_depth: ['quniform', 2, 30]
-        max_features: ['uniform', 0.3, 1.0]
-        min_samples_split: ['quniform', 2 20]
-        min_samples_leaf: ['quniform', 1, 100]
-        n_estimators: ['quniform', 2, 10000]
+        max_depth:
+          - quniform
+          - 2
+          - 30
+        max_features:
+          - uniform
+          - 0.3
+          - 1.0
+        min_samples_split:
+          - quniform
+          - 2
+          - 20
+        min_samples_leaf:
+          - quniform
+          - 1
+          - 100
+        n_estimators:
+          - quniform
+          - 2
+          - 1000
   model:
     model_class: sklearn.ensemble.RandomForestRegressor
     model_type: regression
