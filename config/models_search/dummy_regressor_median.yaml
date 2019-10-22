@@ -1,0 +1,7 @@
+DummyRegressor:
+  functions:
+    model_create:
+      strategy: mean
+  model:
+    model_class: sklearn.dummy.DummyRegressor
+    model_type: regression

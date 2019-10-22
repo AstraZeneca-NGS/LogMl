@@ -10,4 +10,4 @@ DecisionTreeRegressor:
       splitter: best
   model:
     model_class: sklearn.tree.DecisionTreeRegressor
-    model_type: classification
+    model_type: regression

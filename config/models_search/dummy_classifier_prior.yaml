@@ -1,0 +1,7 @@
+DummyRegressor:
+  functions:
+    model_create:
+      strategy: prior
+  model:
+    model_class: sklearn.dummy.DummyClassifier
+    model_type: classification
