@@ -19,7 +19,7 @@ GradientBoostingClassifier:
   hyper_parameter_optimization:
     enable: true
     algorithm: tpe
-    max_evals: 3
+    max_evals: 100
     show_progressbar: true
     space:
       model_create:
