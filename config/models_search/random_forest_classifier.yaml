@@ -16,20 +16,15 @@ RandomForestClassifier:
   hyper_parameter_optimization:
     enable: true
     algorithm: tpe
-    max_evals: 20
+    max_evals: 100
     show_progressbar: true
     space:
       model_create:
-        max_features:
-        - uniform
-        - 0.3
-        - 1.0
-        min_samples_leaf:
-        - randint
-        - 100
-        n_estimators:
-        - randint
-        - 1000
+        max_depth: ['quniform', 2, 30]
+        max_features: ['uniform', 0.3, 1.0]
+        min_samples_split: ['quniform', 2 20]
+        min_samples_leaf: ['quniform', 1, 100]
+        n_estimators: ['quniform', 2, 10000]
   model:
     model_class: sklearn.ensemble.RandomForestClassifier
     model_type: classification

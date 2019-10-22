@@ -7,6 +7,19 @@ KNeighborsClassifier:
       n_neighbors: 5
       p: 2
       weights: uniform
+  hyper_parameter_optimization:
+    enable: true
+    algorithm: tpe
+    max_evals: 100
+    show_progressbar: true
+    space:
+      model_create:
+        algorithm:
+          - choice: ['ball_tree', 'kd_tree', 'auto']
+        n_neighbors: ['quniform', 2, 100]
+        weights:
+          - choice: ['uniform', 'distance']
+        p: ['quniform', 1, 2]
   model:
     model_class: sklearn.neighbors.KNeighborsClassifier
     model_type: classification
