@@ -7,10 +7,10 @@ dataset:
   outputs: ['y']
 
 dataset_explore:
-  enable: true
+  enable: false
 
 dataset_feature_importance:
-  enable: true
+  enable: false
 
 dataset_preprocess:
   enable: true
@@ -39,4 +39,4 @@ functions:
 
 model_search:
   enable: true
-  models: !include models_search/*.yaml
+  models: !include models_search_test/*.yaml
