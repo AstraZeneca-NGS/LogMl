@@ -117,7 +117,7 @@ hyper_parameter_optimization:
     #   - 'random': Random search
     algorithm: 'tpe'
     # Max number of hyper-parameter evaluations. Keep in mnd that each evaluation is a full model training
-    max_evals: 100
+    max_evals: 3
     # Parameter space to explore
     space:
         # Parameters space for 'train_model'. Names have to match exactly the ones in 'train_model' parameters section

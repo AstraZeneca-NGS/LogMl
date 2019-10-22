@@ -16,10 +16,13 @@ ExtraTreesRegressor:
   hyper_parameter_optimization:
     enable: true
     algorithm: tpe
-    max_evals: 100
+    max_evals: 3
     show_progressbar: true
     space:
       model_create:
+        criterion:
+          - choice
+          - ['mse', 'mae']
         max_depth:
           - uniformint
           - 2
@@ -28,24 +31,18 @@ ExtraTreesRegressor:
           - uniform
           - 0.3
           - 1.0
-        # min_samples_split:
-        #   - quniform
-        #   - 2
-        #   - 20
-        #   - 1
-        # min_samples_leaf:
-        #   - quniform
-        #   - 1
-        #   - 100
-        #   - 1
-        # n_estimators:
-        #   - quniform
-        #   - 2
-        #   - 1000
-        #   - 1
-        # criterion:
-        #   - choice
-        #   - ['mse', 'mae']
+        min_samples_split:
+          - uniformint
+          - 2
+          - 20
+        min_samples_leaf:
+          - uniformint
+          - 1
+          - 100
+        n_estimators:
+          - uniformint
+          - 2
+          - 1000
   model:
     model_class: sklearn.ensemble.ExtraTreesRegressor
     model_type: regression

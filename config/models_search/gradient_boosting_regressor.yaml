@@ -20,20 +20,22 @@ GradientBoostingRegressor:
   hyper_parameter_optimization:
     enable: true
     algorithm: tpe
-    max_evals: 100
+    max_evals: 3
     show_progressbar: true
     space:
       model_create:
         criterion:
-          - choice: ['friedman_mse', 'mse', 'mae']
+          - choice:
+          - ['friedman_mse', 'mse', 'mae']
         learning_rate:
           - uniform
           - 0.0001
           - 1.0
         loss:
-          - choice: ['ls', 'lad', 'huber', 'quantile']
+          - choice:
+          - ['ls', 'lad', 'huber', 'quantile']
         max_depth:
-          - quniform
+          - uniformint
           - 2
           - 10
         max_features:
@@ -41,15 +43,15 @@ GradientBoostingRegressor:
           - 0.3
           - 1.0
         min_samples_split:
-          - quniform
+          - uniformint
           - 2
           - 20
         min_samples_leaf:
-          - quniform
+          - uniformint
           - 1
           - 100
         n_estimators:
-          - quniform
+          - uniformint
           - 2
           - 1000
         subsample:

@@ -16,12 +16,12 @@ RandomForestRegressor:
   hyper_parameter_optimization:
     enable: true
     algorithm: tpe
-    max_evals: 100
+    max_evals: 3
     show_progressbar: true
     space:
       model_create:
         max_depth:
-          - quniform
+          - uniformint
           - 2
           - 30
         max_features:
@@ -29,15 +29,15 @@ RandomForestRegressor:
           - 0.3
           - 1.0
         min_samples_split:
-          - quniform
+          - uniformint
           - 2
           - 20
         min_samples_leaf:
-          - quniform
+          - uniformint
           - 1
           - 100
         n_estimators:
-          - quniform
+          - uniformint
           - 2
           - 1000
   model:
