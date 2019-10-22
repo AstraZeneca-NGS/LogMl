@@ -20,29 +20,32 @@ ExtraTreesRegressor:
     show_progressbar: true
     space:
       model_create:
-        criterion:
-          - choice
-          - ['mse', 'mae']
         max_depth:
-          - quniform
+          - uniformint
           - 2
           - 30
         max_features:
           - uniform
           - 0.3
           - 1.0
-        min_samples_split:
-          - quniform
-          - 2
-          - 20
-        min_samples_leaf:
-          - quniform
-          - 1
-          - 100
-        n_estimators:
-          - quniform
-          - 2
-          - 1000
+        # min_samples_split:
+        #   - quniform
+        #   - 2
+        #   - 20
+        #   - 1
+        # min_samples_leaf:
+        #   - quniform
+        #   - 1
+        #   - 100
+        #   - 1
+        # n_estimators:
+        #   - quniform
+        #   - 2
+        #   - 1000
+        #   - 1
+        # criterion:
+        #   - choice
+        #   - ['mse', 'mae']
   model:
     model_class: sklearn.ensemble.ExtraTreesRegressor
     model_type: regression
