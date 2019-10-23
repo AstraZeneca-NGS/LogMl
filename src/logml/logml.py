@@ -3,7 +3,7 @@ import datetime
 import logging
 import pandas as pd
 
-from .core import Config, CONFIG_DATASET, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
+from .core import Config, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .core.files import MlFiles, set_plots
 from .core.registry import MODEL_CREATE
 from .datasets import Datasets, DatasetsDf, DataExplore
@@ -105,12 +105,15 @@ class LogMl(MlFiles):
 
     def _dataset_explore(self):
         " Explore dataset "
-        # FIXME: Use two DataExplore objects: One for original, one for transform datasets
         if not self.is_dataset_df():
             self._debug("Dataset exploration only available for dataset type 'df'")
             return True
-        self.dataset_explore = DataExplore(self.datasets, self.config)
-        return self.dataset_explore()
+        self.dataset_explore_transformed = DataExplore(self.datasets.dataset, 'transformed', self.config)
+        ok = self.dataset_explore_transformed()
+        if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori'):
+            self.dataset_explore_original = DataExplore(self.datasets.dataset_ori, 'original', self.config)
+            ok = self.dataset_explore_original() and ok
+        return ok
 
     def _feature_importance(self):
         " Feature importance / feature selection "
