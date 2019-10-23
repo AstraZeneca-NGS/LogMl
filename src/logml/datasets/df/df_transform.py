@@ -29,6 +29,7 @@ class DfTransform(MlLog):
         self.one_hot_max_cardinality = 7
         self.outputs = outputs
         self.remove_missing_outputs = True
+        self.remove_columns = list()
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
@@ -71,6 +72,7 @@ class DfTransform(MlLog):
             self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
             return self.df
         self._remove_missing_outputs()
+        self._remove_columns()
         self.convert_dates()
         self.create_categories()
         self.df = self.create()  # We have to create the new df before replacing nas, in case the dates have missing data
@@ -202,6 +204,12 @@ class DfTransform(MlLog):
         self.columns_to_remove.add(field_name)
         self.skip_nas.add(field_name)
         return True
+
+    def _remove_columns(self):
+        ''' Remove columns '''
+        self.df_ori = self.df
+        self._info(f"Removing columns: {self.remove_columns}")
+        self.df.drop(self.remove_columns, inplace=True, axis=1)
 
     def _remove_missing_outputs(self):
         ''' Remove rows if output variable/s are missing '''
