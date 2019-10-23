@@ -39,4 +39,4 @@ functions:
 
 model_search:
   enable: true
-  models: !include models_search_test/*.yaml
+  models: !include models_search/*.yaml

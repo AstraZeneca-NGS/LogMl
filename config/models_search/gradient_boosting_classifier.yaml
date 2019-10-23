@@ -24,14 +24,14 @@ GradientBoostingClassifier:
     space:
       model_create:
         criterion:
-          - choice:
+          - choice
           - ['friedman_mse', 'mse', 'mae']
         learning_rate:
           - uniform
           - 0.0001
           - 1.0
         loss:
-          - choice:
+          - choice
           - ['deviance', 'exponential']
         max_depth:
           - uniformint

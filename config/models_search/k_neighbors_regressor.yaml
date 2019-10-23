@@ -16,14 +16,14 @@ KNeighborsRegressor:
     space:
       model_create:
         algorithm:
-          - choice:
+          - choice
           - ['ball_tree', 'kd_tree', 'auto']
         n_neighbors:
           - uniformint
           - 2
           - 100
         weights:
-          - choice:
+          - choice
           - ['uniform', 'distance']
         p:
           - uniformint
