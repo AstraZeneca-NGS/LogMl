@@ -7,10 +7,10 @@ dataset:
   outputs: ['y']
 
 dataset_explore:
-  enable: false
+  enable: true
 
 dataset_feature_importance:
-  enable: false
+  enable: true
 
 dataset_preprocess:
   enable: true

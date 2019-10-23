@@ -7,7 +7,7 @@ dataset:
   outputs: ['y']
 
 dataset_explore:
-  enable: true
+  enable: false
   is_use_ori: true
 
 dataset_feature_importance:
@@ -23,7 +23,7 @@ dataset_transform:
   enable: true
 
 model:
-  enable: false
+  enable: true
   model_type: classification
   model_name: 'class3'
   model_class: sklearn.ensemble.RandomForestClassifier
@@ -31,13 +31,13 @@ model:
 
 functions:
     dataset_split:
-        split_validate: 0.2
-        split_test: 0.0
+      split_validate: 0.2
+      split_test: 0.0
     model_create:
       n_estimators: 30
       min_samples_leaf: 3
       max_features: 0.7
 
 model_search:
-  enable: false
+  enable: true
   models: !include models_search/*.yaml
