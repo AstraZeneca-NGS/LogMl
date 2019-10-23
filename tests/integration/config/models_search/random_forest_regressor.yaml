@@ -16,7 +16,7 @@ RandomForestRegressor:
   hyper_parameter_optimization:
     enable: true
     algorithm: tpe
-    max_evals: 100
+    max_evals: 5
     show_progressbar: true
     space:
       model_create:
