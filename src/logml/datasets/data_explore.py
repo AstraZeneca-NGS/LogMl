@@ -26,14 +26,13 @@ class DataExplore(MlFiles):
     There are two types of analysis being performed here:
     '''
 
-    def __init__(self, datasets_df, config, set_config=True):
+    def __init__(self, df, name, config, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
         self.corr_thresdold = 0.7
         self.correlation_analysis_max = 100
-        self.datasets_df = datasets_df
         self.dendogram_max = 100
-        self.df = self.datasets_df.dataset
-        self.df_ori = self.datasets_df.dataset_ori
+        self.df = df
+        self.figsize = (20, 20)
         self.is_dendogram = True
         self.is_describe_all = True
         self.is_correlation_analysis = True
@@ -41,7 +40,7 @@ class DataExplore(MlFiles):
         self.is_plot_pairs = True
         self.is_summary = True
         self.is_use_ori = False
-        self.figsize = (20, 20)
+        self.name = name
         self.plot_pairs_max = 20
         self.shapiro_wilks_threshold = 0.1
         if set_config:
@@ -50,50 +49,20 @@ class DataExplore(MlFiles):
     def __call__(self):
         ''' Explore dataset '''
         if not self.enable:
-            self._debug(f"Dataset explore disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
+            self._debug(f"Dataset explore ({self.name}) disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
             return True
-        self._info("Explore data: Start")
-        if self.is_use_ori:
-            self.explore(self.df_ori, "original")
-        self.explore(self.df, "transformed")
+        self.explore()
         return True
 
-    def explore(self, df, name):
-        # Analysis: Single variable analysis
-        if df is None:
-            self._debug(f"Explore data '{name}': DataFrame is None, skipping.")
-            return
-        self._info(f"Explore data '{name}': Start")
-        print(f"Summary: {name}")
-        self.summary(df)
-        print(f"Missing data: {name}")
-        self.nas(df)
-        print(f"Describe fields: {name}")
-        self.describe_all(df)
-        # Analysis: Pairs of variables
-        print(f"Show pair-plot: {name}")
-        self.plots_pairs(df)
-        print(f"Correlation analysis: {name}")
-        self.correlation_analysis(df)
-        print(f"Dendogram: {name}")
-        self.dendogram(df, name)
-        print(f"Dendogram of missing values: {name}")
-        self.dendogram_na(df, name)
-        # TODO: Dimmensionality reduction {PCA, LDA, tSNE, KL}
-        # TODO: Remove outliers
-        # TODO: Multimodal analysys
-        self._info(f"Explore data '{name}': End")
-        return True
-
-    def correlation_analysis(self, df):
+    def correlation_analysis(self):
         " Correlation between all variables "
         if not self.is_correlation_analysis:
             return
-        self._debug("Correlation analysis")
-        if len(df.columns) > self.correlation_analysis_max:
-            self._debug(f"Correlation analysis: Too many columns to compare ({len(df.columns)} > correlation_analysis_max), skipping")
+        self._debug(f"Correlation analysis: {self.name}")
+        if len(self.df.columns) > self.correlation_analysis_max:
+            self._debug(f"Correlation analysis {self.name}: Too many columns to compare ({len(self.df.columns)} > correlation_analysis_max), skipping")
             return
-        corr, cols = self.rank_correlation(df)
+        corr, cols = self.rank_correlation()
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
         # Create a dataframe of high correlated / annti-correlated variables
@@ -106,16 +75,16 @@ class DataExplore(MlFiles):
                 add_idx += 1
                 self.top_correlations = pd.concat([self.top_correlations, row], ignore_index=True)
         if self.top_correlations.shape[0] > 0:
-            self.print_all(f"Top correlations: {self.top_correlations.shape}  {self.top_correlations.shape[0]}", self.top_correlations)
+            self.print_all(f"Top correlations {self.name}: {self.top_correlations.shape}  {self.top_correlations.shape[0]}", self.top_correlations)
         else:
-            print(f"Top correlations: There are no variables correlated over corr_thresdold={self.corr_thresdold}")
+            print(f"Top correlations {self.name}: There are no variables correlated over corr_thresdold={self.corr_thresdold}")
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
         self.correlation_df = pd.DataFrame(corr, columns=cols, index=cols)
         sns.heatmap(self.correlation_df, square=True)
-        self._plot_show('Correlation (numeric features)', 'dataset_explore')
+        self._plot_show(f'Correlation (numeric features)', f'dataset_explore.{self.name}')
 
-    def dendogram(self, df, name):
+    def dendogram(self):
         """
         Plot a dendogram.
         Remove columns having stdDev lower than 'std_threshold', this
@@ -123,10 +92,10 @@ class DataExplore(MlFiles):
         """
         if not self.is_dendogram:
             return
-        if len(df.columns) > self.dendogram_max:
-            self._debug(f"Dendogram: Too many columns to compare ({len(df.columns)}), skipping")
+        if len(self.df.columns) > self.dendogram_max:
+            self._debug(f"Dendogram {self.name}: Too many columns to compare ({len(self.df.columns)}), skipping")
             return
-        corr, cols = self.rank_correlation(df)
+        corr, cols = self.rank_correlation()
         corr = np.round(corr, 4)
         # Convert to distance
         dist = 1 - corr
@@ -134,34 +103,34 @@ class DataExplore(MlFiles):
         z = hc.linkage(corr_condensed, method='average')
         plt.figure(figsize=self.figsize)
         den = hc.dendrogram(z, labels=cols, orientation='left', leaf_font_size=16)
-        self._plot_show(f"Dendogram rank correlation: {name}", 'dataset_explore')
+        self._plot_show(f"Dendogram rank correlation", f'dataset_explore.{self.name}')
 
-    def dendogram_na(self, df, name):
+    def dendogram_na(self):
         ''' Dendogram of missing values '''
-        count_na = df.isna().sum().sum()
+        count_na = self.df.isna().sum().sum()
         if count_na <= 0:
-            self._debug("Dendogram of missing values: No missing values, skipping")
+            self._debug(f"Dendogram of missing values {self.name}: No missing values, skipping")
             return
-        msno.dendrogram(df)
-        self._plot_show(f"Dendogram (msno): {name}", 'dataset_explore')
+        msno.dendrogram(self.df)
+        self._plot_show(f"Dendogram missing values", f'dataset_explore.{self.name}')
 
-    def describe_all(self, df, max_bins=100):
-        " Show basic stats and histograms for every column "
+    def describe_all(self, max_bins=100):
+        """ Show basic stats and histograms for every column """
         if not self.is_describe_all:
             return
-        dfs = self.keep_uniq(df)
-        print(f"Plotting histograms for columns: {list(dfs.columns)}")
+        dfs = self.keep_uniq()
+        print(f"Plotting histograms for columns {self.name}: {list(dfs.columns)}")
         descr = ResultsDf()
         for c in sorted(dfs.columns):
             xi = dfs[c]
             xi_no_na = xi[~np.isnan(xi)]  # Remove 'nan'
             df_desc = self.describe(xi_no_na, c)
-            descr.add_df(df_desc)
+            dfs.add(df_desc)
             bins = min(len(xi_no_na.unique()), max_bins)
             plt.figure()
             sns.distplot(xi_no_na, bins=bins)
-            self._plot_show(f"Distribution {c}", 'dataset_explore')
-        self.print_all('Summary description', descr.df)
+            self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}')
+        self.print_all(f'Summary description {self.name}', descr.df)
 
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
@@ -174,7 +143,7 @@ class DataExplore(MlFiles):
         df_fit = self.distribution_fit(x, field_name)
         # Show all information
         df_desc = pd.concat([df_desc, df_skew, df_kurt, df_fit])
-        self.print_all(f"Summary {field_name}", df_desc)
+        self.print_all(f"Summary {self.name}: {field_name}", df_desc)
         return df_desc
 
     def distribution_fit(self, x, field_name):
@@ -203,82 +172,109 @@ class DataExplore(MlFiles):
         is_normal = (p >= self.shapiro_wilks_threshold)
         return pd.DataFrame({field_name: [is_normal, p]}, index=['Normality', 'Normality_test_pvalue'])
 
+    def explore(self):
+        ''' Explore dataFrame'''
+        if self.df is None:
+            self._debug(f"Explore data '{self.name}': DataFrame is None, skipping.")
+            return
+        self._info(f"Explore data '{self.name}': Start")
+        print(f"Summary: {self.name}")
+        self.summary()
+        print(f"Missing data: {self.name}")
+        self.nas()
+        print(f"Describe fields: {self.name}")
+        self.describe_all()
+        # Analysis: Pairs of variables
+        print(f"Show pair-plot: {self.name}")
+        self.plots_pairs()
+        print(f"Correlation analysis: {self.name}")
+        self.correlation_analysis()
+        print(f"Dendogram: {self.name}")
+        self.dendogram()
+        print(f"Dendogram of missing values: {self.name}")
+        self.dendogram_na()
+        # TODO: Dimmensionality reduction {PCA, LDA, tSNE, KL}
+        # TODO: Remove outliers
+        # TODO: Multimodal analysys
+        self._info(f"Explore data '{self.name}': End")
+        return True
+
     def is_numeric(self, x):
         return pd.api.types.is_numeric_dtype(x)
 
-    def keep_uniq(self, df, min_count=10):
+    def keep_uniq(self, min_count=10):
         " Create a new dataFrame, keep only columns having more than 'min_count' unique values "
         df_new = pd.DataFrame()
-        for c in df.columns:
-            xi = df[c]
+        for c in self.df.columns:
+            xi = self.df[c]
             if not self.is_numeric(xi):
                 continue
             if len(xi.unique()) > min_count:
                 df_new[c] = xi
         return df_new
 
-    def nas(self, df):
+    def nas(self):
         " Analysis of missing values "
         if not self.is_nas:
-            self._info("Missing values analysis disabled, skipping")
+            self._info(f"Missing values analysis {self.name}: Disabled, skipping")
             return
         # Number of missing values, sorted
-        count_nas = df.isna().to_numpy().sum()
+        count_nas = self.df.isna().to_numpy().sum()
         if count_nas == 0:
-            self._info("There are no missing values: Skipping missing values analysis")
+            self._info(f"Missing values analysis {self.name}: There are no missing values, skipping")
             return
-        self._info("Missing values analysis")
-        nas_count = df.isna().sum().sort_values(ascending=False)
-        nas_perc = nas_count / len(df)
+        self._info(f"Missing values analysis {self.name}")
+        nas_count = self.df.isna().sum().sort_values(ascending=False)
+        nas_perc = nas_count / len(self.df)
         keep = nas_count > 0
-        dfnas = pd.DataFrame({'count': nas_count[keep], 'percent': nas_perc[keep]})
-        self.print_all("Missing by column", dfnas)
+        self.dfnas = pd.DataFrame({'count': nas_count[keep], 'percent': nas_perc[keep]})
+        self.print_all(f"Missing by column {self.name}", self.dfnas)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
-        self._plot_show("Percent of missing values", 'dataset_explore')
+        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}')
         # Missing values plots
-        self.na_plots(df, "all")
+        self.na_plots(self.df, self.name)
         # Create a plot of missing values: Only numeric types
-        if len(df.select_dtypes(include=[np.number]).columns) != len(df.columns):
-            self.na_plots(df.select_dtypes(include=[np.number]), "numeric")
+        if len(self.df.select_dtypes(include=[np.number]).columns) != len(self.df.columns):
+            self.na_plots(self.df.select_dtypes(include=[np.number]), f"{self.name}: numeric")
 
     def na_plots(self, df, name):
         " Plot missing values "
         # Show missing values in data frame
         msno.matrix(df)
-        self._plot_show(f"Missing value dataFrame plot ({name})", 'dataset_explore')
+        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}')
         # Barplot of number of misisng values
         msno.bar(df)
-        self._plot_show(f"Missing value by column ({name})", 'dataset_explore')
+        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}')
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
-        self._plot_show(f"Nullity correlation ({name})", 'dataset_explore')
+        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}')
 
-    def plots_pairs(self, df):
+    def plots_pairs(self):
         if not self.is_plot_pairs:
             return
-        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.keep_uniq(df)))
+        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.keep_uniq()))
         if len(df_copy.columns) == 0:
-            self._debug(f"Plot pairs: No columns left after removing missing values ({len(df_copy.columns)}), skipping")
+            self._debug(f"Plot pairs {self.name}: No columns left after removing missing values ({len(df_copy.columns)}), skipping")
             return
         if len(df_copy.columns) > self.plot_pairs_max:
-            self._debug(f"Plot pairs: Too many columns to compare ({len(df_copy.columns)}), skipping")
+            self._debug(f"Plot pairs {self.name}: Too many columns to compare ({len(df_copy.columns)}), skipping")
             return
-        print(f"Plotting pairs for columns: {df_copy.columns}")
+        print(f"Plotting pairs for columns {self.name}: {df_copy.columns}")
         sns.set_style('darkgrid')
         sns.set()
         sns.pairplot(df_copy, kind='scatter', diag_kind='kde')
-        self._plot_show("Pairs", 'dataset_explore')
+        self._plot_show("Pairs", f'dataset_explore.{self.name}')
 
     def print_all(self, msg, df):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             print(msg)
             self._display(df)
 
-    def rank_correlation(self, df):
+    def rank_correlation(self):
         " Rank correlation (Spearman's R)"
         # Drop columns having zero variance and non-numeric
-        df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(df))
+        df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(self.df))
         # Calculate spearsman's correlation
         sp_r = scipy.stats.spearmanr(df_copy, nan_policy='omit')
         return sp_r.correlation, df_copy.columns
@@ -309,21 +305,21 @@ class DataExplore(MlFiles):
                 continue
             stdev = df[c].std()
             if stdev <= std_threshold:
-                self._debug(f"Dropping column '{c}': stdev {stdev}")
+                self._debug(f"Remove low std columns {self.name}: Dropping column '{c}': stdev {stdev}")
                 to_drop.append(c)
         df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
         return df_copy
 
-    def summary(self, df):
+    def summary(self):
         " Look into basic column statistics"
         if not self.is_summary:
             return
         # Look at the data
-        self.print_all("Head", df.head())
-        self.print_all("Tail", df.tail())
-        self.print_all("Summary statistics", df.describe())
+        self.print_all(f"Head {self.name}", self.df.head())
+        self.print_all(f"Tail {self.name}", self.df.tail())
+        self.print_all(f"Summary statistics {self.name}", self.df.describe())
         # Numeric / non-numeric columns
-        nums = df.select_dtypes(include=[np.number]).columns
-        non_nums = df.select_dtypes(include=[np.object]).columns
-        print(f"Numeric columns: {sorted(list(nums))}")
-        print(f"Non-numerical (e.g. categorical) columns: {sorted(list(non_nums))}")
+        nums = self.df.select_dtypes(include=[np.number]).columns
+        non_nums = self.df.select_dtypes(include=[np.object]).columns
+        print(f"Numeric columns {self.name}: {sorted(list(nums))}")
+        print(f"Non-numerical (e.g. categorical) columns {self.name}: {sorted(list(non_nums))}")
