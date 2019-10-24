@@ -121,8 +121,37 @@ class Model(MlFiles):
         return False
 
     def default_model_evaluate(self, x, y, name):
-        " Default implementation for '@model_evaluate' "
-        return None
+        """
+        Default implementation for '@model_evaluate'
+        """
+        try:
+            return self.loss(x, y)
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return math.inf
+
+    def loss(self, x, y):
+        """ Return a metric that we can minimize (i.e. a loss/error function) """
+        if self.metric_class is not None:
+            # Use the metric class (e.g. from sklearn)
+            self._debug(f"Evaluating using {self.metric_class}")
+            ret = eval(f"{self.metric_class}(x, y)")
+            # Do we need to convert a 'score' into a 'loss' (i.e. to minimze)
+            if self.metric_class_max is not None:
+                self._debug(f"Converting score to loss: maximum value={self.metric_class_max}")
+                ret = self.metric_class_max - ret
+            elif self.metric_class_is_score:
+                self._debug(f"Converting score to loss: negate (metric_class_is_score={self.metric_class_is_score})")
+                ret = -ret
+            elif self.metric_class.endswith('_score'):
+                self._debug(f"Converting score to loss: negate (name ensd with '_score')")
+                ret = -ret
+            return ret
+        # Maybe sklearn mode has a defailt 'score' defined
+        if self.model is not None:
+            ret = 1.0 - self.model.score(x, y)
+        self._warning("No default metric found for loss function ('metric_class' parameter is not configured), returning np.inf")
+        return np.inf
 
     def default_model_save(self):
         " Default implementation for '@model_save' "

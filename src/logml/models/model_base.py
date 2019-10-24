@@ -43,12 +43,3 @@ class ModelBase(Model):
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
             return False
-
-    def model_evaluate(self, x, y, name):
-        try:
-            ret = 1.0 - self.model.score(x, y)
-            self._debug(f"Evaluating model {self.class_name}, dataset '{name}': {ret}")
-            return ret
-        except Exception as e:
-            self._error(f"Exception: {e}\n{traceback.format_exc()}")
-            return math.nan
