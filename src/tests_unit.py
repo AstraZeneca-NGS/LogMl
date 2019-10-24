@@ -645,6 +645,22 @@ class TestLogMl(unittest.TestCase):
             x = df[c]
             self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
 
+    def test_dataset_transform_003(self):
+        ''' Checking dataset transform: Remove missing column '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config' , 'ml.test_dataset_transform_003.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        cols = list(ds.dataset.columns)
+        self.assertTrue('x2' in cols)
+        self.assertTrue('y' in cols)
+        self.assertFalse('x1' in cols)
+        self.assertFalse('d1' in cols)
+
+
 
 if __name__ == '__main__':
     unittest.main()

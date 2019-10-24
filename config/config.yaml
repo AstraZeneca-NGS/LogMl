@@ -17,7 +17,6 @@ logger:
   display_max_columns: 1000
   display.max_rows: 1000
 
-
 #---
 # Dataset parameters
 #---

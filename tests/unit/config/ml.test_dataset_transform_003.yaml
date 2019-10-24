@@ -1,7 +1,7 @@
 logger:
 
 dataset:
-    dataset_name: 'test_dataset_transform_002'
+    dataset_name: 'test_dataset_transform_003'
     dataset_path: 'tests/unit/data'
     dataset_type: 'df'
     is_use_default_split: False
@@ -9,7 +9,7 @@ dataset:
 
 dataset_transform:
   enable: true
-  dates: ['d1']
+  remove_columns: ['x1', 'd1']
 
 dataset_preprocess:
   enable: false
@@ -18,5 +18,5 @@ dataset_preprocess:
 
 model:
   enable: false
-  model_name: 'test_model_dataset_transform_002'
-  model_path: 'tests/tmp/test_model_dataset_transform_002'
+  model_name: 'test_model_dataset_transform_003'
+  model_path: 'tests/tmp/test_model_dataset_transform_003'
