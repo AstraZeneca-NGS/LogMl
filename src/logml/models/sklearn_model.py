@@ -2,19 +2,26 @@ import inspect
 import sklearn
 import sklearn.naive_bayes
 
-from .model_base import ModelBase
+from .model import Model
+from ..util.etc import camel_to_snake
 
 
-class SkLearnModel(ModelBase):
+class SkLearnModel(Model):
     ''' Create a wrapper for a SkLearn model '''
-    def __init__(self, config, datasets, class_name, params):
+    def __init__(self, config, datasets, class_name, params, set_config=True):
         super().__init__(config, datasets)
+        self.is_save_params = False
+        # Set model specific paramters
         self.class_name = class_name
-        self._set_from_config()
+        model_name = camel_to_snake(class_name)
+        self._debug(f"Class name: '{class_name}', model name: '{model_name}'")
+        if set_config:
+            self._set_from_config()
         # Set parameters
-        for n in params:
-            self.__dict__[n] = params[n]
-            self._debug(f"Setting {n} = {params[n]}")
+        if params:
+            for n in params:
+                self.__dict__[n] = params[n]
+                self._debug(f"Setting {n} = {params[n]}")
 
     def default_model_create(self, x, y):
         """ Create real model from SciKit learn """
@@ -32,18 +39,32 @@ class SkLearnModel(ModelBase):
         self.model = eval(f"{self.class_name}(**kwargs)")
         return True
 
-    def loss(self, x, y):
-        """ Return a metric that we can minimize (i.e. a loss/error function) """
-        ret = self._loss_metric(x, y)
+    def default_model_predict(self, x):
+        """ Default implementation for '@model_predict' """
+        try:
+            self._debug(f"Model predict ({self.class_name}): Start")
+            y_hat = self.model.predict(x)
+            self._debug(f"Model predict ({self.class_name}): End")
+            return y_hat
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return None
+
+    def default_model_train(self, x, y):
+        """ Fit the model using training data """
+        try:
+            self._debug(f"Model train ({self.class_name}): Start")
+            self.train_results = self.model.fit(x, y)
+            self._debug(f"Model train ({self.class_name}): End")
+            return True
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return False
+
+    def loss(self, y, y_hat):
+        """ Return the loss """
+        ret = super().loss(y, y_hat)
         if ret is not None:
             return ret
         # Use sklearn model's 'score'
         return 1.0 - self.model.score(x, y)
-
-    def model_create(self):
-        # In this case, we don't want to invoke user's function
-        x, y = self.datasets.get_train_xy()
-        if x is None:
-            self._warning("Model create: Cannot get training dataset")
-            return False
-        return self.default_model_create(x, y)

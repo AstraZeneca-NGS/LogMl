@@ -7,7 +7,8 @@ from .sklearn_model import SkLearnModel
 
 __all__ = ["Model",
            "CrossValidation",
-           "HyperOpt", "HYPER_PARAM_TYPES",
+           "HyperOpt",
+           "HYPER_PARAM_TYPES",
            "Model",
            "ModelSearch",
            "SkLearnModel"

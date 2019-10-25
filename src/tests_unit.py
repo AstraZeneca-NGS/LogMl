@@ -14,7 +14,7 @@ from logml.core.files import MlFiles
 from logml.core.log import MlLog
 from logml.logml import LogMl
 from logml.models import Model
-from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
+from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 
 
 # Create dataset
@@ -107,7 +107,7 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        MlLog().set_log_level(logging.DEBUG)
+        # MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_config_001(self):
@@ -594,6 +594,9 @@ class TestLogMl(unittest.TestCase):
             assert beta == 0.1
             return {'mean': 0}
 
+        def test_train_005_model_predict(model, x):
+            return np.arange(9)
+
         def test_train_005_model_train(model, x, y, epochs, lr):
             assert lr == 0.1
             assert epochs == 100
@@ -605,6 +608,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(DATASET_CREATE, test_train_005_dataset_create)
         MlRegistry().register(DATASET_INOUT, test_train_005_dataset_inout)
         MlRegistry().register(MODEL_CREATE, test_train_005_model_create)
+        MlRegistry().register(MODEL_PREDICT, test_train_005_model_predict)
         MlRegistry().register(MODEL_TRAIN, test_train_005_model_train)
         # Read config
         config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_005_metrics.yaml')
@@ -618,9 +622,10 @@ class TestLogMl(unittest.TestCase):
         ret = logml()
         # Check values
         mltrain = logml.model
-        print(f"EVAL={mltrain.eval_validate}")
+        eval_expected = 0.15
+        epsilon = 0.000001
         self.assertTrue(ret)
-        self.assertEqual(mltrain.eval_validate, eval_expected)
+        self.assertTrue(abs(mltrain.eval_validate - eval_expected) < epsilon)
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe '''
