@@ -32,6 +32,14 @@ class SkLearnModel(ModelBase):
         self.model = eval(f"{self.class_name}(**kwargs)")
         return True
 
+    def loss(self, x, y):
+        """ Return a metric that we can minimize (i.e. a loss/error function) """
+        ret = self._loss_metric(x, y)
+        if ret is not None:
+            return ret
+        # Use sklearn model's 'score'
+        return 1.0 - self.model.score(x, y)
+
     def model_create(self):
         # In this case, we don't want to invoke user's function
         x, y = self.datasets.get_train_xy()

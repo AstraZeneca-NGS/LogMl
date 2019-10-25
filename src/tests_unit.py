@@ -107,7 +107,7 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        # MlLog().set_log_level(logging.DEBUG)
+        MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_config_001(self):
@@ -579,6 +579,48 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
         # Check that the result is arround 5
         self.assertEqual(dlen, 87)
+
+    def test_train_005_metrics(self):
+        ''' Check Model.__call__() with a custom metric '''
+        def test_train_005_dataset_create(num_create):
+            assert num_create == 42
+            ds = np.arange(9) + 1
+            return ds
+
+        def test_train_005_dataset_inout(d):
+            return d, d
+
+        def test_train_005_model_create(x, y, beta):
+            assert beta == 0.1
+            return {'mean': 0}
+
+        def test_train_005_model_train(model, x, y, epochs, lr):
+            assert lr == 0.1
+            assert epochs == 100
+            mean = np.array(x).mean()
+            model['mean'] = mean
+            return mean
+
+        # Register functions
+        MlRegistry().register(DATASET_CREATE, test_train_005_dataset_create)
+        MlRegistry().register(DATASET_INOUT, test_train_005_dataset_inout)
+        MlRegistry().register(MODEL_CREATE, test_train_005_model_create)
+        MlRegistry().register(MODEL_TRAIN, test_train_005_model_train)
+        # Read config
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_005_metrics.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Cleanup old files
+        rm(os.path.join('tests', 'tmp', 'test_train_005_metrics.pkl'))
+        # Create LogMl
+        random.seed(20190705)
+        logml = LogMl(config=config)
+        ret = logml()
+        # Check values
+        mltrain = logml.model
+        print(f"EVAL={mltrain.eval_validate}")
+        self.assertTrue(ret)
+        self.assertEqual(mltrain.eval_validate, eval_expected)
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe '''

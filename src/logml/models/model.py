@@ -1,7 +1,10 @@
 
 import datetime
 import math
+import numpy as np
+import sklearn
 import time
+import traceback
 
 from ..core.config import CONFIG_MODEL
 from ..core.files import MlFiles
@@ -37,6 +40,9 @@ class Model(MlFiles):
         self.eval_test = None
         self.eval_train = None
         self.eval_validate = None
+        self.metric_class = None
+        self.metric_class_max = None
+        self.metric_class_is_score = False
         self.model = None
         self.model_class = self.__class__.__name__
         self.model_name = None
@@ -86,6 +92,7 @@ class Model(MlFiles):
         if not self.save_train_results():
             self._info("Could not save train results")
         # Evaluate on 'train' dataset
+        !!!!!!!!! EVAL => LOSS
         if not self.model_eval_train():
             self._info("Could not evaluate on 'train' dataset")
         # Validate & save results
@@ -121,37 +128,12 @@ class Model(MlFiles):
         return False
 
     def default_model_evaluate(self, x, y, name):
-        """
-        Default implementation for '@model_evaluate'
-        """
+        """ Default implementation for '@model_evaluate' """
         try:
             return self.loss(x, y)
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
             return math.inf
-
-    def loss(self, x, y):
-        """ Return a metric that we can minimize (i.e. a loss/error function) """
-        if self.metric_class is not None:
-            # Use the metric class (e.g. from sklearn)
-            self._debug(f"Evaluating using {self.metric_class}")
-            ret = eval(f"{self.metric_class}(x, y)")
-            # Do we need to convert a 'score' into a 'loss' (i.e. to minimze)
-            if self.metric_class_max is not None:
-                self._debug(f"Converting score to loss: maximum value={self.metric_class_max}")
-                ret = self.metric_class_max - ret
-            elif self.metric_class_is_score:
-                self._debug(f"Converting score to loss: negate (metric_class_is_score={self.metric_class_is_score})")
-                ret = -ret
-            elif self.metric_class.endswith('_score'):
-                self._debug(f"Converting score to loss: negate (name ensd with '_score')")
-                ret = -ret
-            return ret
-        # Maybe sklearn mode has a defailt 'score' defined
-        if self.model is not None:
-            ret = 1.0 - self.model.score(x, y)
-        self._warning("No default metric found for loss function ('metric_class' parameter is not configured), returning np.inf")
-        return np.inf
 
     def default_model_save(self):
         " Default implementation for '@model_save' "
@@ -225,6 +207,33 @@ class Model(MlFiles):
         self._debug(f"Load test results: Loading pickle file '{file_name}'")
         res = self._load_pickle(file_name, 'test_results')
         return res
+
+    def loss(self, x, y):
+        """ Return a metric that we can minimize (i.e. a loss/error function) """
+        ret = self._loss_metric(x, y)
+        if ret is not None:
+            return ret
+        self._warning("No default metric found for loss function ('metric_class' parameter is not configured), returning np.inf")
+        return np.inf
+
+    def _loss_metric(self, x, y):
+        """ Return a metric loss based on a custom metric """
+        if self.metric_class is None:
+            return None
+        # Use the metric class (e.g. from sklearn)
+        self._debug(f"Evaluating using {self.metric_class}")
+        ret = eval(f"{self.metric_class}(x, y)")
+        # Do we need to convert a 'score' into a 'loss' (i.e. to minimze)
+        if self.metric_class_max is not None:
+            self._debug(f"Converting score to loss: maximum value={self.metric_class_max}")
+            ret = self.metric_class_max - ret
+        elif self.metric_class_is_score:
+            self._debug(f"Converting score to loss: negate (metric_class_is_score={self.metric_class_is_score})")
+            ret = -ret
+        elif self.metric_class.endswith('_score'):
+            self._debug(f"Converting score to loss: negate (name ensd with '_score')")
+            ret = -ret
+        return ret
 
     def model_create(self):
         ''' Create a model '''
