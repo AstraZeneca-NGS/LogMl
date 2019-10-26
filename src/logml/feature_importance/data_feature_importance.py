@@ -206,11 +206,11 @@ class DataFeatureImportance(MlFiles):
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
         '''
         alpha_bic_ = model_bic.alpha_
-        plt.figure()
+        fig = plt.figure()
         self.plot_ic_criterion(model_aic, 'AIC', 'b')
         self.plot_ic_criterion(model_bic, 'BIC', 'r')
         plt.legend()
-        self._plot_show('Information-criterion for model selection', 'dataset_feature_importance')
+        self._plot_show('Information-criterion for model selection', 'dataset_feature_importance', fig)
 
     def plot_lasso_alphas(self, model):
         '''
@@ -218,7 +218,7 @@ class DataFeatureImportance(MlFiles):
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
         '''
         m_log_alphas = -np.log10(model.alphas_ + EPSILON)
-        plt.figure()
+        fig = plt.figure()
         plt.plot(m_log_alphas, model.mse_path_, ':')
         plt.plot(m_log_alphas, model.mse_path_.mean(axis=-1), 'k', label='Average across the folds', linewidth=2)
         plt.axvline(-np.log10(model.alpha_ + EPSILON), linestyle='--', color='k', label='alpha: CV estimate')
@@ -226,7 +226,7 @@ class DataFeatureImportance(MlFiles):
         plt.xlabel('-log(alpha)')
         plt.ylabel('Mean square error')
         plt.axis('tight')
-        self._plot_show('Mean square error per fold: coordinate descent', 'dataset_feature_importance')
+        self._plot_show('Mean square error per fold: coordinate descent', 'dataset_feature_importance', fig)
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''

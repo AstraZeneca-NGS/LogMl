@@ -81,10 +81,11 @@ class MlFiles(MlLog):
         with open(file_yaml) as yaml_file:
             return yaml.load(yaml_file, Loader=yaml.FullLoader)
 
-    def _plot_show(self, title, section):
+    def _plot_show(self, title, section, figure=None):
         ''' Show a plot in a way that we can continue processing '''
+        figure = figure if figure else 'all'
         if DISABLE_PLOTS:
-            plt.close('all')
+            plt.close(figure)
             return
         plt.title(title)
         if SHOW_PLOTS:
@@ -95,7 +96,7 @@ class MlFiles(MlLog):
             self._debug(f"Saving plot '{title}' to '{file}'")
             plt.savefig(file)
         if not SHOW_PLOTS:
-            plt.close('all')
+            plt.close(figure)
 
     def _save_csv(self, file_csv, tag, df, save_index=False):
         ''' Save a dataFrame to a CSV file, return True (on success) or False (on failure) '''

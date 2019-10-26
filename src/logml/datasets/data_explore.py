@@ -127,9 +127,9 @@ class DataExplore(MlFiles):
             df_desc = self.describe(xi_no_na, c)
             dfs.add(df_desc)
             bins = min(len(xi_no_na.unique()), max_bins)
-            plt.figure()
+            fig = plt.figure()
             sns.distplot(xi_no_na, bins=bins)
-            self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}')
+            self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
         self.print_all(f'Summary description {self.name}', descr.df)
 
     def describe(self, x, field_name):
