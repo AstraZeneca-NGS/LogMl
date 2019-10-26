@@ -17,11 +17,12 @@ class DfPreprocess(MlLog):
     DataFrame preprocessing: Normalize / re-scale inputs
     '''
 
-    def __init__(self, df, config, outputs, set_config=True):
+    def __init__(self, df, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS)
         self.df = df
+        self.model_type = model_type
         self.normalize = dict()
-        self.outputs = outputs
+        self.outputs = set(outputs)
         if set_config:
             self._set_from_config()
         self._init_methods()
@@ -84,12 +85,16 @@ class DfPreprocess(MlLog):
         self._debug("Normalizing dataset (dataframe): Start")
         fields_to_normalize = list(self.df.columns)
         fields_normalized = set()
+        is_classification = (self.model_type == 'classification')
         for c in fields_to_normalize:
             if not self.is_numertic(c):
                 self._debug(f"Normalize variable '{c}' is not numeric, skipping")
                 continue
             if self.is_range_01(c):
                 self._debug(f"Normalize variable '{c}' is in [0, 1], skipping")
+                continue
+            if is_classification and c in self.outputs:
+                self._debug(f"Normalize variable '{c}' is an output varaible for a classification model, skipping")
                 continue
             nm = self.find_normalize_method(c)
             xi = self.df[c]

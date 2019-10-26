@@ -180,9 +180,10 @@ class LogMl(MlFiles):
             return self.model_train()
 
     def _new_dataset(self):
+        model_type = self.model_ori.model_type
         if self.is_dataset_df():
             self._debug(f"Using dataset class 'DatasetsDf'")
-            return DatasetsDf(self.config)
+            return DatasetsDf(self.config, model_type)
         else:
             self._debug(f"Using dataset class 'Dataset'")
             return Datasets(self.config)

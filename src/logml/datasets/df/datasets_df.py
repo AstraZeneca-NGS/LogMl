@@ -21,13 +21,14 @@ class DatasetsDf(Datasets):
     A dataset based on a Pandas DataFrame
     (i.e. Dataset.dataset must be a DataFrame)
     '''
-    def __init__(self, config, set_config=True):
+    def __init__(self, config, model_type=None, set_config=True):
         super().__init__(config, set_config=False)
         self.count_na = dict()  # Count missing values for each field
         self.categories = dict()  # Convert these fields to categorical
         self.dataset_ori = None
         self.dataset_transform = None
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
+        self.model_type = model_type
         if set_config:
             self._set_from_config()
 
@@ -65,7 +66,7 @@ class DatasetsDf(Datasets):
         if self.dataset_ori is None:
             # Keep a copy of the original dataset
             self.dataset_ori = self.dataset
-        self.dataset_preprocess = DfPreprocess(self.dataset, self.config, self.outputs)
+        self.dataset_preprocess = DfPreprocess(self.dataset, self.config, self.outputs, self.model_type)
         self.dataset = self.dataset_preprocess()
         self._debug(f"Dataset preprocess: End")
         return True
