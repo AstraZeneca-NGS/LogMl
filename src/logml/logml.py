@@ -26,7 +26,7 @@ class LogMl(MlFiles):
                 config.set_log_level(logging.INFO)
             if debug:
                 config.set_log_level(logging.DEBUG)
-        super().__init__(config, config_section=CONFIG_LOGGER)
+        super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
         self.cross_validation = None
@@ -45,7 +45,7 @@ class LogMl(MlFiles):
         self.save_plots = True
         self.show_plots = True
         self._set_from_config()
-        if self.config:
+        if self.config is not None:
             self.initialize()
         self.model_results = ResultsDf()
 
@@ -134,6 +134,8 @@ class LogMl(MlFiles):
 
     def initialize(self):
         ''' Initialize objects after config is setup '''
+        if self.config is not None:
+            self._set_from_config()
         if self.model_ori is None:
             self.model_ori = Model(self.config)
         if self.hyper_parameter_optimization is None:
@@ -146,6 +148,7 @@ class LogMl(MlFiles):
         pd.set_option('display.max_columns', self.display_max_columns)
         pd.set_option('display.max_rows', self.display_max_rows)
         # Set plots options
+        self._debug(f"PLOTS PATH: {self.plots_path}")
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
         return self._config_sanity_check()
 

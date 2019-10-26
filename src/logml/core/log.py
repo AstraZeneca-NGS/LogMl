@@ -137,10 +137,10 @@ class MlLog:
             self._debug("No config object found, skipping")
             return False
         if not self.config_section:
-            self._debug("No config_section, skipping")
+            self._debug(f"No config_section, skipping")
             return False
         if self.config_section not in self.config.parameters:
-            self._debug(f"Section '{self.config_section}' not in config.parameters, skipping")
+            self._debug(f"Config section '{self.config_section}' not in config.parameters, skipping")
             return False
         self._debug(f"Setting parameters from 'self.config', section '{self.config_section}'")
         ret = self._set_from_dict(self.config.get_parameters(self.config_section))

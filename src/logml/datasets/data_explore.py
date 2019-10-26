@@ -42,6 +42,8 @@ class DataExplore(MlFiles):
         self.is_use_ori = False
         self.name = name
         self.plot_pairs_max = 20
+        self.rank_correlation_matrix = None
+        self.rank_correlation_colums = None
         self.shapiro_wilks_threshold = 0.1
         if set_config:
             self._set_from_config()
@@ -277,9 +279,10 @@ class DataExplore(MlFiles):
             # Drop columns having zero variance and non-numeric
             df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(self.df))
             # Calculate spearsman's correlation
+            self._debug(f"Calculating rank correlation matrix for '{self.name}'")
             self.rank_correlation_matrix = scipy.stats.spearmanr(df_copy, nan_policy='omit')
             self.rank_correlation_colums = df_copy.columns
-        return self.rank_correlation_matrix, self.rank_correlation_colums
+        return self.rank_correlation_matrix.correlation, self.rank_correlation_colums
 
     def remove_na_cols(self, df):
         """ Remove 'na' columns """
