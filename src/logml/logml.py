@@ -148,7 +148,6 @@ class LogMl(MlFiles):
         pd.set_option('display.max_columns', self.display_max_columns)
         pd.set_option('display.max_rows', self.display_max_rows)
         # Set plots options
-        self._debug(f"PLOTS PATH: {self.plots_path}")
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
         return self._config_sanity_check()
 
