@@ -129,8 +129,7 @@ class Model(MlFiles):
     def default_model_evaluate(self, x, y, name):
         """ Default implementation for '@model_evaluate' """
         try:
-            y_hat = self.model_predict(x)
-            ret = self.loss(y, y_hat)
+            ret = self.loss(x, y)
             if ret is None:
                 self._warning("No default loss function found ('metric_class' parameter is not configured), returning np.inf")
                 ret = np.inf
@@ -225,12 +224,14 @@ class Model(MlFiles):
         res = self._load_pickle(file_name, 'test_results')
         return res
 
-    def loss(self, y, y_hat):
+    def loss(self, x, y):
         """ Return a metric loss based on a custom metric """
         if self.metric_class is None:
             return None
         # Use the metric class (e.g. from sklearn)
-        self._debug(f"Evaluating using {self.metric_class}")
+        self._debug(f"Predicting")
+        y_hat = self.model_predict(x)
+        self._debug(f"Evaluating loss function using {self.metric_class}")
         ret = eval(f"{self.metric_class}(y, y_hat)")
         # Do we need to convert a 'score' into a 'loss' (i.e. to minimze)
         if self.metric_class_max is not None:

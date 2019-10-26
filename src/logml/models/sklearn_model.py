@@ -61,9 +61,9 @@ class SkLearnModel(Model):
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
             return False
 
-    def loss(self, y, y_hat):
+    def loss(self, x, y):
         """ Return the loss """
-        ret = super().loss(y, y_hat)
+        ret = super().loss(x, y)
         if ret is not None:
             return ret
         # Use sklearn model's 'score'

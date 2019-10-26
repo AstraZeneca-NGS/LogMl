@@ -1,4 +1,5 @@
 
+import re
 
 def camel_to_snake(name):
     ''' Convert CamelCase names to snake_case '''
