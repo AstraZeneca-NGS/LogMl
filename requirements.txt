@@ -1,8 +1,11 @@
 absl-py==0.8.1
+appnope==0.1.0
 astor==0.8.0
 backcall==0.1.0
 Boruta==0.3
+bson==0.5.8
 cloudpickle==1.2.2
+coverage==4.5.4
 cycler==0.10.0
 decorator==4.4.0
 future==0.18.1
@@ -28,7 +31,6 @@ pandas==0.25.2
 parso==0.5.1
 pexpect==4.7.0
 pickleshare==0.7.5
-pkg-resources==0.0.0
 prompt-toolkit==2.0.10
 protobuf==3.10.0
 ptyprocess==0.6.0

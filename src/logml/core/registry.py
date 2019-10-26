@@ -15,12 +15,17 @@ DATASET_SPLIT = 'dataset_split'
 DATASET_TRANSFORM = 'dataset_transform'
 MODEL_CREATE = 'model_create'
 MODEL_EVALUATE = 'model_evaluate'
+MODEL_PREDICT = 'model_predict'
 MODEL_SAVE = 'model_save'
 MODEL_TRAIN = 'model_train'
 
 ENABLE = 'enable'
 
-REGISTRATION_KEYS = [DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM, MODEL_CREATE, MODEL_SAVE, MODEL_EVALUATE, MODEL_TRAIN]
+REGISTRATION_KEYS = [DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT
+                     , DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE
+                     , DATASET_SPLIT, DATASET_TRANSFORM
+                     , MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_SAVE
+                     , MODEL_TRAIN]
 
 
 def singleton(cls):
@@ -139,6 +144,10 @@ def model_create(f):
 
 def model_evaluate(f):
     return register(MODEL_EVALUATE, f)
+
+
+def model_predict(f):
+    return register(MODEL_PREDICT, f)
 
 
 def model_save(f):

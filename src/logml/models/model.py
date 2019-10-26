@@ -1,11 +1,14 @@
 
 import datetime
 import math
+import numpy as np
+import sklearn
 import time
+import traceback
 
 from ..core.config import CONFIG_MODEL
 from ..core.files import MlFiles
-from ..core.registry import MlRegistry, MODEL_CREATE, MODEL_EVALUATE, MODEL_SAVE, MODEL_TRAIN
+from ..core.registry import MlRegistry, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_SAVE, MODEL_TRAIN
 from ..util.results_df import ResultsDf
 
 
@@ -37,6 +40,9 @@ class Model(MlFiles):
         self.eval_test = None
         self.eval_train = None
         self.eval_validate = None
+        self.metric_class = None
+        self.metric_class_max = None
+        self.metric_class_is_score = False
         self.model = None
         self.model_class = self.__class__.__name__
         self.model_name = None
@@ -121,8 +127,21 @@ class Model(MlFiles):
         return False
 
     def default_model_evaluate(self, x, y, name):
-        " Default implementation for '@model_evaluate' "
-        return None
+        """ Default implementation for '@model_evaluate' """
+        try:
+            ret = self.loss(x, y)
+            if ret is None:
+                self._warning("No default loss function found ('metric_class' parameter is not configured), returning np.inf")
+                ret = np.inf
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            ret = math.inf
+        self._debug(f"Loss = {ret}")
+        return ret
+
+    def default_model_predict(self, x):
+        """ Default implementation for '@model_predict' """
+        raise Exception("No (default) method for model predict available")
 
     def default_model_save(self):
         " Default implementation for '@model_save' "
@@ -139,14 +158,10 @@ class Model(MlFiles):
             self.model.save(file_model)
         return False
 
-    def fit(self, x, y):
+    def default_model_train(self, x, y):
         """ Fit the model using training data """
-        try:
-            ret = self.invoke_model_train(x, y)
-            return ret
-        except Exception as e:
-            self._error(f"Exception: {e}\n{traceback.format_exc()}")
-            return None
+        self._error("No (default) method for model train available")
+        return False
 
     def get_file_name(self, file_type=None, ext='pkl'):
         ''' Create a file name for training data '''
@@ -174,7 +189,19 @@ class Model(MlFiles):
             return invoked, ret
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
-            return True, math.nan
+            return True, math.inf
+
+    def invoke_model_predict(self, x):
+        ''' Invoke model predict, return all predictions for input/s in x '''
+        try:
+            args = [self.model, x]
+            (invoked, ret) = self.config.invoke(MODEL_PREDICT, f"Model predict", args)
+            if invoked:
+                self._info(f"Model predict returned: '{ret}'")
+            return invoked, ret
+        except Exception as e:
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            return True, None
 
     def invoke_model_save(self):
         " Invoke user defined function '@model_save' "
@@ -197,6 +224,27 @@ class Model(MlFiles):
         res = self._load_pickle(file_name, 'test_results')
         return res
 
+    def loss(self, x, y):
+        """ Return a metric loss based on a custom metric """
+        if self.metric_class is None:
+            return None
+        # Use the metric class (e.g. from sklearn)
+        self._debug(f"Predicting")
+        y_hat = self.model_predict(x)
+        self._debug(f"Evaluating loss function using {self.metric_class}")
+        ret = eval(f"{self.metric_class}(y, y_hat)")
+        # Do we need to convert a 'score' into a 'loss' (i.e. to minimze)
+        if self.metric_class_max is not None:
+            self._debug(f"Converting score to loss: maximum value={self.metric_class_max}")
+            ret = self.metric_class_max - ret
+        elif self.metric_class_is_score:
+            self._debug(f"Converting score to loss: negate (metric_class_is_score={self.metric_class_is_score})")
+            ret = -ret
+        elif self.metric_class.endswith('_score'):
+            self._debug(f"Converting score to loss: negate (name ensd with '_score')")
+            ret = -ret
+        return ret
+
     def model_create(self):
         ''' Create a model '''
         x, y = self.datasets.get_train_xy()
@@ -213,11 +261,6 @@ class Model(MlFiles):
         if invoked:
             return ret
         return self.default_model_evaluate(x, y, name)
-
-    def model_save(self):
-        ''' Save dataset to pickle file '''
-        ret = self.invoke_model_save()
-        return ret if ret else self.default_model_save()
 
     def model_eval_test(self):
         if not self.is_test_model:
@@ -238,8 +281,6 @@ class Model(MlFiles):
         if x is None:
             self._warning("Model train: Cannot get training dataset")
             return False
-        ret = self.fit(x, y)
-        self._debug(f"Model eval train: End")
         ret = self.model_evaluate(x, y, 'train')
         self.eval_train = ret
         return ret is not None
@@ -254,6 +295,17 @@ class Model(MlFiles):
         self.eval_validate = ret
         return ret is not None
 
+    def model_predict(self, x):
+        (invoked, ret) = self.invoke_model_predict(x)
+        if invoked:
+            return ret
+        return self.default_model_predict(x)
+
+    def model_save(self):
+        ''' Save dataset to pickle file '''
+        ret = self.invoke_model_save()
+        return ret if ret else self.default_model_save()
+
     def model_train(self):
         """ Train (a.k.a. 'fit') the model """
         self._debug(f"Model train: Start")
@@ -261,9 +313,15 @@ class Model(MlFiles):
         if x is None:
             self._warning("Model train: Cannot get training dataset")
             return False
-        ret = self.fit(x, y)
-        self._debug(f"Model train: End")
-        return ret
+        try:
+            ret = self.invoke_model_train(x, y)
+            if not ret:
+                ret = self.default_model_train(x, y)
+            self._debug(f"Model train: End")
+            return ret
+        except Exception as e:
+            self._error(f"Model train exception: {e}\n{traceback.format_exc()}")
+            return None
 
     def _new_id(self):
         ''' Create a new Model._id '''
