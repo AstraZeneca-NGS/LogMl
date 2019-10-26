@@ -273,11 +273,13 @@ class DataExplore(MlFiles):
 
     def rank_correlation(self):
         " Rank correlation (Spearman's R)"
-        # Drop columns having zero variance and non-numeric
-        df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(self.df))
-        # Calculate spearsman's correlation
-        sp_r = scipy.stats.spearmanr(df_copy, nan_policy='omit')
-        return sp_r.correlation, df_copy.columns
+        if self.rank_correlation_matrix is None:
+            # Drop columns having zero variance and non-numeric
+            df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(self.df))
+            # Calculate spearsman's correlation
+            self.rank_correlation_matrix = scipy.stats.spearmanr(df_copy, nan_policy='omit')
+            self.rank_correlation_colums = df_copy.columns
+        return self.rank_correlation_matrix, self.rank_correlation_colums
 
     def remove_na_cols(self, df):
         """ Remove 'na' columns """
