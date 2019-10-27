@@ -78,7 +78,6 @@ class DataFeatureImportance(MlFiles):
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsDf(self.x.columns)
         self.feature_importance()
-        self.warning(f"WARNING: Boruta module not working")
         # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
@@ -333,8 +332,8 @@ class DataFeatureImportance(MlFiles):
         if not self.is_tree_graph:
             return
         self._info(f"Tree graph: Random Forest")
-        file_dot = file_dot if not None else self.datasets.get_file_name('tree_graph', ext=f"dot")
-        file_png = file_png if not None else self.datasets.get_file_name('tree_graph', ext=f"png")
+        file_dot = self.datasets.get_file_name('tree_graph', ext=f"dot") if file_dot is None else file_dot
+        file_png = self.datasets.get_file_name('tree_graph', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
         m = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
         # Export the tree to a graphviz 'dot' format
@@ -345,7 +344,7 @@ class DataFeatureImportance(MlFiles):
                                    rounded=True)
         self._info(f"Created dot file: '{file_dot}'")
         # Convert 'dot' to 'png'
-        args = ['dot', '-Tpng', file_dot, '-o', 'tree.png']
+        args = ['dot', '-Tpng', file_dot, '-o', file_png]
         subprocess.run(args)
         self._info(f"Created image: '{file_png}'")
         self._display(Image(filename=file_png))
