@@ -34,16 +34,18 @@ def create_dataset():
         df_dict[f"rand_{i}"] = xi
     # Add duplicated columns
     cols_ori = [x1, x2, x3, c1, c2]
+    cols_ori_names = ['x1', 'x2', 'x3', 'c1', 'c2']
     for i in range(2 * len(cols_ori)):
         ci = i % len(cols_ori)
-        df_dict[f"dup_{i}"] = cols_ori[ci]
+        df_dict[f"dup_{i}_{cols_ori_names[ci]}"] = cols_ori[ci]
     # Add colinear: Multiplier + noise
     cols_x = [x1, x2, x3]
+    cols_x_names = ['x1', 'x2', 'x3']
     for i in range(len(cols_x) * 15):
         ci = i % len(cols_x)
         ki = np.random.normal(0, 1, 1)
         ni = np.random.normal(0, 1, num)
-        df_dict[f"colin_{i}_x{ci}"] = ki * cols_x[ci] + 0.1 * ni
+        df_dict[f"colin_{i}_{cols_ori_names[ci]}"] = ki * cols_x[ci] + 0.1 * ni
     # Create dataFrame
     df = pd.DataFrame(df_dict)
     df.to_csv('linear100c.csv', index=False)
