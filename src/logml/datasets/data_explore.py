@@ -26,13 +26,14 @@ class DataExplore(MlFiles):
     There are two types of analysis being performed here:
     '''
 
-    def __init__(self, df, name, config, set_config=True):
+    def __init__(self, df, name, config, files_base, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
         self.corr_thresdold = 0.7
         self.correlation_analysis_max = 100
         self.dendogram_max = 100
         self.df = df
         self.figsize = (20, 20)
+        self.files_base = files_base
         self.is_dendogram = True
         self.is_describe_all = True
         self.is_correlation_analysis = True
@@ -68,21 +69,24 @@ class DataExplore(MlFiles):
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
         # Create a dataframe of high correlated / annti-correlated variables
-        self.top_correlations = pd.DataFrame()
+        self.top_correlations = ResultsDf()
         add_idx = 0
         for idx in range(len(ind[0])):
             i, j = ind[0][-idx], ind[1][-idx]
             if i < j and abs(corr[i, j]) > self.corr_thresdold:
                 row = pd.DataFrame({'col_i': cols[i], 'col_j': cols[j], 'i': i, 'j': j, 'corr': corr[i, j]}, index=[add_idx])
                 add_idx += 1
-                self.top_correlations = pd.concat([self.top_correlations, row], ignore_index=True)
-        if self.top_correlations.shape[0] > 0:
-            self.print_all(f"Top correlations {self.name}: {self.top_correlations.shape}  {self.top_correlations.shape[0]}", self.top_correlations)
+                self.top_correlations.add_row_df(row)
+        tcdf = self.top_correlations.df
+        if tcdf is not None:
+            self.top_correlations.print(f"Top correlations {self.name}: {tcdf.shape}  {tcdf.shape[0]}")
+            self._save_csv(f"{self.files_base}.top_correlations.csv", "Correlation analysis (top correlations)", tcdf, save_index=True)
         else:
             print(f"Top correlations {self.name}: There are no variables correlated over corr_thresdold={self.corr_thresdold}")
         # Plot in a heatmap
         plt.figure(figsize=self.figsize)
         self.correlation_df = pd.DataFrame(corr, columns=cols, index=cols)
+        self._save_csv(f"{self.files_base}.correlations_matrix.csv", "Correlation matrix", self.correlation_df, save_index=True)
         sns.heatmap(self.correlation_df, square=True)
         self._plot_show(f'Correlation (numeric features)', f'dataset_explore.{self.name}')
 
@@ -127,12 +131,12 @@ class DataExplore(MlFiles):
             xi = dfs[c]
             xi_no_na = xi[~np.isnan(xi)]  # Remove 'nan'
             df_desc = self.describe(xi_no_na, c)
-            dfs.add(df_desc)
+            descr.add_df(df_desc)
             bins = min(len(xi_no_na.unique()), max_bins)
             fig = plt.figure()
             sns.distplot(xi_no_na, bins=bins)
             self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
-        self.print_all(f'Summary description {self.name}', descr.df)
+        descr.print(f"Descrive variables {self.name}")
 
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
@@ -198,6 +202,7 @@ class DataExplore(MlFiles):
         # TODO: Dimmensionality reduction {PCA, LDA, tSNE, KL}
         # TODO: Remove outliers
         # TODO: Multimodal analysys
+        self.save()
         self._info(f"Explore data '{self.name}': End")
         return True
 
@@ -231,6 +236,7 @@ class DataExplore(MlFiles):
         keep = nas_count > 0
         self.dfnas = pd.DataFrame({'count': nas_count[keep], 'percent': nas_perc[keep]})
         self.print_all(f"Missing by column {self.name}", self.dfnas)
+        self._save_csv(f"{self.files_base}.missing_values.csv", "Missing values", self.dfnas, save_index=True)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
         self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}')
@@ -269,9 +275,8 @@ class DataExplore(MlFiles):
         self._plot_show("Pairs", f'dataset_explore.{self.name}')
 
     def print_all(self, msg, df):
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-            print(msg)
-            self._display(df)
+        print(msg)
+        self._display(df)
 
     def rank_correlation(self):
         " Rank correlation (Spearman's R)"
@@ -314,6 +319,10 @@ class DataExplore(MlFiles):
                 to_drop.append(c)
         df_copy = df.drop(to_drop, axis=1) if to_drop else df.copy()
         return df_copy
+
+    def save(self):
+        ''' Save as pickle file and save CSV tables '''
+        self._save_pickle(f"{self.files_base}.data_explore.pkl", "Data explore", self)
 
     def summary(self):
         " Look into basic column statistics"

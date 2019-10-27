@@ -1,6 +1,7 @@
 import inspect
 import sklearn
 import sklearn.naive_bayes
+import traceback
 
 from .model import Model
 from ..util.etc import camel_to_snake

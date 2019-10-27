@@ -59,11 +59,14 @@ class ResultsDf:
         self.add_col_rank("ranksum", ranks)
         self.add_col_rank("rank_of_ranksum", ranks)
 
-    def display(self):
-        display(self.df)
-
     def _flatten(self, x):
         return x if x.ndim == 1 else x.flatten()
+
+    def print(self, msg=None):
+        if msg is not None:
+            print(msg)
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            display(self.df)
 
     def sort(self, col_name):
         if self.df is None:

@@ -2,6 +2,7 @@
 import inspect
 import logging
 import matplotlib.pyplot as plt
+import pandas as pd
 import pickle
 import os
 import sys
@@ -40,7 +41,8 @@ class MlFiles(MlLog):
         super().__init__(config, config_section)
 
     def _display(self, obj):
-        display(obj)
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            display(obj)
 
     def _get_file_name(self, path, name, file_type=None, ext='pkl', _id=None):
         ''' Create a file name

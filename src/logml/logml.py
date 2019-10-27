@@ -95,7 +95,7 @@ class LogMl(MlFiles):
         # Show model/s results
         if self.display_model_results:
             self.model_results.sort('validation')
-            self.model_results.display()
+            self.model_results.print()
         if self.save_model_results and self.model_results is not None:
             m = self.model_ori if self.model is None else self.model
             file_csv = m.get_file_name('models', ext=f"csv")
@@ -108,10 +108,12 @@ class LogMl(MlFiles):
         if not self.is_dataset_df():
             self._debug("Dataset exploration only available for dataset type 'df'")
             return True
-        self.dataset_explore_transformed = DataExplore(self.datasets.dataset, 'transformed', self.config)
+        files_base = self.datasets.get_file_name(f"dataset_explore.transformed", ext='')
+        self.dataset_explore_transformed = DataExplore(self.datasets.dataset, 'transformed', self.config, files_base)
         ok = self.dataset_explore_transformed()
         if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori'):
-            self.dataset_explore_original = DataExplore(self.datasets.dataset_ori, 'original', self.config)
+            files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
+            self.dataset_explore_original = DataExplore(self.datasets.dataset_ori, 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         return ok
 

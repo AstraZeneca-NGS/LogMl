@@ -90,7 +90,7 @@ class DataFeatureImportance(MlFiles):
         self.tree_graph()
         # Display results
         self.results.sort('rank_of_ranksum')
-        self._display(self.results.df)
+        self.results.print("Feature importances")
         # Save results
         file_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
         self._save_csv(file_csv, "Dataset feature importance", self.results.df, save_index=True)
