@@ -19,6 +19,7 @@ from sklearn.tree import export_graphviz
 from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
+from .feature_importance_drop_column import FeatureImportanceDropColumn
 from ..util.results_df import ResultsDf
 
 EPSILON = 1.0e-4
@@ -32,9 +33,18 @@ class DataFeatureImportance(MlFiles):
     def __init__(self, datasets, config, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
-        self.is_fip_random_forest = True
+        self.is_dropcol_extra_trees = True
+        self.is_dropcol_gradient_boosting = True
+        self.is_dropcol_random_forest = True
         self.is_fip_extra_trees = True
         self.is_fip_gradient_boosting = True
+        self.is_fip_random_forest = True
+        self.is_model_extra_trees = True
+        self.is_model_gradient_boosting = True
+        self.is_model_random_forest = True
+        self.is_permutataion_extra_trees = True
+        self.is_permutataion_gradient_boosting = True
+        self.is_permutataion_random_forest = True
         self.is_regularization_lasso = True
         self.is_regularization_ridge = True
         self.is_regularization_lars = True
@@ -46,6 +56,9 @@ class DataFeatureImportance(MlFiles):
         self.is_rfe_model_random_forest = True
         self.is_rfe_model_extra_trees = True
         self.is_rfe_model_gradient_boosting = True
+        self.is_skmodel_extra_trees = True
+        self.is_skmodel_gradient_boosting = True
+        self.is_skmodel_random_forest = True
         self.is_select = True
         self.is_tree_graph = True
         self.model_type = model_type
@@ -77,7 +90,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsDf(self.x.columns)
-        self.feature_importance_permutation()
+        self.feature_importance_model()
         # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
@@ -96,37 +109,66 @@ class DataFeatureImportance(MlFiles):
         self._info("Feature importance / feature selection: End")
         return True
 
-    def feature_importance_permutation(self):
-        ''' Feature importance using several models '''
-        if self.is_fip_random_forest:
-            self.feature_importance_permutation_(self.fit_random_forest(), 'RandomForest')
-        if self.is_fip_extra_trees:
-            self.feature_importance_permutation_(self.fit_extra_trees(), 'ExtraTrees')
-        if self.is_fip_gradient_boosting:
-            self.feature_importance_permutation_(self.fit_gradient_boosting(), 'GradientBoosting')
+    def feature_importance_drop_column_(self, model, model_name, config_tag):
+        """ Feature importance using 'drop column' analysis """
+        conf = f"is_dropcol_{config_tag}"
+        if not self.__dict__[conf]:
+            self._debug(f"Feature importance (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            return
+        self._debug(f"Feature importance (drop column): Based on '{model_name}'")
+        x_train, y_train = self.datasets.get_train_xy()
+        x_val, y_val = self.datasets.get_validate_xy()
+        fi = FeatureImportanceDropColumn(model, model_name, x_train, y_train, x_val, y_val)
+        if not fi():
+            self._info(f"Could not analyze feature importance (drop column) using {model_name}")
+            return
+        self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
+        self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, reversed=True)
+        fi.plot()
+        return True
 
-    def feature_importance_permutation_(self, model, model_name):
-        """
-        Two feature importance analysis:
-            1) Using sklean 'model.feature_importances_'
-            2) Using FeatureImportancePermutation class
-        """
-        self._debug(f"Feature importance: Based on '{model_name}'")
+    def feature_importance_model(self):
+        ''' Feature importance using several models '''
+        self.feature_importance_model_(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        self.feature_importance_model_(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        self.feature_importance_model_(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+
+    def feature_importance_model_(self, model, model_name, config_tag):
+        """ Perform feature importance analyses based on a (trained) model """
+        conf = f"is_model_{config_tag}"
+        if not self.__dict__[conf]:
+            self._debug(f"Feature importance using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            return
+        self.feature_importance_permutation_(model, model_name, config_tag)
+        self.feature_importance_drop_column_(model, model_name, config_tag)
+        self.feature_importance_skmodel(model, model_name, config_tag)
+
+    def feature_importance_permutation_(self, model, model_name, config_tag):
+        """ Feature importance using 'permutation' analysis """
+        conf = f"is_permutataion_{config_tag}"
+        if not self.__dict__[conf]:
+            self._debug(f"Feature importance (permutataion) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            return
+        self._debug(f"Feature importance (permutation): Based on '{model_name}'")
         x, y = self.datasets.get_validate_xy()
         fi = FeatureImportancePermutation(model, model_name, x, y)
         if not fi():
-            self._info("Could not analyze feature importance using RandomForest")
-        self.results.add_col(f"importance_permutataion_{model_name}", fi.performance_norm)
-        self.results.add_col_rank(f"importance_permutataion_rank_{model_name}", fi.performance_norm, reversed=True)
+            self._info(f"Could not analyze feature importance (permutataion) using {model_name}")
+            return
+        self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
+        self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
         fi.plot()
-        self.feature_importance_skmodel(model, model_name)
         return True
 
-    def feature_importance_skmodel(self, model, model_name):
+    def feature_importance_skmodel_(self, model, model_name, config_tag):
         ''' Show model built-in feature importance '''
+        conf = f"is_skmodel_{config_tag}"
+        if not self.__dict__[conf]:
+            self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            return
         self._info(f"Feature importance: Based on SkLean '{model_name}'")
-        self.results.add_col(f"feature_importances_sk_{model_name}", model.feature_importances_)
-        self.results.add_col_rank(f"feature_importances_sk_rank_{model_name}", model.feature_importances_, reversed=True)
+        self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
 
     def fit_lars_aic(self):
         model = LassoLarsIC(criterion='aic')

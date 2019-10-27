@@ -11,6 +11,9 @@ dataset_explore:
 
 dataset_feature_importance:
   enable: true
+  is_permutataion_extra_trees: false
+  is_permutataion_gradient_boosting: false
+  is_permutataion_random_forest: false
   is_rfe_model: false
 
 dataset_preprocess:
