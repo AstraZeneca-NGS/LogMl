@@ -338,7 +338,7 @@ class DataFeatureImportance(MlFiles):
         m = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
         # Export the tree to a graphviz 'dot' format
         str_tree = export_graphviz(m.estimators_[0],
-                                   out_file='tree.dot',
+                                   out_file=file_dot,
                                    feature_names=self.x.columns,
                                    filled=True,
                                    rounded=True)
