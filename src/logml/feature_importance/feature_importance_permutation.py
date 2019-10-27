@@ -18,6 +18,7 @@ class FeatureImportancePermutation(MlFiles):
     '''
 
     def __init__(self, model, model_name, x, y):
+        !!!!!!!!!!!! TRAIN AND VALIDATION !!!!!!!!!!!!!!!!!!!!!
         self.model = model
         self.model_name = model_name
         self.x = x
@@ -76,6 +77,7 @@ class FeatureImportancePermutation(MlFiles):
 
     def rmse(self, x, y):
         return math.sqrt(((x - y)**2).mean())
+        !!!!!!!!!!!! USE PROPPER METRIC: CLASSIFICARION / REGRESSION !!!!!!!!!!!!!!!!!!!!!
 
     def __repr__(self):
         return "\n".join([f"{f[0]} : {f[1]}" for f in fi.importance])

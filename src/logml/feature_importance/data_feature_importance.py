@@ -18,7 +18,7 @@ from sklearn.tree import export_graphviz
 
 from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
-from .feature_importance_from_model import FeatureImportancePermutation
+from .feature_importance_permutation import FeatureImportancePermutation
 from ..util.results_df import ResultsDf
 
 EPSILON = 1.0e-4
