@@ -1,4 +1,5 @@
 logger:
+  plots_path: 'logml_plots/linear3c'
 
 dataset:
   dataset_type: 'df'

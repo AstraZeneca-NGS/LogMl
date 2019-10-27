@@ -1,6 +1,6 @@
 logger:
   show_plots: false
-  plots_path: 'logml_plots/class3' # Path where plots are saved
+  plots_path: 'logml_plots/class3'
 
 dataset:
   dataset_type: 'df'
