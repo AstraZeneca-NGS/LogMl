@@ -18,7 +18,6 @@ class FeatureImportancePermutation(MlFiles):
     '''
 
     def __init__(self, model, model_name, x, y):
-        !!!!!!!!!!!! TRAIN AND VALIDATION !!!!!!!!!!!!!!!!!!!!!
         self.model = model
         self.model_name = model_name
         self.x = x
@@ -30,27 +29,31 @@ class FeatureImportancePermutation(MlFiles):
 
     def __call__(self):
         # Base performance
+        self._debug(f"Feature importance using permutation: Start")
         x_copy = self.x.copy()
-        pred = self.model.predict(x_copy)
+        score_base = self.loss(x_copy)
         # Shuffle each column
         perf = list()
-        for c in self.x:
+        cols = list(self.x.columns)
+        cols_count = len(cols)
+        for i in range(cols_count):
+            c = cols[i]
             # Shuffle column 'c'
             x_copy = self.x.copy()
             xi = np.random.permutation(x_copy[c])
             x_copy[c] = xi
             # How did it perform
-            pred_c = self.model.predict(x_copy)
-            perf_c = self.rmse(pred, pred_c)
+            score_xi = self.loss(x_copy)
+            # Performance is the score dofference respect to score_base
+            perf_c = score_base - score_xi
+            self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
             perf.append(perf_c)
             self.performance[c] = perf_c
-            if self.verbose:
-                print(f"{c}: {perf_c}")
         # List of items sorted by importance (most important first)
         self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
-        p = np.array(perf)
-        delta_p = p.max() - p.min()
-        self.performance_norm = (p - p.min()) / delta_p if delta_p > 0.0 else p
+        perf_array = np.array(perf)
+        self.performance_norm = perf_array / score_base if score_base > 0.0 else perf_array
+        self._debug(f"Feature importance using permutation: End")
         return True
 
     def most_important(self, importance_threshold=None, ratio_to_most_important=100, df=None):
@@ -75,9 +78,8 @@ class FeatureImportancePermutation(MlFiles):
         plt.barh(imp_x, imp_y)
         self._plot_show(f"Feature importance {self.model_name}", 'dataset_feature_importance')
 
-    def rmse(self, x, y):
-        return math.sqrt(((x - y)**2).mean())
-        !!!!!!!!!!!! USE PROPPER METRIC: CLASSIFICARION / REGRESSION !!!!!!!!!!!!!!!!!!!!!
+    def loss(self, x):
+        return self.model.score(x, self.y)
 
     def __repr__(self):
         return "\n".join([f"{f[0]} : {f[1]}" for f in fi.importance])

@@ -187,10 +187,10 @@ dataset_feature_importance:
   # Set to 'false' to disable this step
   enable: true
 
-  # Enable "Feature Importance with Model" (for different models)
-  is_fim_random_forest: true
-  is_fim_extra_trees: true
-  is_fim_gradient_boosting: true
+  # Enable "Feature Importance using Permutations" (for different models)
+  is_fip_random_forest: true
+  is_fip_extra_trees: true
+  is_fip_gradient_boosting: true
 
   # Regularization methods
   # Enable regularization methods (for different models)

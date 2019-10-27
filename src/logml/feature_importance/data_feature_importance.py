@@ -32,9 +32,9 @@ class DataFeatureImportance(MlFiles):
     def __init__(self, datasets, config, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
-        self.is_fim_random_forest = True
-        self.is_fim_extra_trees = True
-        self.is_fim_gradient_boosting = True
+        self.is_fip_random_forest = True
+        self.is_fip_extra_trees = True
+        self.is_fip_gradient_boosting = True
         self.is_regularization_lasso = True
         self.is_regularization_ridge = True
         self.is_regularization_lars = True
@@ -77,7 +77,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsDf(self.x.columns)
-        self.feature_importance()
+        self.feature_importance_permutation()
         # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
@@ -96,27 +96,28 @@ class DataFeatureImportance(MlFiles):
         self._info("Feature importance / feature selection: End")
         return True
 
-    def feature_importance(self):
+    def feature_importance_permutation(self):
         ''' Feature importance using several models '''
-        if self.is_fim_random_forest:
-            self.feature_importance_model(self.fit_random_forest(), 'RandomForest')
-        if self.is_fim_extra_trees:
-            self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees')
-        if self.is_fim_gradient_boosting:
-            self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting')
+        if self.is_fip_random_forest:
+            self.feature_importance_permutation_(self.fit_random_forest(), 'RandomForest')
+        if self.is_fip_extra_trees:
+            self.feature_importance_permutation_(self.fit_extra_trees(), 'ExtraTrees')
+        if self.is_fip_gradient_boosting:
+            self.feature_importance_permutation_(self.fit_gradient_boosting(), 'GradientBoosting')
 
-    def feature_importance_model(self, model, model_name):
+    def feature_importance_permutation_(self, model, model_name):
         """
         Two feature importance analysis:
             1) Using sklean 'model.feature_importances_'
             2) Using FeatureImportancePermutation class
         """
         self._debug(f"Feature importance: Based on '{model_name}'")
-        fi = FeatureImportancePermutation(model, model_name, self.x, self.y)
+        x, y = self.datasets.get_validate_xy()
+        fi = FeatureImportancePermutation(model, model_name, x, y)
         if not fi():
             self._info("Could not analyze feature importance using RandomForest")
-        self.results.add_col(f"importance_model_{model_name}", fi.performance_norm)
-        self.results.add_col_rank(f"importance_model_rank_{model_name}", fi.performance_norm, reversed=True)
+        self.results.add_col(f"importance_permutataion_{model_name}", fi.performance_norm)
+        self.results.add_col_rank(f"importance_permutataion_rank_{model_name}", fi.performance_norm, reversed=True)
         fi.plot()
         self.feature_importance_skmodel(model, model_name)
         return True
