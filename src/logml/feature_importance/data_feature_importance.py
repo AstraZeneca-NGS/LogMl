@@ -141,7 +141,7 @@ class DataFeatureImportance(MlFiles):
             return
         self.feature_importance_permutation_(model, model_name, config_tag)
         self.feature_importance_drop_column_(model, model_name, config_tag)
-        self.feature_importance_skmodel(model, model_name, config_tag)
+        self.feature_importance_skmodel_(model, model_name, config_tag)
 
     def feature_importance_permutation_(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
