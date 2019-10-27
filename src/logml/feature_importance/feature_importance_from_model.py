@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 from ..core.files import MlFiles
 
 
-class FeatureImportanceFromModel(MlFiles):
+class FeatureImportancePermutation(MlFiles):
     '''
     Estimate feature importance based on a model.
     How it works: Suffle a column and analyze how model performance is

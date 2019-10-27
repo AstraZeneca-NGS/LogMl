@@ -90,14 +90,14 @@ class MlFiles(MlLog):
             plt.close(figure)
             return
         plt.title(title)
-        if SHOW_PLOTS:
-            plt.draw()  # Show plot in a non-blocking maner
-            plt.pause(0.1)  # Pause, so that GUI can update the images
         if SAVE_PLOTS:
             file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
             self._debug(f"Saving plot '{title}' to '{file}'")
             plt.savefig(file)
-        if not SHOW_PLOTS:
+        if SHOW_PLOTS:
+            plt.draw()  # Show plot in a non-blocking maner
+            plt.pause(0.1)  # Pause, so that GUI can update the images
+        else:
             plt.close(figure)
 
     def _save_csv(self, file_csv, tag, df, save_index=False):

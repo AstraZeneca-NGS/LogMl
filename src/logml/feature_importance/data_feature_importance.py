@@ -18,7 +18,7 @@ from sklearn.tree import export_graphviz
 
 from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
-from .feature_importance_from_model import FeatureImportanceFromModel
+from .feature_importance_from_model import FeatureImportancePermutation
 from ..util.results_df import ResultsDf
 
 EPSILON = 1.0e-4
@@ -109,10 +109,10 @@ class DataFeatureImportance(MlFiles):
         """
         Two feature importance analysis:
             1) Using sklean 'model.feature_importances_'
-            2) Using FeatureImportanceFromModel class
+            2) Using FeatureImportancePermutation class
         """
         self._debug(f"Feature importance: Based on '{model_name}'")
-        fi = FeatureImportanceFromModel(model, model_name, self.x, self.y)
+        fi = FeatureImportancePermutation(model, model_name, self.x, self.y)
         if not fi():
             self._info("Could not analyze feature importance using RandomForest")
         self.results.add_col(f"importance_model_{model_name}", fi.performance_norm)
