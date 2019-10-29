@@ -3,6 +3,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.base import clone
 from sklearn.preprocessing import MinMaxScaler
@@ -63,7 +64,10 @@ class FeatureImportanceDropColumn(MlFiles):
         # Show bar plot
         plt.figure(figsize=self.figsize)
         plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance (drop-column) {self.model_name}", 'dataset_feature_importance_drop_column')
+        self._plot_show(f"Feature importance (drop-column) {self.model_name}", 'dataset_feature_importance_dropcolumn')
+        # Plot performance histogram
+        sns.distplot(self.performance_norm)
+        self._plot_show(f"Feature importance (drop-column) {self.model_name}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo')
 
     def loss(self, x_train, x_val):
         """ Create a new model, train on 'x', calculate the loss on the validation x_val """

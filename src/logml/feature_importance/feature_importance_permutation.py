@@ -3,6 +3,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -64,6 +65,9 @@ class FeatureImportancePermutation(MlFiles):
         plt.figure(figsize=self.figsize)
         plt.barh(imp_x, imp_y)
         self._plot_show(f"Feature importance (permutation) {self.model_name}", 'dataset_feature_importance_permutataion')
+        # Plot performance distrobutions
+        sns.distplot(self.performance_norm)
+        self._plot_show(f"Feature importance (permutation) {self.model_name}: Performance histogram", 'dataset_feature_importance_permutataion_histo')
 
     def loss(self, x):
         return self.model.score(x, self.y)
