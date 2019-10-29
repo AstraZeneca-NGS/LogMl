@@ -62,12 +62,13 @@ class FeatureImportanceDropColumn(MlFiles):
         imp_x = np.array([f[0] for f in self.importance])
         imp_y = np.array([f[1] for f in self.importance])
         # Show bar plot
-        plt.figure(figsize=self.figsize)
+        fig = plt.figure(figsize=self.figsize)
         plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance (drop-column) {self.model_name}", 'dataset_feature_importance_dropcolumn')
+        self._plot_show(f"Feature importance (drop-column) {self.model_name}", 'dataset_feature_importance_dropcolumn', fig)
         # Plot performance histogram
+        fig = plt.figure(figsize=self.figsize)
         sns.distplot(self.performance_norm)
-        self._plot_show(f"Feature importance (drop-column) {self.model_name}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo')
+        self._plot_show(f"Feature importance (drop-column) {self.model_name}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
 
     def loss(self, x_train, x_val):
         """ Create a new model, train on 'x', calculate the loss on the validation x_val """
