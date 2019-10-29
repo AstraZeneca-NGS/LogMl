@@ -94,7 +94,7 @@ class LogMl(MlFiles):
             return False
         # Show model/s results
         if self.display_model_results:
-            self.model_results.sort('validation', 'train', 'time')
+            self.model_results.sort(['validation', 'train', 'time'])
             self.model_results.print()
         if self.save_model_results and self.model_results is not None:
             m = self.model_ori if self.model is None else self.model
