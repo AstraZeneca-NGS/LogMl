@@ -68,7 +68,7 @@ class ResultsDf:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             display(self.df)
 
-    def sort(self, col_name):
+    def sort(self, col_names):
         if self.df is None:
             return
-        self.df.sort_values(col_name, inplace=True)
+        self.df.sort_values(col_names, inplace=True)
