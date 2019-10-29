@@ -27,11 +27,8 @@ class ResultsDf:
     def add_col_rank(self, name, vals, reversed=False):
         ''' Add a column ranked by value '''
         vals = self._flatten(vals)
-        temp = vals.argsort()
-        ranks = np.empty_like(temp)
-        if reversed:
-            temp = temp[::-1]
-        ranks[temp] = np.arange(len(vals))
+        s = pd.Series(vals, self.index)
+        ranks = s.rank()
         self.add_col(name, ranks)
 
     def add_row(self, row_name, vals_dict):
