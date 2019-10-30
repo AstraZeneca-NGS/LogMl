@@ -18,7 +18,7 @@ from ..util.sanitize import sanitize_name
 PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS = 50
 PLOTS_DISABLE = False
 PLOTS_PATH = 'logml_plots'
-PLOTS_FIGSIZE_MAX = 1000
+PLOTS_FIGSIZE_MAX = 650
 PLOTS_FIGSIZE_X = 16    # Figure size (inches), x axis
 PLOTS_FIGSIZE_Y = 10    # Figure size (inches), y axis
 PLOTS_SAVE = True
