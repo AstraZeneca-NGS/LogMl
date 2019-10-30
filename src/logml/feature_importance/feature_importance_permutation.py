@@ -1,5 +1,4 @@
 
-
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,33 +30,29 @@ class FeatureImportancePermutation(MlFiles):
     def __call__(self):
         # Base performance
         self._debug(f"Feature importance (permutation): Start")
-        try:
+        x_copy = self.x.copy()
+        score_base = self.loss(x_copy)
+        # Shuffle each column
+        perf = list()
+        cols = list(self.x.columns)
+        cols_count = len(cols)
+        for i in range(cols_count):
+            c = cols[i]
+            # Shuffle column 'c'
             x_copy = self.x.copy()
-            score_base = self.loss(x_copy)
-            # Shuffle each column
-            perf = list()
-            cols = list(self.x.columns)
-            cols_count = len(cols)
-            for i in range(cols_count):
-                c = cols[i]
-                # Shuffle column 'c'
-                x_copy = self.x.copy()
-                xi = np.random.permutation(x_copy[c])
-                x_copy[c] = xi
-                # How did it perform
-                score_xi = self.loss(x_copy)
-                # Performance is the score dofference respect to score_base
-                perf_c = score_base - score_xi
-                self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
-                perf.append(perf_c)
-                self.performance[c] = perf_c
-            # List of items sorted by importance (most important first)
-            self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
-            perf_array = np.array(perf)
-            self.performance_norm = perf_array / score_base if score_base > 0.0 else perf_array
-        except Exception as e:
-            self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
-            return False
+            xi = np.random.permutation(x_copy[c])
+            x_copy[c] = xi
+            # How did it perform
+            score_xi = self.loss(x_copy)
+            # Performance is the score dofference respect to score_base
+            perf_c = score_base - score_xi
+            self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
+            perf.append(perf_c)
+            self.performance[c] = perf_c
+        # List of items sorted by importance (most important first)
+        self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
+        perf_array = np.array(perf)
+        self.performance_norm = perf_array / score_base if score_base > 0.0 else perf_array
         self._debug(f"Feature importance (permutation): End")
         return True
 

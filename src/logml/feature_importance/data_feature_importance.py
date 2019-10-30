@@ -116,15 +116,19 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance (drop column): Based on '{model_name}'")
-        x_train, y_train = self.datasets.get_train_xy()
-        x_val, y_val = self.datasets.get_validate_xy()
-        fi = FeatureImportanceDropColumn(model, model_name, x_train, y_train, x_val, y_val)
-        if not fi():
-            self._info(f"Could not analyze feature importance (drop column) using {model_name}")
-            return
-        self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
-        self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, reversed=True)
-        fi.plot()
+        try:
+            x_train, y_train = self.datasets.get_train_xy()
+            x_val, y_val = self.datasets.get_validate_xy()
+            fi = FeatureImportanceDropColumn(model, model_name, x_train, y_train, x_val, y_val)
+            if not fi():
+                self._info(f"Could not analyze feature importance (drop column) using {model_name}")
+                return
+            self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
+            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, reversed=True)
+            fi.plot()
+        except Exception as e:
+            self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
+            return False
         return True
 
     def feature_importance_model(self):
@@ -150,14 +154,18 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance (permutataion) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance (permutation): Based on '{model_name}'")
-        x, y = self.datasets.get_validate_xy()
-        fi = FeatureImportancePermutation(model, model_name, x, y)
-        if not fi():
-            self._info(f"Could not analyze feature importance (permutataion) using {model_name}")
-            return
-        self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
-        self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
-        fi.plot()
+        try:
+            x, y = self.datasets.get_validate_xy()
+            fi = FeatureImportancePermutation(model, model_name, x, y)
+            if not fi():
+                self._info(f"Could not analyze feature importance (permutataion) using {model_name}")
+                return
+            self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
+            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
+            fi.plot()
+        except Exception as e:
+            self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
+            return False
         return True
 
     def feature_importance_skmodel_(self, model, model_name, config_tag):

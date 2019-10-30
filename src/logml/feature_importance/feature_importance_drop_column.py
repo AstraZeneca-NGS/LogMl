@@ -1,5 +1,4 @@
 
-
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,31 +32,27 @@ class FeatureImportanceDropColumn(MlFiles):
     def __call__(self):
         # Base performance
         self._debug(f"Feature importance (drop-column): Start")
-        try:
-            score_base = self.loss(self.x_train, self.x_val)
-            # Shuffle each column
-            perf = list()
-            cols = list(self.x_train.columns)
-            cols_count = len(cols)
-            for i in range(cols_count):
-                c = cols[i]
-                # Delete column 'c'
-                x_copy = self.x_train.drop(c, axis=1)
-                x_val_copy = self.x_val.drop(c, axis=1)
-                # How did it perform
-                score_xi = self.loss(x_copy, x_val_copy)
-                # Performance is the score dofference respect to score_base
-                perf_c = score_base - score_xi
-                self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
-                perf.append(perf_c)
-                self.performance[c] = perf_c
-            # List of items sorted by importance (most important first)
-            self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
-            perf_array = np.array(perf)
-            self.performance_norm = perf_array / score_base if score_base > 0.0 else perf_array
-        except Exception as e:
-            self._error(f"Feature importance (drop-column): Exception '{e}'\n{traceback.format_exc()}")
-            return False
+        score_base = self.loss(self.x_train, self.x_val)
+        # Shuffle each column
+        perf = list()
+        cols = list(self.x_train.columns)
+        cols_count = len(cols)
+        for i in range(cols_count):
+            c = cols[i]
+            # Delete column 'c'
+            x_copy = self.x_train.drop(c, axis=1)
+            x_val_copy = self.x_val.drop(c, axis=1)
+            # How did it perform
+            score_xi = self.loss(x_copy, x_val_copy)
+            # Performance is the score dofference respect to score_base
+            perf_c = score_base - score_xi
+            self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
+            perf.append(perf_c)
+            self.performance[c] = perf_c
+        # List of items sorted by importance (most important first)
+        self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
+        perf_array = np.array(perf)
+        self.performance_norm = perf_array / score_base if score_base > 0.0 else perf_array
         self._debug(f"Feature importance (drop-column): End")
         return True
 
