@@ -28,7 +28,7 @@ class ResultsDf:
         ''' Add a column ranked by value '''
         vals = self._flatten(vals)
         s = pd.Series(vals, self.index)
-        ranks = s.rank()
+        ranks = s.rank(ascending=not reversed, na_option='bottom')
         self.add_col(name, ranks)
 
     def add_row(self, row_name, vals_dict):
@@ -49,12 +49,12 @@ class ResultsDf:
         Also, add the rank of the previous column (i.e. rank of 'rank sum')
         '''
         len = self.df.shape[0]
-        ranks = np.zeros(len)
+        ranks_sum = np.zeros(len)
         for c in self.df.columns:
             if 'rank' in c:
-                ranks = ranks + self.df[c]
-        self.add_col_rank("ranksum", ranks)
-        self.add_col_rank("rank_of_ranksum", ranks)
+                ranks_sum = ranks_sum + self.df[c]
+        self.add_col("ranks_sum", ranks_sum)
+        self.add_col_rank("rank_of_ranksum", ranks_sum)
 
     def _flatten(self, x):
         return x if x.ndim == 1 else x.flatten()

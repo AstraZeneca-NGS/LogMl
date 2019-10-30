@@ -8,7 +8,7 @@ dataset:
   outputs: ['y']
 
 dataset_explore:
-  enable: true
+  enable: false
 
 dataset_feature_importance:
   enable: true
@@ -23,7 +23,7 @@ dataset_transform:
   enable: true
 
 model:
-  enable: true
+  enable: false
   model_type: regression
   model_name: 'linear3c'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -39,5 +39,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: true
+  enable: false
   models: !include models_search/*.yaml
