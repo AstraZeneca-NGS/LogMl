@@ -9,6 +9,7 @@ dataset:
 
 dataset_explore:
   enable: true
+  correlation_analysis_max: 999
 
 dataset_feature_importance:
   enable: true

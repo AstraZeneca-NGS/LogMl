@@ -62,7 +62,7 @@ class DataExplore(MlFiles):
             return
         self._debug(f"Correlation analysis: {self.name}")
         if len(self.df.columns) > self.correlation_analysis_max:
-            self._debug(f"Correlation analysis {self.name}: Too many columns to compare ({len(self.df.columns)} > correlation_analysis_max), skipping")
+            self._debug(f"Correlation analysis {self.name}: Too many columns to compare, {len(self.df.columns)} > correlation_analysis_max ({self.correlation_analysis_max}), skipping")
             return
         corr, cols = self.rank_correlation()
         # Sort and get index in correlation matrix
