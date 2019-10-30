@@ -32,7 +32,6 @@ class DataExplore(MlFiles):
         self.correlation_analysis_max = 100
         self.dendogram_max = 100
         self.df = df
-        self.figsize = (20, 20)
         self.files_base = files_base
         self.is_dendogram = True
         self.is_describe_all = True
@@ -84,11 +83,12 @@ class DataExplore(MlFiles):
         else:
             print(f"Top correlations {self.name}: There are no variables correlated over corr_thresdold={self.corr_thresdold}")
         # Plot in a heatmap
-        plt.figure(figsize=self.figsize)
+        plt.figure()
         self.correlation_df = pd.DataFrame(corr, columns=cols, index=cols)
         self._save_csv(f"{self.files_base}.correlations_matrix.csv", "Correlation matrix", self.correlation_df, save_index=True)
         sns.heatmap(self.correlation_df, square=True)
-        self._plot_show(f'Correlation (numeric features)', f'dataset_explore.{self.name}')
+        num_vars = len(self.correlation_df.columns)
+        self._plot_show(f'Correlation (numeric features)', f'dataset_explore.{self.name}', count_vars_x=num_vars, count_vars_y=num_vars)
 
     def dendogram(self):
         """
@@ -107,9 +107,10 @@ class DataExplore(MlFiles):
         dist = 1 - corr
         corr_condensed = hc.distance.squareform(dist)
         z = hc.linkage(corr_condensed, method='average')
-        plt.figure(figsize=self.figsize)
+        plt.figure()
         den = hc.dendrogram(z, labels=cols, orientation='left', leaf_font_size=16)
-        self._plot_show(f"Dendogram rank correlation", f'dataset_explore.{self.name}')
+        num_vars = len(cols)
+        self._plot_show(f"Dendogram rank correlation", f'dataset_explore.{self.name}', count_vars_x=num_vars, count_vars_y=num_vars)
 
     def dendogram_na(self):
         ''' Dendogram of missing values '''
@@ -118,7 +119,8 @@ class DataExplore(MlFiles):
             self._debug(f"Dendogram of missing values {self.name}: No missing values, skipping")
             return
         msno.dendrogram(self.df)
-        self._plot_show(f"Dendogram missing values", f'dataset_explore.{self.name}')
+        num_vars = len(self.df.columns)
+        self._plot_show(f"Dendogram missing values", f'dataset_explore.{self.name}', count_vars_x=num_vars)
 
     def describe_all(self, max_bins=100):
         """ Show basic stats and histograms for every column """
@@ -239,7 +241,8 @@ class DataExplore(MlFiles):
         self._save_csv(f"{self.files_base}.missing_values.csv", "Missing values", self.dfnas, save_index=True)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
-        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}')
+        num_vars = len(nas_perc.columns)
+        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}', count_vars_x=num_vars, count_vars_y=num_vars)
         # Missing values plots
         self.na_plots(self.df, self.name)
         # Create a plot of missing values: Only numeric types
@@ -250,29 +253,30 @@ class DataExplore(MlFiles):
         " Plot missing values "
         # Show missing values in data frame
         msno.matrix(df)
-        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}')
+        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=df.columns)
         # Barplot of number of misisng values
         msno.bar(df)
-        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}')
+        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=df.columns)
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
-        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}')
+        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=df.columns, count_vars_y=df.columns)
 
     def plots_pairs(self):
         if not self.is_plot_pairs:
             return
         df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.keep_uniq()))
-        if len(df_copy.columns) == 0:
-            self._debug(f"Plot pairs {self.name}: No columns left after removing missing values ({len(df_copy.columns)}), skipping")
+        count_cols = len(df_copy.columns)
+        if count_cols == 0:
+            self._debug(f"Plot pairs {self.name}: No columns left after removing missing values ({count_cols}), skipping")
             return
-        if len(df_copy.columns) > self.plot_pairs_max:
-            self._debug(f"Plot pairs {self.name}: Too many columns to compare ({len(df_copy.columns)}), skipping")
+        if count_cols > self.plot_pairs_max:
+            self._debug(f"Plot pairs {self.name}: Too many columns to compare ({count_cols}), skipping")
             return
         print(f"Plotting pairs for columns {self.name}: {df_copy.columns}")
         sns.set_style('darkgrid')
         sns.set()
         sns.pairplot(df_copy, kind='scatter', diag_kind='kde')
-        self._plot_show("Pairs", f'dataset_explore.{self.name}')
+        self._plot_show("Pairs", f'dataset_explore.{self.name}', count_vars_x=count_cols, count_vars_y=count_cols)
 
     def print_all(self, msg, df):
         print(msg)

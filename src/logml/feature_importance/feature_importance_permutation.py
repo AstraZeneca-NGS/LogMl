@@ -25,7 +25,6 @@ class FeatureImportancePermutation(MlFiles):
         self.y = y
         self.performance = dict()
         self.importance = None
-        self.figsize = (16, 10)
         self.verbose = False
 
     def __call__(self):
@@ -61,14 +60,12 @@ class FeatureImportancePermutation(MlFiles):
         " Plot importance distributions "
         imp_x = np.array([f[0] for f in self.importance])
         imp_y = np.array([f[1] for f in self.importance])
-        # Show bar plot
-        xsize, ysize = self.figsize
-        figsize = xsize, min(ysize, ysize * len(self.performance) / 50)
-        fig = plt.figure(figsize=self.figsize)
+        # Show importance bar plot
+        fig = plt.figure()
         plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance (permutation) {self.model_name}", 'dataset_feature_importance_permutataion', fig)
-        # Plot performance histogram
-        fig = plt.figure(figsize=self.figsize)
+        self._plot_show(f"Feature importance (permutation) {self.model_name}", 'dataset_feature_importance_permutataion', fig, count_vars_y=len(self.performance))
+        # Plot performance values histogram
+        fig = plt.figure()
         sns.distplot(self.performance_norm)
         self._plot_show(f"Feature importance (permutation) {self.model_name}: Performance histogram", 'dataset_feature_importance_permutataion_histo', fig)
 

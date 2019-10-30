@@ -27,7 +27,6 @@ class FeatureImportanceDropColumn(MlFiles):
         self.x_val, self.y_val = x_val, y_val
         self.performance = dict()
         self.importance = None
-        self.figsize = (16, 10)
         self.verbose = False
 
     def __call__(self):
@@ -62,11 +61,11 @@ class FeatureImportanceDropColumn(MlFiles):
         imp_x = np.array([f[0] for f in self.importance])
         imp_y = np.array([f[1] for f in self.importance])
         # Show bar plot
-        fig = plt.figure(figsize=self.figsize)
+        fig = plt.figure()
         plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance (drop-column) {self.model_name}", 'dataset_feature_importance_dropcolumn', fig)
+        self._plot_show(f"Feature importance (drop-column) {self.model_name}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
         # Plot performance histogram
-        fig = plt.figure(figsize=self.figsize)
+        fig = plt.figure()
         sns.distplot(self.performance_norm)
         self._plot_show(f"Feature importance (drop-column) {self.model_name}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
 

@@ -12,13 +12,12 @@ class ModelConfidence:
         self.models = models.estimators_ if 'estimators_' in models else models
         self.max_workers = max_workers
         self.predictions = None
-        self.figsize = (16, 10)
 
     def plot(self, bins=100):
-        plt.figure(figsize=self.figsize)
+        plt.figure()
         pred = self.predictions.mean(axis=0)
         plt.hist(pred, bins=bins)
-        plt.figure(figsize=self.figsize)
+        plt.figure()
         plt.hist(self.std(), bins=bins)
 
     def predict(self, x):

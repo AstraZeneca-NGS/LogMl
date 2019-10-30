@@ -15,20 +15,23 @@ from .log import MlLog
 from ..util.sanitize import sanitize_name
 
 # Default plot preferences
-DISABLE_PLOTS = False
-SHOW_PLOTS = True
-SAVE_PLOTS = True
+PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS = 50
+PLOTS_DISABLE = False
 PLOTS_PATH = 'logml_plots'
+PLOTS_FIGSIZE_X = 16    # Figure size (inches), x axis
+PLOTS_FIGSIZE_Y = 10    # Figure size (inches), y axis
+PLOTS_SAVE = True
+PLOTS_SHOW = True
 
 
 def set_plots(disable=None, show=None, save=None, path=None):
-    global DISABLE_PLOTS, SHOW_PLOTS, SAVE_PLOTS, PLOTS_PATH
+    global PLOTS_DISABLE, PLOTS_SHOW, PLOTS_SAVE, PLOTS_PATH
     if disable is not None:
-        DISABLE_PLOTS = disable
+        PLOTS_DISABLE = disable
     if show is not None:
-        SHOW_PLOTS = show
+        PLOTS_SHOW = show
     if save is not None:
-        SAVE_PLOTS = save
+        PLOTS_SAVE = save
     if path is not None:
         PLOTS_PATH = path
 
@@ -83,18 +86,27 @@ class MlFiles(MlLog):
         with open(file_yaml) as yaml_file:
             return yaml.load(yaml_file, Loader=yaml.FullLoader)
 
-    def _plot_show(self, title, section, figure=None):
-        ''' Show a plot in a way that we can continue processing '''
+    def _plot_show(self, title, section, figure=None, count_vars_x=None, count_vars_y=None):
+        '''
+        Show a plot in a way that we can continue processing
+            count_vars_x: Number of variables plotted along the x-axis, the size of the figure is adjusted (increased) by `max(1.0, count_vars_x / PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS)`
+            count_vars_y: Number of variables plotted along the y-axis
+        '''
+        # Adjust figure size
+        fig = plt.gcf()
+        figsize_x = PLOTS_FIGSIZE_X if count_vars_x is None else PLOTS_FIGSIZE_X * max(1.0, count_vars_x / PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS)
+        figsize_y = PLOTS_FIGSIZE_Y if count_vars_y is None else PLOTS_FIGSIZE_Y * max(1.0, count_vars_y / PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS)
+        fig.set_size_inches(figsize_x, figsize_y)
         figure = figure if figure else 'all'
-        if DISABLE_PLOTS:
+        if PLOTS_DISABLE:
             plt.close(figure)
             return
         plt.title(title)
-        if SAVE_PLOTS:
+        if PLOTS_SAVE:
             file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
             self._debug(f"Saving plot '{title}' to '{file}'")
             plt.savefig(file)
-        if SHOW_PLOTS:
+        if PLOTS_SHOW:
             plt.draw()  # Show plot in a non-blocking maner
             plt.pause(0.1)  # Pause, so that GUI can update the images
         else:
