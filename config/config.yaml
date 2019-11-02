@@ -77,8 +77,12 @@ dataset_transform:
   # These columns are also split into 'date parts' (year, month, day, day_of_week, etc.)
   dates: ['saledate']
 
+  # Sanitize column names: Convert column names so that characters outside the set [_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] are converted to '_' (underscore)
+  is_sanitize_column_names: True
+
   # One hot encoding: List of variable to transform to one_hot
   ont_hot: ['Enclosure_Type']
+
   # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
   one_hot_max_cardinality: 7
 
@@ -87,6 +91,9 @@ dataset_transform:
 
   # Remove columns: List of columns to remove from dataFrame
   remove_columns: []
+
+  # Remove columns: List of columns to remove from dataFrame (after all transformations have been applied)
+  remove_columns_after: []
 
   # Drop columns having standard deviation below this limit
   std_threshold: 0.0001

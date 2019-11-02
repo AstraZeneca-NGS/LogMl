@@ -3,7 +3,7 @@
 # Sanitize strings: Make them valid for file names, dataframe names, etc
 #
 
-sanitize_valid_chars = set('_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+sanitize_valid_chars = set('_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
 sanitize_dict = {
     '+': '_plus_',
     '-': '_',
@@ -12,11 +12,6 @@ sanitize_dict = {
     '>': '_more_than_',
     '/': '_slash_',
 }
-
-
-def sanitize(s):
-    ''' Sanitize a string by only allowing "valid" characters '''
-    return ''.join(c if c in sanitize_char else '_' for c in str(s))
 
 
 def sanitize_name(s):

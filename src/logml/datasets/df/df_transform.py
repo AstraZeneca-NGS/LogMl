@@ -25,11 +25,13 @@ class DfTransform(MlLog):
         self.columns_to_add = dict()
         self.columns_to_remove = set()
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
+        self.is_sanitize_column_names = True
         self.one_hot = list()  # Convert these fields to 'one hot encoding'
         self.one_hot_max_cardinality = 7
         self.outputs = outputs
         self.remove_missing_outputs = True
         self.remove_columns = list()
+        self.remove_columns_after = list()
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
@@ -45,19 +47,19 @@ class DfTransform(MlLog):
         self._make_date(self.df, field_name)
         field = self.df[field_name]
         prefix = prefix if prefix else re.sub('[Dd]ate$', '', field_name)
-        attr = ['Year', 'Month', 'Week', 'Day', 'Dayofweek', 'Dayofyear', 'Is_month_end', 'Is_month_start',
-                'Is_quarter_end', 'Is_quarter_start', 'Is_year_end', 'Is_year_start']
+        attr = ['year', 'month', 'week', 'day', 'dayofweek', 'dayofyear', 'is_month_end', 'is_month_start',
+                'is_quarter_end', 'is_quarter_start', 'is_year_end', 'is_year_start']
         if time:
-            attr = attr + ['Hour', 'Minute', 'Second']
+            attr = attr + ['hour', 'minute', 'second']
         df = pd.DataFrame()
         for n in attr:
-            dpname = prefix + n
+            dpname = f"{prefix}:{n}"
             xi = getattr(field.dt, n.lower())
             if pd.api.types.is_bool_dtype(xi):
                 xi = xi.astype('int8')
             df[dpname] = xi
             self._info(f"Adding date part '{dpname}', type {df[dpname].dtype}, for field '{field_name}'")
-        df[prefix + 'Elapsed'] = field.astype(np.int64) // 10 ** 9
+        df[f'{prefix}:elapsed'] = field.astype(np.int64) // 10 ** 9
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df
         self.columns_to_remove.add(field_name)
@@ -71,6 +73,7 @@ class DfTransform(MlLog):
         if not self.enable:
             self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
             return self.df
+        self._sanitize_column_names()
         self._remove_missing_outputs()
         self._remove_columns()
         self.convert_dates()
@@ -78,8 +81,17 @@ class DfTransform(MlLog):
         self.df = self.create()  # We have to create the new df before replacing nas, in case the dates have missing data
         self.nas()
         self.df = self.create()
+        self._remove_columns_after()
         self.drop_zero_std()
         return self.df
+
+    def _sanitize_column_names(self):
+        ''' Sanitize all column names '''
+        if not self.is_sanitize_column_names:
+            self._debug("Sanitize column names disabled, skipping")
+            return
+        self._info("Sanitize column names")
+        self.df.columns = [sanitize_name(c) for c in self.df.columns]
 
     def create(self):
         """ Create a new dataFrame based on the previously calculated conversions """
@@ -134,7 +146,7 @@ class DfTransform(MlLog):
         self._info(f"Converting to one-hot: field '{field_name}'")
         has_na = self.df[field_name].isna().sum() > 0
         df_one_hot = pd.get_dummies(self.df[field_name], dummy_na=has_na)
-        self.rename_category_cols(df_one_hot, f"{field_name}_")
+        self.rename_category_cols(df_one_hot, f"{field_name}:")
         # Add to transformations
         self.columns_to_add[field_name] = df_one_hot
         self.columns_to_remove.add(field_name)
@@ -206,10 +218,16 @@ class DfTransform(MlLog):
         return True
 
     def _remove_columns(self):
-        ''' Remove columns '''
+        ''' Remove columns (before transformations) '''
         self.df_ori = self.df
-        self._info(f"Removing columns: {self.remove_columns}")
+        self._info(f"Removing columns (before): {self.remove_columns}")
         self.df.drop(self.remove_columns, inplace=True, axis=1)
+
+    def _remove_columns_after(self):
+        ''' Remove columns (after transformations) '''
+        self.df_ori = self.df
+        self._info(f"Removing columns (after): {self.remove_columns_after}")
+        self.df.drop(self.remove_columns_after, inplace=True, axis=1)
 
     def _remove_missing_outputs(self):
         ''' Remove rows if output variable/s are missing '''
