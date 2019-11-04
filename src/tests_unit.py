@@ -315,9 +315,9 @@ class TestLogMl(unittest.TestCase):
         # Check categories
         self.assertTrue(all(ds.dataset['UsageBand'].head(10) == np.array([1, 1, 1, 0, 1, 1, 1, 0, -1, 1])))
         # Check date convertion
-        self.assertTrue('saleYear' in ds.dataset.columns)
-        self.assertTrue('saleMonth' in ds.dataset.columns)
-        self.assertTrue('saleDay' in ds.dataset.columns)
+        self.assertTrue('sale:year' in ds.dataset.columns)
+        self.assertTrue('sale:month' in ds.dataset.columns)
+        self.assertTrue('sale:day' in ds.dataset.columns)
         # Check date missing value new column
         self.assertTrue('MachineHoursCurrentMeter_na' in ds.dataset.columns)
 
@@ -688,7 +688,7 @@ class TestLogMl(unittest.TestCase):
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
-        for c in ['d1Year', 'd1Month', 'd1Week', 'd1Day', 'd1Dayofweek', 'd1Dayofyear', 'd1Is_month_end', 'd1Is_month_start', 'd1Is_quarter_end', 'd1Is_quarter_start', 'd1Is_year_end', 'd1Is_year_start', 'd1Hour', 'd1Minute', 'd1Second', 'd1Elapsed']:
+        for c in ['d1:year', 'd1:month', 'd1:week', 'd1:day', 'd1:dayofweek', 'd1:dayofyear', 'd1:is_month_end', 'd1:is_month_start', 'd1:is_quarter_end', 'd1:is_quarter_start', 'd1:is_year_end', 'd1:is_year_start', 'd1:hour', 'd1:minute', 'd1:second', 'd1:elapsed']:
             x = df[c]
             self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
 
