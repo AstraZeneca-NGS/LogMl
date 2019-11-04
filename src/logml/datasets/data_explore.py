@@ -241,8 +241,7 @@ class DataExplore(MlFiles):
         self._save_csv(f"{self.files_base}.missing_values.csv", "Missing values", self.dfnas, save_index=True)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
-        num_vars = len(nas_perc.columns)
-        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}', count_vars_x=num_vars, count_vars_y=num_vars)
+        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}')
         # Missing values plots
         self.na_plots(self.df, self.name)
         # Create a plot of missing values: Only numeric types
@@ -253,13 +252,14 @@ class DataExplore(MlFiles):
         " Plot missing values "
         # Show missing values in data frame
         msno.matrix(df)
-        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=df.columns)
+        count_vars = len(df.columns)
+        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=count_vars)
         # Barplot of number of misisng values
         msno.bar(df)
-        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=df.columns)
+        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=count_vars)
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
-        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=df.columns, count_vars_y=df.columns)
+        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=count_vars, count_vars_y=count_vars)
 
     def plots_pairs(self):
         if not self.is_plot_pairs:
