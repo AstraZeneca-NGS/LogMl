@@ -1,5 +1,6 @@
 import inspect
 import sklearn
+import sklearn.dummy
 import sklearn.naive_bayes
 import traceback
 

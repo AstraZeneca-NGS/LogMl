@@ -138,7 +138,7 @@ class DataExplore(MlFiles):
             fig = plt.figure()
             sns.distplot(xi_no_na, bins=bins)
             self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
-        descr.print(f"Descrive variables {self.name}")
+        descr.print(f"Describe variables {self.name}")
 
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
@@ -244,9 +244,10 @@ class DataExplore(MlFiles):
         self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}')
         # Missing values plots
         self.na_plots(self.df, self.name)
-        # Create a plot of missing values: Only numeric types
-        if len(self.df.select_dtypes(include=[np.number]).columns) != len(self.df.columns):
-            self.na_plots(self.df.select_dtypes(include=[np.number]), f"{self.name}: numeric")
+        # TODO: Remove. Overall nullity plot should be enough
+        # if len(self.df.select_dtypes(include=[np.number]).columns) != len(self.df.columns):
+        # # Create a plot of missing values: Only numeric types
+        #     self.na_plots(self.df.select_dtypes(include=[np.number]), f"{self.name}: numeric")
 
     def na_plots(self, df, name):
         " Plot missing values "

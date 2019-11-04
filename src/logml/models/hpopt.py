@@ -1,5 +1,6 @@
 
 import hyperopt
+import hyperopt.hp
 import copy
 import numpy as np
 

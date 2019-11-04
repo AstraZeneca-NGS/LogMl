@@ -1,5 +1,5 @@
 logger:
-  show_plots: false
+  show_plots: true
   plots_path: 'logml_plots/class3'
 
 dataset:

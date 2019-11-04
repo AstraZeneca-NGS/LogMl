@@ -156,7 +156,7 @@ dataset_explore:
   # Show dendogram
   is_dendogram: true
 
-  # Descrive all variables
+  # Describe all variables
   is_describe_all: true
 
   # Perform 'missing data' analysis
