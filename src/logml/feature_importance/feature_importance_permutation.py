@@ -31,7 +31,7 @@ class FeatureImportancePermutation(MlFiles):
         # Base performance
         self._debug(f"Feature importance (permutation): Start")
         x_copy = self.x.copy()
-        score_base = self.loss(x_copy)
+        score_base = self._loss(x_copy)
         # Shuffle each column
         perf = list()
         cols = list(self.x.columns)
@@ -43,7 +43,7 @@ class FeatureImportancePermutation(MlFiles):
             xi = np.random.permutation(x_copy[c])
             x_copy[c] = xi
             # How did it perform
-            score_xi = self.loss(x_copy)
+            score_xi = self._loss(x_copy)
             # Performance is the score dofference respect to score_base
             perf_c = score_base - score_xi
             self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
@@ -69,5 +69,5 @@ class FeatureImportancePermutation(MlFiles):
         sns.distplot(self.performance_norm)
         self._plot_show(f"Feature importance (permutation) {self.model_name}: Performance histogram", 'dataset_feature_importance_permutataion_histo', fig)
 
-    def loss(self, x):
+    def _loss(self, x):
         return self.model.score(x, self.y)

@@ -129,7 +129,7 @@ class Model(MlFiles):
     def default_model_evaluate(self, x, y, name):
         """ Default implementation for '@model_evaluate' """
         try:
-            ret = self.loss(x, y)
+            ret = self._loss(x, y)
             if ret is None:
                 self._warning("No default loss function found ('metric_class' parameter is not configured), returning np.inf")
                 ret = np.inf
@@ -224,7 +224,7 @@ class Model(MlFiles):
         res = self._load_pickle(file_name, 'test_results')
         return res
 
-    def loss(self, x, y):
+    def _loss(self, x, y):
         """ Return a metric loss based on a custom metric """
         if self.metric_class is None:
             return None
