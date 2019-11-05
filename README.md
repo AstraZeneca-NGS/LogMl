@@ -138,6 +138,15 @@ Here is a summary of the "Main workflow" steps (details are covered in the next 
 		1. svc
 		1. svr
 		1. theil_sen_regressor
+	1. Model Search with Hyper-parameter optimization:
+		1. extra_trees_classifier
+		1. extra_trees_regressor
+		1. gradient_boosting_classifier
+		1. gradient_boosting_regressor
+		1. k_neighbors_classifier
+		1. k_neighbors_regressor
+		1. random_forest_classifier
+		1. random_forest_regressor
 
 Alternative workflows: These workflows provide additional functionality on top of the "Main workflow"
 1. Hyper parameter optimization
