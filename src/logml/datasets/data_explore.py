@@ -44,7 +44,7 @@ class DataExplore(MlFiles):
         self.plot_pairs_max = 20
         self.rank_correlation_matrix = None
         self.rank_correlation_colums = None
-        self.shapiro_wilks_threshold = 0.1
+        self.shapiro_wilks_threshold = 0.05
         if set_config:
             self._set_from_config()
 
