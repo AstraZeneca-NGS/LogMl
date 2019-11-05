@@ -64,7 +64,7 @@ class TestLogMlIntegration(unittest.TestCase):
         # Check data transform: Remove 'missing output rows' (1% of rows removed)
         self.assertTrue(df.shape[0] < 1990)
         # Check data transform: Convert to one hot
-        for c in ['c1_high', 'c1_mid', 'c1_low', 'c2_very_high', 'c2_high', 'c2_mid', 'c2_low', 'c2_very_low']:
+        for c in ['c1:high', 'c1:mid', 'c1:low', 'c2:very_high', 'c2:high', 'c2:mid', 'c2:low', 'c2:very_low']:
             self.assertTrue(c in df.columns, f"Missing one-hot column {c}, {df.columns}")
         # Check data transform: Add 'na' columns
         for c in ['x1_na', 'x2_na', 'x3_na']:
