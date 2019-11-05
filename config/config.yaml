@@ -190,7 +190,6 @@ dataset_explore:
   # Consider a varaible 'normal' or 'log normal' if Shapiro-Wilks test is over this threshold
   shapiro_wilks_threshold: 0.1
 
-
 #---
 # Dataset: Feature importance / feature selection
 #---
@@ -268,6 +267,17 @@ model:
 
   # Save model validation results to pickle file?
   is_save_validate_pickle: false
+
+  # Class (e.g. from sklearn.metric) to be used when evaluating the model
+  metric_class: ''
+
+  # Max value for a metric score, used to convert from 'score' to 'loss' (loss = metric_class_max - score)
+  metric_class_max: ''
+
+  # Is the metric a score? When no 'metric_class_max' is defined, convert by doing
+  #     loss = -1 * score
+  metric_class_is_score: False
+
 
 #---
 # Cross validation methodology

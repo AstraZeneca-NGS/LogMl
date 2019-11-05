@@ -226,7 +226,7 @@ class Model(MlFiles):
 
     def _loss(self, x, y):
         """ Return a metric loss based on a custom metric """
-        if self.metric_class is None:
+        if self.metric_class is None or self.metric_class == '':
             return None
         # Use the metric class (e.g. from sklearn)
         self._debug(f"Predicting")
@@ -234,7 +234,7 @@ class Model(MlFiles):
         self._debug(f"Evaluating loss function using {self.metric_class}")
         ret = eval(f"{self.metric_class}(y, y_hat)")
         # Do we need to convert a 'score' into a 'loss' (i.e. to minimze)
-        if self.metric_class_max is not None:
+        if self.metric_class_max is not None and self.metric_class_max != '':
             self._debug(f"Converting score to loss: maximum value={self.metric_class_max}")
             ret = self.metric_class_max - ret
         elif self.metric_class_is_score:
