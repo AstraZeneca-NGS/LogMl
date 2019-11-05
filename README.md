@@ -4,17 +4,23 @@
 Log(ML) is a framework that helps automate some steps in machine learning projects.
 
 **Why?**
-There is a considerable amount is setup, boiler-plate code, analysis in every ML project.
+There is a considerable amount is setup, boiler-plate code, analysis in every ML/AI project.
 `Log(ML)` performs most of these boring tasks, so you can focus on what's important and adds value.
 
-**What does Log(ML) do for me?**
-Log(ML) can:
+`Log(ML)` performs a consistent data science pipeline, logging every action and saving all results and models automatically.
+
+**Log(ML) Goals: What does Log(ML) do for me?**
+Log(ML) is designed to:
+- Enforce best practices
+- Perform a set of common, well defined, well tested analysis
+- Quickly turn around the first analysis
 - Facilitates logging in ML projects: No more writing down results in a notepad, `Log(ML)` creates log file in a systematic manner
 - Save models and results: `Log(ML)` saves all your models, so you can always retrieve the best ones.
-- Splitting datasets:
 
-**How does Log(ML) work?**
-`Log(ML)` has a standard "data processing" workflows. These workflows include several steps, such as data preprocessing, data augmentation, data exploration, model training, hyper-parameter search, cross-validation, etc. Each step in the workflow can be customized.
+**Architecture: How does Log(ML) work?**
+`Log(ML)` has standard "data science workflows" (a.k.a. pipelines).
+These workflows include several steps, such as data preprocessing, data augmentation, data exploration, model training, hyper-parameter search, cross-validation, etc.
+Each step in the workflow can be customized either in a configuration YAML file or adding custom Python code.
 
 # Install
 
@@ -47,13 +53,20 @@ The "Main workflow" is the default workflow that `Log(ML)` executes and builds o
 
 Here is a summary of the "Main workflow" steps (details are covered in the next sub-sections):
 
-1. Dataset: load or create dataset, transform, augment, preprocess, split
+1. Dataset:
+	1. Load or Create
+	1. Transform
+	1. Augment
+	1. Preprocess
+	1. Split: training, validation, testing
+	1. Split: inputs & outputs
 1. Training: create model, train, hyper-parameter optimization, cross-validation, etc.
 
 Alternative workflows: These workflows provide additional functionality on top of the "Main workflow"
 1. Hyper parameter optimization
 1. Cross validation
 1. Data exploration
+1. Data feature importance
 1. Model analysis
 
 # Learning by examples

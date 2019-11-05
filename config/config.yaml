@@ -177,6 +177,10 @@ dataset_explore:
   # Do not plot pairs if there are more than 'correlation_analysis_max' variables
   correlation_analysis_max: 100
 
+  # When plotting a histogram, the columns should have at least this number of
+  # unique values to show the 'kernel density estimate' line
+  describe_kde_min_uniq_values: 100
+
   # Do not perform dendogram plot for more than 'dendogram_max' varaibles
   dendogram_max: 100
 
