@@ -135,10 +135,11 @@ class DataExplore(MlFiles):
             xi_no_na = xi[~np.isnan(xi)]  # Remove 'nan'
             df_desc = self.describe(xi_no_na, c)
             descr.add_df(df_desc)
-            bins = min(len(xi_no_na.unique()), max_bins)
+            count_uniq = len(xi_no_na.unique())
+            bins = min(count_uniq, max_bins)
             fig = plt.figure()
             # Create histogram. Only show 'kernel density estimate' if there are more than 'self.describe_min_kde_count' unique values
-            show_kde = (len(xi_no_na.unique()) >= self.describe_kde_min_uniq_values)
+            show_kde = (count_uniq >= self.describe_kde_min_uniq_values)
             sns.distplot(xi_no_na, kde=show_kde, bins=bins)
             self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
         descr.print(f"Describe variables {self.name}")
@@ -146,14 +147,16 @@ class DataExplore(MlFiles):
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
         df_desc = pd.DataFrame(x.describe())
+        # Number of unique values
+        df_uniq = pd.DataFrame({field_name: len(x.unique())}, index=['unique'])
         # Skewness
         df_skew = pd.DataFrame({field_name: scipy.stats.skew(x)}, index=['skewness'])
         # Kurtosis
-        df_kurt = pd.DataFrame({field_name: scipy.stats.skew(x)}, index=['kurtosis'])
+        df_kurt = pd.DataFrame({field_name: scipy.stats.kurtosis(x)}, index=['kurtosis'])
         # Distribution fit
         df_fit = self.distribution_fit(x, field_name)
         # Show all information
-        df_desc = pd.concat([df_desc, df_skew, df_kurt, df_fit])
+        df_desc = pd.concat([df_desc, df_uniq, df_skew, df_kurt, df_fit])
         self.print_all(f"Summary {self.name}: {field_name}", df_desc)
         return df_desc
 
