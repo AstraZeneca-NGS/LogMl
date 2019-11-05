@@ -54,13 +54,90 @@ The "Main workflow" is the default workflow that `Log(ML)` executes and builds o
 Here is a summary of the "Main workflow" steps (details are covered in the next sub-sections):
 
 1. Dataset:
-	1. Load or Create
-	1. Transform
-	1. Augment
-	1. Preprocess
+	1. Load or Create dataset
+	1. Transform:
+		1. Sanitize variables names
+		1. Convert categorical variables
+		1. Expand date/time variables
+		1. perform one-hot encoding
+		1. Remove missing remove missing output
+		1. Remove columns (predefined, low standard deviation)
+	1. Augment: Dataset augmentation
+	1. Preprocess:
+		1. Normalization: `{standard, maxabs, minmax, minmax_neg, log, log1p, quantile}`
+	1. Data Explore:
+		1. Summaries, normality, missing values, histograms, etc.
+		1. Correlation heatmap, top / bottom rank correlated, dendograms, etc.
+		1. Nullity analysis
+	1. Feature importance:
+		1. Model-based column permutation: Random Forest, ExtraTrees, GradientBoosting
+		1. Boruta algorithm
+		1. Model-based drop-column: Random Forest, ExtraTrees, GradientBoosting
+		1. Chi^2
+		1. Mutual information
+		1. SkLearn importance: Random Forest, ExtraTrees, GradientBoosting
+		1. Regularization methods: Lasso, Ridge, Lars (AIC), Lars (BIC)
+		1. Recursive Feature Elimination
+		1. Tree graph
 	1. Split: training, validation, testing
 	1. Split: inputs & outputs
-1. Training: create model, train, hyper-parameter optimization, cross-validation, etc.
+1. Training:
+	1. Create model
+	1. Train
+	1. Hyper-parameter optimization
+	1. Cross-validation
+	1. Model Search
+		1. ada_boost_classifier
+		1. ada_boost_regressor
+		1. ard_regression
+		1. bagging_classifier
+		1. bagging_regressor
+		1. bayesian_ridge
+		1. bernoulli_nb
+		1. complement_nb
+		1. decision_tree_classifier
+		1. decision_tree_regressor
+		1. dummy_classifier_most_frequent
+		1. dummy_classifier_prior
+		1. dummy_classifier_stratified
+		1. dummy_classifier_uniform
+		1. dummy_regressor_mean
+		1. dummy_regressor_median
+		1. elastic_net_cv
+		1. extra_trees_classifier
+		1. extra_trees_regressor
+		1. gaussian_nb
+		1. gradient_boosting_classifier
+		1. gradient_boosting_regressor
+		1. hist_gradient_boosting_classifier
+		1. hist_gradient_boosting_regressor
+		1. huber_regressor
+		1. k_neighbors_classifier
+		1. k_neighbors_regressor
+		1. lars_regression
+		1. lasso_cv_regression
+		1. lasso_regression
+		1. linear_regression
+		1. linear_svc
+		1. linear_svr
+		1. logistic_regression_cv
+		1. multinomial_nb
+		1. nearest_centroid
+		1. nu_svc
+		1. nu_svr
+		1. orthogonal_matching_pursuit_regression
+		1. passive_aggressive_classifier
+		1. perceptron
+		1. radius_neighbors_classifier
+		1. radius_neighbors_regressor
+		1. random_forest_classifier
+		1. random_forest_regressor
+		1. ransac_regressor
+		1. ridge_cv_regression
+		1. ridge_regression
+		1. svc
+		1. svr
+		1. theil_sen_regressor
 
 Alternative workflows: These workflows provide additional functionality on top of the "Main workflow"
 1. Hyper parameter optimization
