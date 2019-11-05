@@ -8,9 +8,10 @@ import traceback
 from sklearn.preprocessing import MinMaxScaler
 
 from ..core.files import MlFiles
+from .feature_importance_model import FeatureImportanceModel
 
 
-class FeatureImportancePermutation(MlFiles):
+class FeatureImportancePermutation(FeatureImportanceModel):
     '''
     Estimate feature importance based on a model.
     How it works: Suffle a column and analyze how model performance is
@@ -18,56 +19,20 @@ class FeatureImportancePermutation(MlFiles):
     worse when shuffled, unimportant features will not affect performance
     '''
 
-    def __init__(self, model, model_name, x, y):
-        self.model = model
-        self.model_name = model_name
-        self.x = x
-        self.y = y
-        self.performance = dict()
-        self.importance = None
-        self.verbose = False
+    def __init__(self, model):
+        super().__init__(model)
 
-    def __call__(self):
-        # Base performance
-        self._debug(f"Feature importance (permutation): Start")
-        x_copy = self.x.copy()
-        score_base = self._loss(x_copy)
-        # Shuffle each column
-        perf = list()
-        cols = list(self.x.columns)
-        cols_count = len(cols)
-        for i in range(cols_count):
-            c = cols[i]
-            # Shuffle column 'c'
-            x_copy = self.x.copy()
-            xi = np.random.permutation(x_copy[c])
-            x_copy[c] = xi
-            # How did it perform
-            score_xi = self._loss(x_copy)
-            # Performance is the score dofference respect to score_base
-            perf_c = score_base - score_xi
-            self._debug(f"Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
-            perf.append(perf_c)
-            self.performance[c] = perf_c
-        # List of items sorted by importance (most important first)
-        self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
-        perf_array = np.array(perf)
-        self.performance_norm = perf_array / score_base if score_base > 0.0 else perf_array
-        self._debug(f"Feature importance (permutation): End")
-        return True
+    def change_dataset(self, col):
+        """ Change datasets for column 'col' """
+        x_val = self.x_val.copy()
+        xi = np.random.permutation(x_val[c])
+        x_val[c] = xi
+        return None, None, x_val, self.y_val
 
-    def plot(self, x=None):
-        " Plot importance distributions "
-        imp_x = np.array([f[0] for f in self.importance])
-        imp_y = np.array([f[1] for f in self.importance])
-        # Show importance bar plot
-        fig = plt.figure()
-        plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance (permutation) {self.model_name}", 'dataset_feature_importance_permutataion', fig, count_vars_y=len(self.performance))
-        # Plot performance values histogram
-        fig = plt.figure()
-        sns.distplot(self.performance_norm)
-        self._plot_show(f"Feature importance (permutation) {self.model_name}: Performance histogram", 'dataset_feature_importance_permutataion_histo', fig)
-
-    def _loss(self, x):
-        return self.model.score(x, self.y)
+    def train_and_loss(self, x_train, y_train, x_val, y_val):
+        """
+        Train (if necesary) and calculate loss
+        In this case, there is no training, just evaluate the loss
+        """
+        model_clone = self.model_clone(x_train, y_train, x_val, y_val)
+        return model_clone.model_eval_validate()

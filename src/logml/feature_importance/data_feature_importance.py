@@ -21,6 +21,7 @@ from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
+from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier, ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier, ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
 from ..util.results_df import ResultsDf
 
 EPSILON = 1.0e-4
@@ -31,7 +32,7 @@ class DataFeatureImportance(MlFiles):
     Perform feature importance / feature selection analysis
     '''
 
-    def __init__(self, datasets, config, model_type, set_config=True):
+    def __init__(self, config, datasets, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
         self.is_dropcol_extra_trees = True
@@ -118,9 +119,7 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance (drop column): Based on '{model_name}'")
         try:
-            x_train, y_train = self.datasets.get_train_xy()
-            x_val, y_val = self.datasets.get_validate_xy()
-            fi = FeatureImportanceDropColumn(model, model_name, x_train, y_train, x_val, y_val)
+            fi = FeatureImportanceDropColumn(model)
             if not fi():
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
@@ -134,9 +133,9 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_model(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model_(self.fit_random_forest(), 'RandomForest', 'random_forest')
-        self.feature_importance_model_(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
-        self.feature_importance_model_(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+        self.feature_importance_model_(self.fit_random_forest(use_logml_model=True), 'RandomForest', 'random_forest')
+        self.feature_importance_model_(self.fit_extra_trees(use_logml_model=True), 'ExtraTrees', 'extra_trees')
+        self.feature_importance_model_(self.fit_gradient_boosting(use_logml_model=True), 'GradientBoosting', 'gradient_boosting')
 
     def feature_importance_model_(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
@@ -156,10 +155,9 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance (permutation): Based on '{model_name}'")
         try:
-            x, y = self.datasets.get_validate_xy()
-            fi = FeatureImportancePermutation(model, model_name, x, y)
+            fi = FeatureImportancePermutation(model)
             if not fi():
-                self._info(f"Could not analyze feature importance (permutataion) using {model_name}")
+                self._info(f"Could not analyze feature importance (permutataion) using {model.model_name}")
                 return
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
@@ -194,36 +192,60 @@ class DataFeatureImportance(MlFiles):
         model.fit(self.x, self.y)
         return model
 
-    def fit_extra_trees(self, n_estimators=100):
+    def fit_extra_trees(self, n_estimators=100, use_logml_model=False):
         ''' Create a ExtraTrees model '''
-        if self.is_regression():
-            m = ExtraTreesRegressor(n_jobs=-1, n_estimators=n_estimators)
-        elif self.is_classification():
-            m = ExtraTreesClassifier(n_jobs=-1, n_estimators=n_estimators)
+        if use_logml_model:
+            if self.is_regression():
+                m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
+            elif self.is_classification():
+                m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
         else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
+            if self.is_regression():
+                m = ExtraTreesRegressor(n_jobs=-1, n_estimators=n_estimators)
+            elif self.is_classification():
+                m = ExtraTreesClassifier(n_jobs=-1, n_estimators=n_estimators)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
         m.fit(self.x, self.y)
         return m
 
-    def fit_gradient_boosting(self):
+    def fit_gradient_boosting(self, use_logml_model=False):
         ''' Create a ExtraTrees model '''
-        if self.is_regression():
-            m = GradientBoostingRegressor()
-        elif self.is_classification():
-            m = GradientBoostingClassifier()
+        if use_logml_model:
+            if self.is_regression():
+                m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
+            elif self.is_classification():
+                m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
         else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
+            if self.is_regression():
+                m = GradientBoostingRegressor()
+            elif self.is_classification():
+                m = GradientBoostingClassifier()
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
         m.fit(self.x, self.y)
         return m
 
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, use_logml_model=False):
         ''' Create a RandomForest model '''
-        if self.is_regression():
-            m = RandomForestRegressor(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-        elif self.is_classification():
-            m = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+        if use_logml_model:
+            if self.is_regression():
+                m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+            elif self.is_classification():
+                m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
         else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
+            if self.is_regression():
+                m = RandomForestRegressor(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+            elif self.is_classification():
+                m = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
         m.fit(self.x, self.y)
         return m
 
