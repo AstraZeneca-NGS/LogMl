@@ -31,6 +31,7 @@ class DataExplore(MlFiles):
         self.corr_thresdold = 0.7
         self.correlation_analysis_max = 100
         self.dendogram_max = 100
+        self.describe_kde_min_uniq_values = 100
         self.df = df
         self.files_base = files_base
         self.is_dendogram = True
@@ -126,7 +127,7 @@ class DataExplore(MlFiles):
         """ Show basic stats and histograms for every column """
         if not self.is_describe_all:
             return
-        dfs = self.keep_uniq()
+        dfs = self.remove_non_numeric_cols(self.df)
         print(f"Plotting histograms for columns {self.name}: {list(dfs.columns)}")
         descr = ResultsDf()
         for c in sorted(dfs.columns):
@@ -136,7 +137,9 @@ class DataExplore(MlFiles):
             descr.add_df(df_desc)
             bins = min(len(xi_no_na.unique()), max_bins)
             fig = plt.figure()
-            sns.distplot(xi_no_na, bins=bins)
+            # Create histogram. Only show 'kernel density estimate' if there are more than 'self.describe_min_kde_count' unique values
+            show_kde = (len(xi_no_na.unique()) >= self.describe_kde_min_uniq_values)
+            sns.distplot(xi_no_na, kde=show_kde, bins=bins)
             self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
         descr.print(f"Describe variables {self.name}")
 
@@ -218,7 +221,7 @@ class DataExplore(MlFiles):
             xi = self.df[c]
             if not self.is_numeric(xi):
                 continue
-            if len(xi.unique()) > min_count:
+            if len(xi.unique()) >= min_count:
                 df_new[c] = xi
         return df_new
 
@@ -265,7 +268,7 @@ class DataExplore(MlFiles):
     def plots_pairs(self):
         if not self.is_plot_pairs:
             return
-        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.keep_uniq()))
+        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.df))
         count_cols = len(df_copy.columns)
         if count_cols == 0:
             self._debug(f"Plot pairs {self.name}: No columns left after removing missing values ({count_cols}), skipping")
@@ -296,7 +299,7 @@ class DataExplore(MlFiles):
 
     def remove_na_cols(self, df):
         """ Remove 'na' columns """
-        # Remove column names ending with '_na'
+        # Remove column names ending with '_na' or '_nan'
         df_copy = df.copy()
         cols_na = [c for c in df.columns if df[c].isna().sum() > 0 or c.endswith('_na') or c.endswith('_nan')]
         if cols_na:
