@@ -49,9 +49,7 @@ User defined functions: This are functions defined by the user and marked with t
 
 `Log(ML)` performs the following series of steps (all of them customizable using Python functions and YAML configuration). `Log(ML)` allows you to define your own custom functions by adding annotations.
 
-The "Main workflow" is the default workflow that `Log(ML)` executes and builds on to provide additional functionality (provided in the "Alternative workflows")
-
-Here is a summary of the "Main workflow" steps (details are covered in the next sub-sections):
+Here is a summary of the workflow steps (details are covered in the next sub-sections):
 
 1. Dataset:
 	1. Load or Create dataset
@@ -148,12 +146,7 @@ Here is a summary of the "Main workflow" steps (details are covered in the next 
 		1. random_forest_classifier
 		1. random_forest_regressor
 
-Alternative workflows: These workflows provide additional functionality on top of the "Main workflow"
-1. Hyper parameter optimization
-1. Cross validation
-1. Data exploration
-1. Data feature importance
-1. Model analysis
+Each section can be enabled / disabled and customized in the YAML configuration file.
 
 # Learning by examples
 
