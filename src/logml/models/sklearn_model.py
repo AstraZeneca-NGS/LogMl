@@ -4,6 +4,9 @@ import sklearn.dummy
 import sklearn.naive_bayes
 import traceback
 
+from sklearn.base import clone
+from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
+
 from .model import Model
 from ..util.etc import camel_to_snake
 
@@ -24,6 +27,13 @@ class SkLearnModel(Model):
             for n in params:
                 self.__dict__[n] = params[n]
                 self._debug(f"Setting {n} = {params[n]}")
+
+    def clone(self):
+        """ Clone the model """
+        model_clone = super().clone()
+        if model_clone.model is not None:
+            model_clone.model = clone(model_clone.model)
+        return model_clone
 
     def default_model_create(self, x, y):
         """ Create real model from SciKit learn """
@@ -63,10 +73,64 @@ class SkLearnModel(Model):
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
             return False
 
-    def _loss(self, x, y):
+    def loss_(self, x, y):
         """ Return the loss """
-        ret = super()._loss(x, y)
+        ret = super().loss_(x, y)
         if ret is not None:
             return ret
         # Use sklearn model's 'score'
         return 1.0 - self.model.score(x, y)
+
+
+class ModelSkExtraTreesRegressor(SkLearnModel):
+    def __init__(self, config, datasets, n_jobs=-1, n_estimators=100):
+        super().__init__(config, datasets, class_name='ModelSkExtraTreesRegressor', params=None, set_config=False)
+        self.model = ExtraTreesRegressor(n_jobs=n_jobs, n_estimators=n_estimators)
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkExtraTreesClassifier(SkLearnModel):
+    def __init__(self, config, datasets, n_jobs=-1, n_estimators=100):
+        super().__init__(config, datasets, class_name='ModelSkExtraTreesClassifier', params=None, set_config=False)
+        self.model = ExtraTreesClassifier(n_jobs=n_jobs, n_estimators=n_estimators)
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkGradientBoostingRegressor(SkLearnModel):
+    def __init__(self, config, datasets):
+        super().__init__(config, datasets, class_name='ModelSkGradientBoostingRegressor', params=None, set_config=False)
+        self.model = GradientBoostingRegressor()
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkGradientBoostingClassifier(SkLearnModel):
+    def __init__(self, config, datasets):
+        super().__init__(config, datasets, class_name='ModelSkGradientBoostingClassifier', params=None, set_config=False)
+        self.model = GradientBoostingClassifier()
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkRandomForestRegressor(SkLearnModel):
+    def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, bootstrap=True):
+        super().__init__(config, datasets, class_name='ModelSkRandomForestRegressor', params=None, set_config=False)
+        self.model = RandomForestRegressor(n_jobs=n_jobs, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkRandomForestClassifier(SkLearnModel):
+    def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, class_weight='balanced', bootstrap=True):
+        super().__init__(config, datasets, class_name='ModelSkRandomForestClassifier', params=None, set_config=False)
+        self.model = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=None, class_weight='balanced', bootstrap=bootstrap)
+
+    def default_model_create(self, x, y):
+        return True

@@ -1,4 +1,5 @@
 
+import copy
 import datetime
 import math
 import numpy as np
@@ -114,6 +115,13 @@ class Model(MlFiles):
         self.model_results.add_row(f"{self.model_class}.{self._id}", model_results)
         return True
 
+    def clone(self):
+        """ Clone the model """
+        model_clone = copy.copy(self)
+        if self.datasets is not None:
+            model_clone.datasets = copy.copy(self.datasets)
+        return model_clone
+
     def _config_sanity_check(self):
         '''
         Check parameters from config.
@@ -129,7 +137,7 @@ class Model(MlFiles):
     def default_model_evaluate(self, x, y, name):
         """ Default implementation for '@model_evaluate' """
         try:
-            ret = self._loss(x, y)
+            ret = self.loss_(x, y)
             if ret is None:
                 self._warning("No default loss function found ('metric_class' parameter is not configured), returning np.inf")
                 ret = np.inf
@@ -167,6 +175,13 @@ class Model(MlFiles):
         ''' Create a file name for training data '''
         self._debug(f"file_type={file_type}, ext='{ext}'")
         return self._get_file_name(self.model_path, self.model_name, file_type, ext, _id=self._id)
+
+    def fit(self, x, y):
+        """ Fit a model (a.k.a model_train) """
+        ret = self.invoke_model_train(x, y)
+        if not ret:
+            ret = self.default_model_train(x, y)
+        return ret
 
     def invoke_model_create(self, x, y):
         " Invoke user defined function '@model_create' "
@@ -224,7 +239,7 @@ class Model(MlFiles):
         res = self._load_pickle(file_name, 'test_results')
         return res
 
-    def _loss(self, x, y):
+    def loss_(self, x, y):
         """ Return a metric loss based on a custom metric """
         if self.metric_class is None or self.metric_class == '':
             return None
@@ -314,9 +329,7 @@ class Model(MlFiles):
             self._warning("Model train: Cannot get training dataset")
             return False
         try:
-            ret = self.invoke_model_train(x, y)
-            if not ret:
-                ret = self.default_model_train(x, y)
+            ret = self.fit(x, y)
             self._debug(f"Model train: End")
             return ret
         except Exception as e:
