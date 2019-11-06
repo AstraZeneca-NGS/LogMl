@@ -22,6 +22,7 @@ class FeatureImportanceModel(MlFiles):
         self.model_name = model.model_name
         self.x_train, self.y_train = model.datasets.get_train_xy()
         self.x_val, self.y_val = model.datasets.get_validate_xy()
+        self.loss_base = None
         self.performance = dict()
         self.importance_name = ''
         self.importance = None
@@ -31,7 +32,7 @@ class FeatureImportanceModel(MlFiles):
         # Base performance
         self._debug(f"Feature importance ({self.importance_name}): Start")
         self.initialize()
-        loss_base = self.loss(self.x_train, self.y_train, self.x_val, self.y_val)
+        self.loss_base = self.loss(self.x_train, self.y_train, self.x_val, self.y_val)
         # Shuffle each column
         perf = list()
         cols = list(self.x_train.columns)
@@ -42,16 +43,16 @@ class FeatureImportanceModel(MlFiles):
             x_train, y_train, x_val, y_val = self.change_dataset(c)
             # Performance after modifying column 'c'
             loss_c = self.loss(x_train, y_train, x_val, y_val)
-            # Performance is the loss difference respect to loss_base
+            # Performance is the loss difference respect to self.loss_base
             # (the higher the loss, the more important the variable)
-            perf_c = loss_c - loss_base
+            perf_c = loss_c - self.loss_base
             self._debug(f"Feature importance ({self.importance_name}): Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
             perf.append(perf_c)
             self.performance[c] = perf_c
         # List of items sorted by importance (most important first)
         self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
         perf_array = np.array(perf)
-        self.performance_norm = perf_array / loss_base if loss_base > 0.0 else perf_array
+        self.performance_norm = perf_array / self.loss_base if self.loss_base > 0.0 else perf_array
         self._debug(f"Feature importance ({self.importance_name}): End")
         return True
 

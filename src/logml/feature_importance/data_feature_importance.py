@@ -70,6 +70,7 @@ class DataFeatureImportance(MlFiles):
         if set_config:
             self._set_from_config()
         self.results = None
+        self.weights = list()
         self.x, self.y = None, None
 
     def boruta(self):
@@ -92,7 +93,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsDf(self.x.columns)
-        self.feature_importance_model()
+        self.feature_importance_models()
         # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
@@ -111,7 +112,7 @@ class DataFeatureImportance(MlFiles):
         self._info("Feature importance / feature selection: End")
         return True
 
-    def feature_importance_drop_column_(self, model, model_name, config_tag):
+    def feature_importance_drop_column(self, model, model_name, config_tag):
         """ Feature importance using 'drop column' analysis """
         conf = f"is_dropcol_{config_tag}"
         if not self.__dict__[conf]:
@@ -125,30 +126,31 @@ class DataFeatureImportance(MlFiles):
                 return
             self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, reversed=True)
+            self.weights.append(fi.loss_base)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
             return False
         return True
 
-    def feature_importance_model(self):
+    def feature_importance_models(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model_(self.fit_random_forest(use_logml_model=True), 'RandomForest', 'random_forest')
-        self.feature_importance_model_(self.fit_extra_trees(use_logml_model=True), 'ExtraTrees', 'extra_trees')
-        self.feature_importance_model_(self.fit_gradient_boosting(use_logml_model=True), 'GradientBoosting', 'gradient_boosting')
+        self.feature_importance_model(self.fit_random_forest(use_logml_model=True), 'RandomForest', 'random_forest')
+        self.feature_importance_model(self.fit_extra_trees(use_logml_model=True), 'ExtraTrees', 'extra_trees')
+        self.feature_importance_model(self.fit_gradient_boosting(use_logml_model=True), 'GradientBoosting', 'gradient_boosting')
 
-    def feature_importance_model_(self, model, model_name, config_tag):
+    def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
         conf = f"is_model_{config_tag}"
         if not self.__dict__[conf]:
             self._debug(f"Feature importance using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         # TODO: Evaluate the model, add weight for each performance
-        self.feature_importance_permutation_(model, model_name, config_tag)
-        self.feature_importance_drop_column_(model, model_name, config_tag)
-        self.feature_importance_skmodel_(model.model, model_name, config_tag)
+        self.feature_importance_permutation(model, model_name, config_tag)
+        self.feature_importance_drop_column(model, model_name, config_tag)
+        self.feature_importance_skmodel(model.model, model_name, config_tag)
 
-    def feature_importance_permutation_(self, model, model_name, config_tag):
+    def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
         conf = f"is_permutataion_{config_tag}"
         if not self.__dict__[conf]:
@@ -162,13 +164,14 @@ class DataFeatureImportance(MlFiles):
                 return
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
+            self.weights.append(fi.loss_base)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
             return False
         return True
 
-    def feature_importance_skmodel_(self, model, model_name, config_tag):
+    def feature_importance_skmodel(self, model, model_name, config_tag):
         ''' Show model built-in feature importance '''
         conf = f"is_skmodel_{config_tag}"
         if not self.__dict__[conf]:
@@ -177,6 +180,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance: Based on SkLean '{model_name}'")
         self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
+        self.weights.append(!!!!!!!!)
 
     def fit_lars_aic(self):
         # TODO: Convert to LogMl Model, evaluate on validation to set weight
