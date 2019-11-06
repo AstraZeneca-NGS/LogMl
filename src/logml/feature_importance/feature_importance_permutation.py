@@ -25,14 +25,19 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     def change_dataset(self, col):
         """ Change datasets for column 'col' """
         x_val = self.x_val.copy()
-        xi = np.random.permutation(x_val[c])
-        x_val[c] = xi
+        xi = np.random.permutation(x_val[col])
+        x_val[col] = xi
         return None, None, x_val, self.y_val
 
-    def train_and_loss(self, x_train, y_train, x_val, y_val):
+    def initialize(self):
+        """ Initialzie the model (the model is trained only once) """
+        self.model.fit(self.x_train, self.y_train)
+
+    def loss(self, x_train, y_train, x_val, y_val):
         """
         Train (if necesary) and calculate loss
         In this case, there is no training, just evaluate the loss
         """
-        model_clone = self.model_clone(x_train, y_train, x_val, y_val)
-        return model_clone.model_eval_validate()
+        self.model_set_datasets(self.model, x_train, y_train, x_val, y_val)
+        self.model.model_eval_validate()
+        return self.model.eval_validate

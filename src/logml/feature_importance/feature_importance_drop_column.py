@@ -11,7 +11,7 @@ from ..core.files import MlFiles
 from .feature_importance_model import FeatureImportanceModel
 
 
-class FeatureImportanceDropColumn(MlFiles):
+class FeatureImportanceDropColumn(FeatureImportanceModel):
     '''
     Estimate feature importance based on a model.
     How it works: Drops a single column, re-train and analyze how model performance
@@ -25,15 +25,17 @@ class FeatureImportanceDropColumn(MlFiles):
 
     def change_dataset(self, col):
         """ Change datasets for column 'col' """
-        x_train = self.x_train.drop(c, axis=1)
-        x_val = self.x_val.drop(c, axis=1)
+        x_train = self.x_train.drop(col, axis=1)
+        x_val = self.x_val.drop(col, axis=1)
         return x_train, self.y_train, x_val, self.y_val
 
-    def train_and_loss(self, x_train, y_train, x_val, y_val):
+    def loss(self, x_train, y_train, x_val, y_val):
         """
         Train (if necesary) and calculate loss
         In this case, there is no training, just calculate the loss
         """
-        model_clone = self.model_clone(x_train, y_train, x_val, y_val)
+        model_clone = self.model.clone()
+        self.model_set_datasets(model_clone, x_train, y_train, x_val, y_val)
         model_clone.model_train()
-        return model_clone.model_eval_validate()
+        model_clone.model_eval_validate()
+        return model_clone.eval_validate

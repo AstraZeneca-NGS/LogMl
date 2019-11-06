@@ -9,7 +9,7 @@ from sklearn.base import clone
 from sklearn.preprocessing import MinMaxScaler
 
 from ..core.files import MlFiles
-
+from ..datasets import InOut
 
 class FeatureImportanceModel(MlFiles):
     '''
@@ -17,7 +17,7 @@ class FeatureImportanceModel(MlFiles):
     '''
 
     def __init__(self, model):
-        self.model = model
+        self.model = model.clone()
         self.model_name = model.model_name
         self.x_train, self.y_train = model.datasets.get_train_xy()
         self.x_val, self.y_val = model.datasets.get_validate_xy()
@@ -29,7 +29,8 @@ class FeatureImportanceModel(MlFiles):
     def __call__(self):
         # Base performance
         self._debug(f"Feature importance ({self.importance_name}): Start")
-        loss_base = self.train_and_loss(self.x_train, self.y_train, self.x_val, self.y_val)
+        self.initialize()
+        loss_base = self.loss(self.x_train, self.y_train, self.x_val, self.y_val)
         # Shuffle each column
         perf = list()
         cols = list(self.x_train.columns)
@@ -39,9 +40,9 @@ class FeatureImportanceModel(MlFiles):
             # Change dataset
             x_train, y_train, x_val, y_val = self.change_dataset(c)
             # Performance after modifying column 'c'
-            loss_c = self.train_and_loss(x_train, y_train, x_val, y_val)
+            loss_c = self.loss(x_train, y_train, x_val, y_val)
             # Performance is the loss difference respect to loss_base
-            # (the higher the losss, the more important the variable)
+            # (the higher the loss, the more important the variable)
             perf_c = loss_c - loss_base
             self._debug(f"Feature importance ({self.importance_name}): Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
             perf.append(perf_c)
@@ -57,13 +58,18 @@ class FeatureImportanceModel(MlFiles):
         """ Change datasets for column 'col' """
         raise Exception("Unimplemented!")
 
-    def model_clone(self, x_train, y_train, x_val, y_val):
+    def initialize(self):
+        pass
+
+    def loss(self, x_train, y_train, x_val, y_val):
+        """ Train (if necesary) and calculate loss """
+        raise Exception("Unimplemented!")
+
+    def model_set_datasets(self, model, x_train, y_train, x_val, y_val):
         """ Create a model clone, update datasets """
-        model_clone = self.model.clone()
         # Update datasets
-        model_clone.datasets.train_xy = (x_train, y_train)
-        model_clone.datasets.dataset_validate_xy = (x_val, y_val)
-        return model_clone
+        model.datasets.dataset_train_xy = InOut(x_train, y_train)
+        model.datasets.dataset_validate_xy = InOut(x_val, y_val)
 
     def plot(self, x=None):
         " Plot importance distributions "
@@ -77,7 +83,3 @@ class FeatureImportanceModel(MlFiles):
         fig = plt.figure()
         sns.distplot(self.performance_norm)
         self._plot_show(f"Feature importance ({self.importance_name}) {self.model_name}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
-
-    def train_and_loss(self, x_train, y_train, x_val, y_val):
-        """ Train (if necesary) and calculate loss """
-        raise Exception("Unimplemented!")
