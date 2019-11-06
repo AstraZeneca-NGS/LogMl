@@ -11,6 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 from ..core.files import MlFiles
 from ..datasets import InOut
 
+
 class FeatureImportanceModel(MlFiles):
     '''
     Estimate feature importance based on a model.

@@ -143,6 +143,7 @@ class DataFeatureImportance(MlFiles):
         if not self.__dict__[conf]:
             self._debug(f"Feature importance using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
+        # TODO: Evaluate the model, add weight for each performance
         self.feature_importance_permutation_(model, model_name, config_tag)
         self.feature_importance_drop_column_(model, model_name, config_tag)
         self.feature_importance_skmodel_(model.model, model_name, config_tag)
@@ -178,16 +179,19 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
 
     def fit_lars_aic(self):
+        # TODO: Convert to LogMl Model, evaluate on validation to set weight
         model = LassoLarsIC(criterion='aic')
         model.fit(self.x, self.y)
         return model
 
     def fit_lars_bic(self):
+        # TODO: Convert to LogMl Model, evaluate on validation to set weight
         model = LassoLarsIC(criterion='bic')
         model.fit(self.x, self.y)
         return model
 
     def fit_lasso(self):
+        # TODO: Convert to LogMl Model, evaluate on validation to set weight
         model = LassoCV(cv=self.regularization_model_cv)
         model.fit(self.x, self.y)
         return model
@@ -250,6 +254,7 @@ class DataFeatureImportance(MlFiles):
         return m
 
     def fit_ridge(self):
+        # TODO: Convert to LogMl Model, evaluate on validation to set weight
         model = RidgeCV(cv=self.regularization_model_cv)
         model.fit(self.x, self.y)
         return model
@@ -366,6 +371,8 @@ class DataFeatureImportance(MlFiles):
         Use different functions, depending on model_type and inputs
         '''
         # Select functions to use, defined as dictionary {function: has_pvalue}
+        # TODO: How do we weight these values?
+        #       Quick options: No weight or average
         if not self.is_select:
             return True
         if self.is_regression():
@@ -384,13 +391,12 @@ class DataFeatureImportance(MlFiles):
 
     def select_f(self, score_function, has_pvalue):
         ''' Select features using FDR (False Discovery Rate) or K-best '''
-        # skb = SelectFdr(score_func=score_function, k="all")
         fname = score_function.__name__
-        self._debug(f"Select FDR: '{fname}'")
-        # select = SelectFdr(score_func=score_function)
         if has_pvalue:
+            self._debug(f"Select FDR: '{fname}'")
             select = SelectFdr(score_func=score_function)
         else:
+            self._debug(f"Select K-Best: '{fname}'")
             select = SelectKBest(score_func=score_function, k='all')
         fit = select.fit(self.x, self.y)
         keep = select.get_support()
