@@ -180,7 +180,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance: Based on SkLean '{model_name}'")
         self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
-        self.weights.append(!!!!!!!!)
+        # self.weights.append(!!!!!!!!)
 
     def fit_lars_aic(self):
         # TODO: Convert to LogMl Model, evaluate on validation to set weight
