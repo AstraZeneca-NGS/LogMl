@@ -70,8 +70,18 @@ class DataFeatureImportance(MlFiles):
         if set_config:
             self._set_from_config()
         self.results = None
-        self.weights = list()
+        self.weights = dict()
         self.x, self.y = None, None
+
+    def add_result_value(self, name, values, weight=None):
+        self.results.add_col(name, value)
+        if weight is not None:
+            self.weights[name] = weight
+
+    def add_result_value_rank(self, name, values, weight=None, reversed=False):
+        self.results.add_col_rank(name, values, reversed=reversed)
+        if weight is not None:
+            self.weights[name] = weight
 
     def boruta(self):
         ''' Calculate feature improtance using Boruta algorithm '''
@@ -82,8 +92,8 @@ class DataFeatureImportance(MlFiles):
         model = self.fit_random_forest()
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
         boruta.fit(self.x, self.y)
-        self.results.add_col('boruta_support', boruta.support_)
-        self.results.add_col('boruta_rank', boruta.ranking_)
+        self.add_result_value('boruta_support', boruta.support_)
+        self.add_result_value_rank('boruta_rank', boruta.ranking_)
 
     def __call__(self):
         ''' Feature importance '''
@@ -124,9 +134,8 @@ class DataFeatureImportance(MlFiles):
             if not fi():
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
-            self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, reversed=True)
-            self.weights.append(fi.loss_base)
+            self.add_result_value(f"importance_dropcol_{model_name}", fi.performance_norm)
+            self.add_result_value_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
@@ -162,9 +171,8 @@ class DataFeatureImportance(MlFiles):
             if not fi():
                 self._info(f"Could not analyze feature importance (permutataion) using {model.model_name}")
                 return
-            self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
-            self.weights.append(fi.loss_base)
+            self.add_result_value(f"importance_permutation_{model_name}", fi.performance_norm)
+            self.add_result_value_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
@@ -178,9 +186,8 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance: Based on SkLean '{model_name}'")
-        self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
-        # self.weights.append(!!!!!!!!)
+        self.add_result_value(f"importance_skmodel_{model_name}", model.feature_importances_)
+        self.add_result_value_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
 
     def fit_lars_aic(self):
         # TODO: Convert to LogMl Model, evaluate on validation to set weight
@@ -339,7 +346,7 @@ class DataFeatureImportance(MlFiles):
         else:
             rfe = RFE(model, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
-        self.results.add_col(f"rfe_{model_name}", fit.ranking_)
+        self.add_result_value(f"rfe_rank_{model_name}", fit.ranking_)
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
@@ -365,8 +372,8 @@ class DataFeatureImportance(MlFiles):
             model_name = model.__class__.__name__
         self._info(f"Feature importance: Regularization '{model_name}'")
         imp = np.abs(model.coef_)
-        self.results.add_col(f"regularization_coef_{model_name}", imp)
-        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, reversed=True)
+        self.add_result_value(f"regularization_coef_{model_name}", imp)
+        self.add_result_value_rank(f"regularization_rank_{model_name}", imp, reversed=True)
         return model
 
     def select(self):
@@ -405,11 +412,11 @@ class DataFeatureImportance(MlFiles):
         fit = select.fit(self.x, self.y)
         keep = select.get_support()
         field_name = f"scores_{fname}"
-        self.results.add_col(f"selectf_scores_{fname}", select.scores_)
+        self.add_result_value(f"selectf_scores_{fname}", select.scores_)
         if has_pvalue:
-            self.results.add_col(f"selectf_p_values_{fname}", select.pvalues_)
-            self.results.add_col(f"selectf_keep_{fname}", keep)
-        self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
+            self.add_result_value(f"selectf_p_values_{fname}", select.pvalues_)
+            self.add_result_value(f"selectf_keep_{fname}", keep)
+        self.add_result_value_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
     def tree_graph(self, file_dot=None, file_png=None):
         """ Simple tree representation """

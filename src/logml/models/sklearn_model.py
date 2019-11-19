@@ -118,6 +118,33 @@ class ModelSkGradientBoostingClassifier(SkLearnModel):
         return True
 
 
+class ModelSkLassoCV(SkLearnModel):
+    def __init__(self, config, datasets, cv):
+        super().__init__(config, datasets, class_name='ModelSkLassoCV', params=None, set_config=False)
+        self.model = LassoCV(cv=cv)
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkLassoLarsAIC(SkLearnModel):
+    def __init__(self, config, datasets):
+        super().__init__(config, datasets, class_name='ModelSkLassoLarsAIC', params=None, set_config=False)
+        self.model = LassoLarsIC(criterion='aic')
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkLassoLarsBIC(SkLearnModel):
+    def __init__(self, config, datasets):
+        super().__init__(config, datasets, class_name='ModelSkLassoLarsBIC', params=None, set_config=False)
+        self.model = LassoLarsIC(criterion='bic')
+
+    def default_model_create(self, x, y):
+        return True
+
+
 class ModelSkRandomForestRegressor(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, bootstrap=True):
         super().__init__(config, datasets, class_name='ModelSkRandomForestRegressor', params=None, set_config=False)
