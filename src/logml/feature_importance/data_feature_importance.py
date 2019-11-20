@@ -24,6 +24,7 @@ from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTrees
 from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
 from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsAIC, ModelSkLassoCV
 from ..models.sklearn_model import ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
+from ..models.sklearn_model import ModelSkRidgeCV
 from ..util.results_df import ResultsRankDf
 
 EPSILON = 1.0e-4
@@ -126,6 +127,7 @@ class DataFeatureImportance(MlFiles):
             if not fi():
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
+            self._info(f"Feature importance (drop column), {model_name} , weight {fi.loss_base}")
             self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
@@ -162,6 +164,7 @@ class DataFeatureImportance(MlFiles):
             if not fi():
                 self._info(f"Could not analyze feature importance (permutataion) using {model.model_name}")
                 return
+            self._info(f"Feature importance (permutataion), {model_name} , weight {fi.loss_base}")
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
@@ -173,12 +176,13 @@ class DataFeatureImportance(MlFiles):
     def feature_importance_skmodel(self, model, model_name, config_tag):
         ''' Show model built-in feature importance '''
         conf = f"is_skmodel_{config_tag}"
+        weight = model.model_eval_validate()
         if not self.__dict__[conf]:
             self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._info(f"Feature importance: Based on SkLean '{model_name}'")
+        self._info(f"Feature importance: Based on SkLean '{model_name}', weight {weight}")
         self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, weight=weight, reversed=True)
 
     def fit_lars_aic(self):
         model = ModelSkLassoLarsAIC(self.config, self.datasets)
@@ -315,12 +319,14 @@ class DataFeatureImportance(MlFiles):
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
         self._info(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
+        weight = model.model_eval_validate()
         skmodel = model.model
         if self.rfe_model_cv > 1:
             rfe = RFECV(skmodel, min_features_to_select=1, cv=self.rfe_model_cv)
         else:
             rfe = RFE(skmodel, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
+        self._info(f"Feature importance: Recursive Feature Elimination '{model_name}', weight {weight}")
         self.results.add_col(f"rfe_rank_{model_name}", fit.ranking_)
 
     def regularization_models(self):
@@ -344,9 +350,10 @@ class DataFeatureImportance(MlFiles):
     def regularization_model(self, model, model_name=None):
         ''' Fit a modelularization model and show non-zero coefficients '''
         skmodel = model.model
+        weight = model.model_eval_validate()
         if not model_name:
             model_name = skmodel.__class__.__name__
-        self._info(f"Feature importance: Regularization '{model_name}'")
+        self._info(f"Feature importance: Regularization '{model_name}, weight {weight}'")
         imp = np.abs(skmodel.coef_)
         self.results.add_col(f"regularization_coef_{model_name}", imp)
         self.results.add_col_rank(f"regularization_rank_{model_name}", imp, reversed=True)

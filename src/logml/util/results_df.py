@@ -65,6 +65,8 @@ class ResultsRankDf(ResultsDf):
         ranks = s.rank(ascending=not reversed, na_option='bottom')
         self.add_col(name, ranks)
         if weight is not None:
+            if weight <= 0.0:
+                raise ValueError(f"Weight should be a positive number, got {weight}")
             self.weights[name] = weight
 
     def add_rank_of_ranksum(self):

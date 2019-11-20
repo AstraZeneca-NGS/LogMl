@@ -80,8 +80,8 @@ class FeatureImportanceModel(MlFiles):
         # Show bar plot
         fig = plt.figure()
         plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance ({self.importance_name}) {self.model_type}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
+        self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
         # Plot performance histogram
         fig = plt.figure()
         sns.distplot(self.performance_norm)
-        self._plot_show(f"Feature importance ({self.importance_name}) {self.model_type}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
+        self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
