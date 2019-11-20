@@ -17,9 +17,9 @@ class FeatureImportanceModel(MlFiles):
     Estimate feature importance based on a model.
     '''
 
-    def __init__(self, model):
+    def __init__(self, model, model_type):
         self.model = model.clone()
-        self.model_name = model.model_name
+        self.model_type = model_type
         self.x_train, self.y_train = model.datasets.get_train_xy()
         self.x_val, self.y_val = model.datasets.get_validate_xy()
         self.loss_base = None
@@ -30,7 +30,7 @@ class FeatureImportanceModel(MlFiles):
 
     def __call__(self):
         # Base performance
-        self._debug(f"Feature importance ({self.importance_name}): Start")
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
         self.loss_base = self.loss(self.x_train, self.y_train, self.x_val, self.y_val)
         # Shuffle each column
@@ -46,14 +46,14 @@ class FeatureImportanceModel(MlFiles):
             # Performance is the loss difference respect to self.loss_base
             # (the higher the loss, the more important the variable)
             perf_c = loss_c - self.loss_base
-            self._debug(f"Feature importance ({self.importance_name}): Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
+            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
             perf.append(perf_c)
             self.performance[c] = perf_c
         # List of items sorted by importance (most important first)
         self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
         perf_array = np.array(perf)
         self.performance_norm = perf_array / self.loss_base if self.loss_base > 0.0 else perf_array
-        self._debug(f"Feature importance ({self.importance_name}): End")
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
         return True
 
     def change_dataset(self, col):
@@ -80,8 +80,8 @@ class FeatureImportanceModel(MlFiles):
         # Show bar plot
         fig = plt.figure()
         plt.barh(imp_x, imp_y)
-        self._plot_show(f"Feature importance ({self.importance_name}) {self.model_name}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
+        self._plot_show(f"Feature importance ({self.importance_name}) {self.model_type}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
         # Plot performance histogram
         fig = plt.figure()
         sns.distplot(self.performance_norm)
-        self._plot_show(f"Feature importance ({self.importance_name}) {self.model_name}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
+        self._plot_show(f"Feature importance ({self.importance_name}) {self.model_type}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)

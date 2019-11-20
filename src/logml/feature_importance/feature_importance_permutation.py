@@ -19,8 +19,9 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     worse when shuffled, unimportant features will not affect performance
     '''
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, model_name):
+        super().__init__(model, model_name)
+        self.importance_name = 'permutataion'
 
     def change_dataset(self, col):
         """ Change datasets for column 'col' """
