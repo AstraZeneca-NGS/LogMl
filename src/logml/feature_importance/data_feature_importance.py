@@ -333,7 +333,7 @@ class DataFeatureImportance(MlFiles):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
         if not self.is_regression():
             return
-        self._info(f"Feature importance: Regularization")
+        self._debug(f"Feature importance: Regularization")
         # LassoCV
         if self.is_regularization_lasso:
             lassocv = self.regularization_model(self.fit_lasso())
