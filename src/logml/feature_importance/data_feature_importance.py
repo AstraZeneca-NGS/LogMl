@@ -21,7 +21,10 @@ from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
-from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier, ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier, ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
+from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
+from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
+from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsAIC, ModelSkLassoCV
+from ..models.sklearn_model import ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
 from ..util.results_df import ResultsDf
 
 EPSILON = 1.0e-4
@@ -74,7 +77,7 @@ class DataFeatureImportance(MlFiles):
         self.x, self.y = None, None
 
     def add_result_value(self, name, values, weight=None):
-        self.results.add_col(name, value)
+        self.results.add_col(name, values)
         if weight is not None:
             self.weights[name] = weight
 
@@ -135,7 +138,7 @@ class DataFeatureImportance(MlFiles):
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
             self.add_result_value(f"importance_dropcol_{model_name}", fi.performance_norm)
-            self.add_result_value_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, True)
+            self.add_result_value_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
@@ -189,23 +192,51 @@ class DataFeatureImportance(MlFiles):
         self.add_result_value(f"importance_skmodel_{model_name}", model.feature_importances_)
         self.add_result_value_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
 
-    def fit_lars_aic(self):
+    def fit_lars_aic(self, use_logml_model=False):
         # TODO: Convert to LogMl Model, evaluate on validation to set weight
-        model = LassoLarsIC(criterion='aic')
+        if use_logml_model:
+            model = ModelSkLassoLarsAIC(self.config, self.datasets)
+        else:
+            model = LassoLarsIC(criterion='aic')
         model.fit(self.x, self.y)
         return model
 
-    def fit_lars_bic(self):
+    def fit_lars_bic(self, use_logml_model=False):
         # TODO: Convert to LogMl Model, evaluate on validation to set weight
-        model = LassoLarsIC(criterion='bic')
+        if use_logml_model:
+            model = ModelSkLassoLarsBIC(self.config, self.datasets)
+        else:
+            model = LassoLarsIC(criterion='bic')
         model.fit(self.x, self.y)
         return model
 
-    def fit_lasso(self):
+    def fit_lasso(self, use_logml_model=False):
         # TODO: Convert to LogMl Model, evaluate on validation to set weight
-        model = LassoCV(cv=self.regularization_model_cv)
+        if use_logml_model:
+            model = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
+        else:
+            model = LassoCV(cv=self.regularization_model_cv)
         model.fit(self.x, self.y)
         return model
+
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, use_logml_model=False):
+        ''' Create a RandomForest model '''
+        if use_logml_model:
+            if self.is_regression():
+                m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+            elif self.is_classification():
+                m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
+        else:
+            if self.is_regression():
+                m = RandomForestRegressor(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+            elif self.is_classification():
+                m = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+            else:
+                raise Exception(f"Unknown model type '{self.model_type}'")
+        m.fit(self.x, self.y)
+        return m
 
     def fit_extra_trees(self, n_estimators=100, use_logml_model=False):
         ''' Create a ExtraTrees model '''

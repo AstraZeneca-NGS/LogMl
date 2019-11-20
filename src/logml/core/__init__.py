@@ -12,6 +12,7 @@ from .config import CONFIG_MODEL
 from .config import CONFIG_MODEL_SEARCH
 from .config import CONFIG_MODEL_ANALYSIS
 from .log import MlLog
+from .logml import LogMl
 from .registry import dataset_augment
 from .registry import dataset_create
 from .registry import dataset_inout
@@ -39,7 +40,8 @@ __all__ = ['Config',
            'CONFIG_MODEL',
            'CONFIG_MODEL_SEARCH',
            'CONFIG_MODEL_ANALYSIS',
-            'MlLog',
+           'LogMl',
+           'MlLog',
            'dataset_augment',
            'dataset_create',
            'dataset_inout',
