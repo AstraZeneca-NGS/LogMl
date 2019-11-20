@@ -10,4 +10,4 @@ source ./bin/activate
 rm -rvf data/linear3c/linear3c.pkl data/linear3c/model
 
 # Run LogMl
-time ./src/logml.py -d -v -c config/zzz.yaml 2>&1 | tee run_zzz.out
+time ./src/logml.py -v -c config/zzz.yaml 2>&1 | tee run_zzz.out
