@@ -22,9 +22,8 @@ from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
 from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
 from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
-from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsAIC, ModelSkLassoCV
+from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkRidgeCV
 from ..models.sklearn_model import ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
-from ..models.sklearn_model import ModelSkRidgeCV
 from ..util.results_df import ResultsRankDf
 
 EPSILON = 1.0e-4
@@ -138,9 +137,9 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_models(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model(self.fit_random_forest(use_logml_model=True), 'RandomForest', 'random_forest')
-        self.feature_importance_model(self.fit_extra_trees(use_logml_model=True), 'ExtraTrees', 'extra_trees')
-        self.feature_importance_model(self.fit_gradient_boosting(use_logml_model=True), 'GradientBoosting', 'gradient_boosting')
+        self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
 
     def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
@@ -150,7 +149,7 @@ class DataFeatureImportance(MlFiles):
             return
         self.feature_importance_permutation(model, model_name, config_tag)
         self.feature_importance_drop_column(model, model_name, config_tag)
-        self.feature_importance_skmodel(model.model, model_name, config_tag)
+        self.feature_importance_skmodel(model, model_name, config_tag)
 
     def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
@@ -176,30 +175,31 @@ class DataFeatureImportance(MlFiles):
     def feature_importance_skmodel(self, model, model_name, config_tag):
         ''' Show model built-in feature importance '''
         conf = f"is_skmodel_{config_tag}"
-        weight = model.model_eval_validate()
+        weight = model.eval_validate if model.model_eval_validate() else None
+        skmodel = model.model
         if not self.__dict__[conf]:
             self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance: Based on SkLean '{model_name}', weight {weight}")
-        self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, weight=weight, reversed=True)
+        self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
 
     def fit_lars_aic(self):
         model = ModelSkLassoLarsAIC(self.config, self.datasets)
         model.fit(self.x, self.y)
         return model
 
-    def fit_lars_bic(self, use_logml_model=False):
+    def fit_lars_bic(self):
         model = ModelSkLassoLarsBIC(self.config, self.datasets)
         model.fit(self.x, self.y)
         return model
 
-    def fit_lasso(self, use_logml_model=False):
+    def fit_lasso(self):
         model = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
         model.fit(self.x, self.y)
         return model
 
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, use_logml_model=False):
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
         ''' Create a RandomForest model '''
         if self.is_regression():
             m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
@@ -210,7 +210,7 @@ class DataFeatureImportance(MlFiles):
         m.fit(self.x, self.y)
         return m
 
-    def fit_extra_trees(self, n_estimators=100, use_logml_model=False):
+    def fit_extra_trees(self, n_estimators=100):
         ''' Create a ExtraTrees model '''
         if self.is_regression():
             m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
@@ -221,7 +221,7 @@ class DataFeatureImportance(MlFiles):
         m.fit(self.x, self.y)
         return m
 
-    def fit_gradient_boosting(self, use_logml_model=False):
+    def fit_gradient_boosting(self):
         ''' Create a ExtraTrees model '''
         if self.is_regression():
             m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
@@ -232,7 +232,7 @@ class DataFeatureImportance(MlFiles):
         m.fit(self.x, self.y)
         return m
 
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, use_logml_model=False):
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
         ''' Create a RandomForest model '''
         if self.is_regression():
             m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
@@ -318,8 +318,8 @@ class DataFeatureImportance(MlFiles):
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
-        self._info(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
-        weight = model.model_eval_validate()
+        self._debug(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
+        weight = model.eval_validate if model.model_eval_validate() else None
         skmodel = model.model
         if self.rfe_model_cv > 1:
             rfe = RFECV(skmodel, min_features_to_select=1, cv=self.rfe_model_cv)
@@ -350,7 +350,7 @@ class DataFeatureImportance(MlFiles):
     def regularization_model(self, model, model_name=None):
         ''' Fit a modelularization model and show non-zero coefficients '''
         skmodel = model.model
-        weight = model.model_eval_validate()
+        weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:
             model_name = skmodel.__class__.__name__
         self._info(f"Feature importance: Regularization '{model_name}, weight {weight}'")
@@ -409,9 +409,10 @@ class DataFeatureImportance(MlFiles):
         file_dot = self.datasets.get_file_name('tree_graph', ext=f"dot") if file_dot is None else file_dot
         file_png = self.datasets.get_file_name('tree_graph', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
-        m = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
+        model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
+        skmodel = model.model
         # Export the tree to a graphviz 'dot' format
-        str_tree = export_graphviz(m.estimators_[0],
+        str_tree = export_graphviz(skmodel.estimators_[0],
                                    out_file=file_dot,
                                    feature_names=self.x.columns,
                                    filled=True,
