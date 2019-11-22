@@ -14,22 +14,32 @@ from boruta import BorutaPy
 from IPython.core.display import Image, display
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
 from sklearn.feature_selection import SelectFdr, SelectKBest, chi2, f_classif, f_regression, mutual_info_classif, mutual_info_regression, RFE, RFECV
-from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
 from sklearn.tree import export_graphviz
 
 from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
-from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier, ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier, ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
-from ..util.results_df import ResultsDf
+from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
+from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
+from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkRidgeCV
+from ..models.sklearn_model import ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
+from ..util.results_df import ResultsRankDf
 
 EPSILON = 1.0e-4
 
 
 class DataFeatureImportance(MlFiles):
     '''
-    Perform feature importance / feature selection analysis
+    Perform feature importance / feature selection analysis.
+
+    We perform several different approaches using "classic statistics" as
+    well as "model based" approaches.
+
+    Model-based methods, such as "drop column" or "permutataion", is weighted
+    according to the "loss" of the model (on the validation dataset). This means
+    that poorly performing models will contribute less than better performing
+    models.
     '''
 
     def __init__(self, config, datasets, model_type, set_config=True):
@@ -70,6 +80,7 @@ class DataFeatureImportance(MlFiles):
         if set_config:
             self._set_from_config()
         self.results = None
+        self.weights = dict()
         self.x, self.y = None, None
 
     def boruta(self):
@@ -82,7 +93,7 @@ class DataFeatureImportance(MlFiles):
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
         boruta.fit(self.x, self.y)
         self.results.add_col('boruta_support', boruta.support_)
-        self.results.add_col('boruta_rank', boruta.ranking_)
+        self.results.add_col_rank('boruta_rank', boruta.ranking_)
 
     def __call__(self):
         ''' Feature importance '''
@@ -91,8 +102,8 @@ class DataFeatureImportance(MlFiles):
             return True
         self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
-        self.results = ResultsDf(self.x.columns)
-        self.feature_importance_model()
+        self.results = ResultsRankDf(self.x.columns)
+        self.feature_importance_models()
         # FIXME:  self.boruta()
         self.regularization_models()
         self.select()
@@ -105,13 +116,18 @@ class DataFeatureImportance(MlFiles):
         # Display results
         self.results.sort('rank_of_ranksum')
         self.results.print("Feature importances")
+        weights = self.results.get_weights_table()
+        weights.print("Feature importance weights")
         # Save results
-        file_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
-        self._save_csv(file_csv, "Dataset feature importance", self.results.df, save_index=True)
+        fimp_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
+        fimp_weights_csv = self.datasets.get_file_name('feature_importance_weights', ext=f"csv")
+        self._info(f"Feature importance / feature selection: Saving results to '{fimp_csv}', saving weights to {fimp_weights_csv}")
+        self._save_csv(fimp_csv, "Dataset feature importance", self.results.df, save_index=True)
+        self._save_csv(fimp_weights_csv, "Dataset feature importance weights", weights.df, save_index=True)
         self._info("Feature importance / feature selection: End")
         return True
 
-    def feature_importance_drop_column_(self, model, model_name, config_tag):
+    def feature_importance_drop_column(self, model, model_name, config_tag):
         """ Feature importance using 'drop column' analysis """
         conf = f"is_dropcol_{config_tag}"
         if not self.__dict__[conf]:
@@ -119,35 +135,36 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance (drop column): Based on '{model_name}'")
         try:
-            fi = FeatureImportanceDropColumn(model)
+            fi = FeatureImportanceDropColumn(model, model_name)
             if not fi():
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
+            self._info(f"Feature importance (drop column), {model_name} , weight {fi.loss_base}")
             self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, reversed=True)
+            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
             return False
         return True
 
-    def feature_importance_model(self):
+    def feature_importance_models(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model_(self.fit_random_forest(use_logml_model=True), 'RandomForest', 'random_forest')
-        self.feature_importance_model_(self.fit_extra_trees(use_logml_model=True), 'ExtraTrees', 'extra_trees')
-        self.feature_importance_model_(self.fit_gradient_boosting(use_logml_model=True), 'GradientBoosting', 'gradient_boosting')
+        self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
 
-    def feature_importance_model_(self, model, model_name, config_tag):
+    def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
         conf = f"is_model_{config_tag}"
         if not self.__dict__[conf]:
             self._debug(f"Feature importance using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self.feature_importance_permutation_(model, model_name, config_tag)
-        self.feature_importance_drop_column_(model, model_name, config_tag)
-        self.feature_importance_skmodel_(model.model, model_name, config_tag)
+        self.feature_importance_permutation(model, model_name, config_tag)
+        self.feature_importance_drop_column(model, model_name, config_tag)
+        self.feature_importance_skmodel(model, model_name, config_tag)
 
-    def feature_importance_permutation_(self, model, model_name, config_tag):
+    def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
         conf = f"is_permutataion_{config_tag}"
         if not self.__dict__[conf]:
@@ -155,102 +172,92 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance (permutation): Based on '{model_name}'")
         try:
-            fi = FeatureImportancePermutation(model)
+            fi = FeatureImportancePermutation(model, model_name)
             if not fi():
                 self._info(f"Could not analyze feature importance (permutataion) using {model.model_name}")
                 return
+            self._info(f"Feature importance (permutataion), {model_name} , weight {fi.loss_base}")
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, reversed=True)
+            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
             return False
         return True
 
-    def feature_importance_skmodel_(self, model, model_name, config_tag):
+    def feature_importance_skmodel(self, model, model_name, config_tag):
         ''' Show model built-in feature importance '''
         conf = f"is_skmodel_{config_tag}"
+        weight = model.eval_validate if model.model_eval_validate() else None
+        skmodel = model.model
         if not self.__dict__[conf]:
             self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._info(f"Feature importance: Based on SkLean '{model_name}'")
-        self.results.add_col(f"importance_skmodel_{model_name}", model.feature_importances_)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", model.feature_importances_, reversed=True)
+        self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
+        self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
 
     def fit_lars_aic(self):
-        model = LassoLarsIC(criterion='aic')
+        model = ModelSkLassoLarsAIC(self.config, self.datasets)
         model.fit(self.x, self.y)
         return model
 
     def fit_lars_bic(self):
-        model = LassoLarsIC(criterion='bic')
+        model = ModelSkLassoLarsBIC(self.config, self.datasets)
         model.fit(self.x, self.y)
         return model
 
     def fit_lasso(self):
-        model = LassoCV(cv=self.regularization_model_cv)
+        model = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
         model.fit(self.x, self.y)
         return model
 
-    def fit_extra_trees(self, n_estimators=100, use_logml_model=False):
-        ''' Create a ExtraTrees model '''
-        if use_logml_model:
-            if self.is_regression():
-                m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
-            elif self.is_classification():
-                m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
-            else:
-                raise Exception(f"Unknown model type '{self.model_type}'")
-        else:
-            if self.is_regression():
-                m = ExtraTreesRegressor(n_jobs=-1, n_estimators=n_estimators)
-            elif self.is_classification():
-                m = ExtraTreesClassifier(n_jobs=-1, n_estimators=n_estimators)
-            else:
-                raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
-        return m
-
-    def fit_gradient_boosting(self, use_logml_model=False):
-        ''' Create a ExtraTrees model '''
-        if use_logml_model:
-            if self.is_regression():
-                m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
-            elif self.is_classification():
-                m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
-            else:
-                raise Exception(f"Unknown model type '{self.model_type}'")
-        else:
-            if self.is_regression():
-                m = GradientBoostingRegressor()
-            elif self.is_classification():
-                m = GradientBoostingClassifier()
-            else:
-                raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
-        return m
-
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, use_logml_model=False):
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
         ''' Create a RandomForest model '''
-        if use_logml_model:
-            if self.is_regression():
-                m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-            elif self.is_classification():
-                m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
-            else:
-                raise Exception(f"Unknown model type '{self.model_type}'")
+        if self.is_regression():
+            m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+        elif self.is_classification():
+            m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
         else:
-            if self.is_regression():
-                m = RandomForestRegressor(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-            elif self.is_classification():
-                m = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
-            else:
-                raise Exception(f"Unknown model type '{self.model_type}'")
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        m.fit(self.x, self.y)
+        return m
+
+    def fit_extra_trees(self, n_estimators=100):
+        ''' Create a ExtraTrees model '''
+        if self.is_regression():
+            m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
+        elif self.is_classification():
+            m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        m.fit(self.x, self.y)
+        return m
+
+    def fit_gradient_boosting(self):
+        ''' Create a ExtraTrees model '''
+        if self.is_regression():
+            m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
+        elif self.is_classification():
+            m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        m.fit(self.x, self.y)
+        return m
+
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
+        ''' Create a RandomForest model '''
+        if self.is_regression():
+            m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+        elif self.is_classification():
+            m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
         m.fit(self.x, self.y)
         return m
 
     def fit_ridge(self):
-        model = RidgeCV(cv=self.regularization_model_cv)
+        model = ModelSkRidgeCV(self.config, self.datasets, cv=self.regularization_model_cv)
         model.fit(self.x, self.y)
         return model
 
@@ -324,19 +331,24 @@ class DataFeatureImportance(MlFiles):
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
-        self._info(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
+        self._debug(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
+        weight = model.eval_validate if model.model_eval_validate() else None
+        skmodel = model.model
         if self.rfe_model_cv > 1:
-            rfe = RFECV(model, min_features_to_select=1, cv=self.rfe_model_cv)
+            rfe = RFECV(skmodel, min_features_to_select=1, cv=self.rfe_model_cv)
         else:
-            rfe = RFE(model, n_features_to_select=1)
+            rfe = RFE(skmodel, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
-        self.results.add_col(f"rfe_{model_name}", fit.ranking_)
+        self._info(f"Feature importance: Recursive Feature Elimination '{model_name}', weight {weight}")
+        name = f"rfe_rank_{model_name}"
+        self.results.add_col(name, fit.ranking_)
+        self.results.add_weight(name, weight)
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
         if not self.is_regression():
             return
-        self._info(f"Feature importance: Regularization")
+        self._debug(f"Feature importance: Regularization")
         # LassoCV
         if self.is_regularization_lasso:
             lassocv = self.regularization_model(self.fit_lasso())
@@ -352,13 +364,15 @@ class DataFeatureImportance(MlFiles):
 
     def regularization_model(self, model, model_name=None):
         ''' Fit a modelularization model and show non-zero coefficients '''
+        skmodel = model.model
+        weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:
-            model_name = model.__class__.__name__
-        self._info(f"Feature importance: Regularization '{model_name}'")
-        imp = np.abs(model.coef_)
+            model_name = skmodel.__class__.__name__
+        self._info(f"Feature importance: Regularization '{model_name}, weight {weight}'")
+        imp = np.abs(skmodel.coef_)
         self.results.add_col(f"regularization_coef_{model_name}", imp)
-        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, reversed=True)
-        return model
+        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
+        return skmodel
 
     def select(self):
         '''
@@ -366,6 +380,8 @@ class DataFeatureImportance(MlFiles):
         Use different functions, depending on model_type and inputs
         '''
         # Select functions to use, defined as dictionary {function: has_pvalue}
+        # TODO: How do we weight these values?
+        #       Quick options: No weight or average
         if not self.is_select:
             return True
         if self.is_regression():
@@ -384,13 +400,12 @@ class DataFeatureImportance(MlFiles):
 
     def select_f(self, score_function, has_pvalue):
         ''' Select features using FDR (False Discovery Rate) or K-best '''
-        # skb = SelectFdr(score_func=score_function, k="all")
         fname = score_function.__name__
-        self._debug(f"Select FDR: '{fname}'")
-        # select = SelectFdr(score_func=score_function)
         if has_pvalue:
+            self._debug(f"Select FDR: '{fname}'")
             select = SelectFdr(score_func=score_function)
         else:
+            self._debug(f"Select K-Best: '{fname}'")
             select = SelectKBest(score_func=score_function, k='all')
         fit = select.fit(self.x, self.y)
         keep = select.get_support()
@@ -409,9 +424,10 @@ class DataFeatureImportance(MlFiles):
         file_dot = self.datasets.get_file_name('tree_graph', ext=f"dot") if file_dot is None else file_dot
         file_png = self.datasets.get_file_name('tree_graph', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
-        m = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
+        model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
+        skmodel = model.model
         # Export the tree to a graphviz 'dot' format
-        str_tree = export_graphviz(m.estimators_[0],
+        str_tree = export_graphviz(skmodel.estimators_[0],
                                    out_file=file_dot,
                                    feature_names=self.x.columns,
                                    filled=True,

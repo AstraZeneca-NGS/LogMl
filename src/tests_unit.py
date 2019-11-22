@@ -12,7 +12,7 @@ from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, C
 from logml.datasets import Datasets, DatasetsDf
 from logml.core.files import MlFiles
 from logml.core.log import MlLog
-from logml.logml import LogMl
+from logml.core import LogMl
 from logml.models import Model
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 

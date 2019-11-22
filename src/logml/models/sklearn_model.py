@@ -6,6 +6,7 @@ import traceback
 
 from sklearn.base import clone
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
 
 from .model import Model
 from ..util.etc import camel_to_snake
@@ -118,6 +119,33 @@ class ModelSkGradientBoostingClassifier(SkLearnModel):
         return True
 
 
+class ModelSkLassoCV(SkLearnModel):
+    def __init__(self, config, datasets, cv):
+        super().__init__(config, datasets, class_name='ModelSkLassoCV', params=None, set_config=False)
+        self.model = LassoCV(cv=cv)
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkLassoLarsAIC(SkLearnModel):
+    def __init__(self, config, datasets):
+        super().__init__(config, datasets, class_name='ModelSkLassoLarsAIC', params=None, set_config=False)
+        self.model = LassoLarsIC(criterion='aic')
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkLassoLarsBIC(SkLearnModel):
+    def __init__(self, config, datasets):
+        super().__init__(config, datasets, class_name='ModelSkLassoLarsBIC', params=None, set_config=False)
+        self.model = LassoLarsIC(criterion='bic')
+
+    def default_model_create(self, x, y):
+        return True
+
+
 class ModelSkRandomForestRegressor(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, bootstrap=True):
         super().__init__(config, datasets, class_name='ModelSkRandomForestRegressor', params=None, set_config=False)
@@ -131,6 +159,15 @@ class ModelSkRandomForestClassifier(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, class_weight='balanced', bootstrap=True):
         super().__init__(config, datasets, class_name='ModelSkRandomForestClassifier', params=None, set_config=False)
         self.model = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=None, class_weight='balanced', bootstrap=bootstrap)
+
+    def default_model_create(self, x, y):
+        return True
+
+
+class ModelSkRidgeCV(SkLearnModel):
+    def __init__(self, config, datasets, cv):
+        super().__init__(config, datasets, class_name='ModelSkRidgeCV', params=None, set_config=False)
+        self.model = RidgeCV(cv=cv)
 
     def default_model_create(self, x, y):
         return True
