@@ -121,7 +121,7 @@ class DataFeatureImportance(MlFiles):
         # Save results
         fimp_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
         fimp_weights_csv = self.datasets.get_file_name('feature_importance_weights', ext=f"csv")
-        self._info("Feature importance / feature selection: Saving redults to '{fimp_csv}', saving weights to {fimp_weights_csv}")
+        self._info(f"Feature importance / feature selection: Saving results to '{fimp_csv}', saving weights to {fimp_weights_csv}")
         self._save_csv(fimp_csv, "Dataset feature importance", self.results.df, save_index=True)
         self._save_csv(fimp_weights_csv, "Dataset feature importance weights", weights.df, save_index=True)
         self._info("Feature importance / feature selection: End")
