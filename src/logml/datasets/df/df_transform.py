@@ -24,6 +24,7 @@ class DfTransform(MlLog):
         self.category_column = dict()  # Store Pandas categorical definition
         self.columns_to_add = dict()
         self.columns_to_remove = set()
+        self.na_columns = set()     # Columns added as 'missing data' indicators
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
         self.is_sanitize_column_names = True
         self.one_hot = list()  # Convert these fields to 'one hot encoding'
@@ -204,14 +205,16 @@ class DfTransform(MlLog):
         if count_na == 0:
             return False
         df_na = pd.DataFrame()
-        df_na[f"{field_name}_na"] = xi.isna().astype('int8')
+        name_na = f"{field_name}_na"
+        self.na_columns.add(name_na)
+        df_na[name_na] = xi.isna().astype('int8')
         # Replace missing values by median
         # TODO: Add other strategies (e.g. mean).
         # TODO: Define on column by column basis
         replace_value = xi.median()
         xi[xi.isna()] = replace_value
         df_na[field_name] = xi
-        self._info(f"Filling {count_na} NA values: field '{field_name}', value: '{replace_value}'")
+        self._info(f"Filling {count_na} NA values: field '{field_name}', value: '{replace_value}, added column '{name_na}'")
         # Add operations
         self.columns_to_add[field_name] = df_na
         self.columns_to_remove.add(field_name)

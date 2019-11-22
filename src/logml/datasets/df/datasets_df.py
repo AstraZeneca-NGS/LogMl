@@ -26,6 +26,7 @@ class DatasetsDf(Datasets):
         self.count_na = dict()  # Count missing values for each field
         self.categories = dict()  # Convert these fields to categorical
         self.dataset_ori = None
+        self.dataset_preprocess = None
         self.dataset_transform = None
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
         self.model_type = model_type
@@ -92,3 +93,28 @@ class DatasetsDf(Datasets):
         self._debug(f"Loading csv file '{csv_file}'")
         self.dataset = pd.read_csv(csv_file, low_memory=False, parse_dates=self.dates)
         return len(self.dataset) > 0
+
+    def getDataframeNa(self, df):
+        """ Copy only columns having missing data """
+        if df is None:
+            return None
+        # TODO: We have data from  df_transform to understandf which variables have "missing" values.
+        # TODO: df_transform.category_column (check for <= 0)
+        # TODO: df_transform.columns_na (check for <= 0)
+        return None
+
+    def getDatasetsNa(self):
+        if self.dataset_transform is None:
+            self._error("Cannot create 'missing' dataset")
+            return None
+        # Create a new datasets, with same parameters
+        dsna = copy(self)
+        dsna.reset()
+        # Copy all self.dataset*, removing non 'na' variables
+        dsna.dataset = self.getDataframeNa(self.dataset)
+        dsna.dataset_test = self.getDataframeNa(self.dataset_test)
+        dsna.dataset_train = self.getDataframeNa(self.dataset_train)
+        dsna.dataset_validate = self.getDataframeNa(self.dataset_validate)
+        # Split x,y for all datasets
+        dsna.in_outs()
+        return dsna

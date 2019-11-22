@@ -36,7 +36,7 @@ class DataFeatureImportance(MlFiles):
     We perform several different approaches using "classic statistics" as
     well as "model based" approaches.
 
-    Model-based methods, such as "drop column" or "permutataion", is weighted
+    Model-based methods, such as "drop column" or "permutation", is weighted
     according to the "loss" of the model (on the validation dataset). This means
     that poorly performing models will contribute less than better performing
     models.
@@ -54,9 +54,9 @@ class DataFeatureImportance(MlFiles):
         self.is_model_extra_trees = True
         self.is_model_gradient_boosting = True
         self.is_model_random_forest = True
-        self.is_permutataion_extra_trees = True
-        self.is_permutataion_gradient_boosting = True
-        self.is_permutataion_random_forest = True
+        self.is_permutation_extra_trees = True
+        self.is_permutation_gradient_boosting = True
+        self.is_permutation_random_forest = True
         self.is_regularization_lasso = True
         self.is_regularization_ridge = True
         self.is_regularization_lars = True
@@ -150,9 +150,12 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_models(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
-        self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
-        self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+        if self.is_fip_random_forest:
+            self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        if self.is_fip_extra_trees:
+            self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        if self.is_fip_gradient_boosting:
+            self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
 
     def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
@@ -166,17 +169,17 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
-        conf = f"is_permutataion_{config_tag}"
+        conf = f"is_permutation_{config_tag}"
         if not self.__dict__[conf]:
-            self._debug(f"Feature importance (permutataion) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            self._debug(f"Feature importance (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance (permutation): Based on '{model_name}'")
         try:
             fi = FeatureImportancePermutation(model, model_name)
             if not fi():
-                self._info(f"Could not analyze feature importance (permutataion) using {model.model_name}")
+                self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
-            self._info(f"Feature importance (permutataion), {model_name} , weight {fi.loss_base}")
+            self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()

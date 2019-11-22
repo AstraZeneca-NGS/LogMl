@@ -133,7 +133,7 @@ class HyperOpt(MlLog):
         datasets.config = config
         datasets.do_not_load_pickle = True
         datasets.do_not_save = True
-        datasets.reset()
+        datasets.reset(soft=True)
         datasets()
         return datasets
 
