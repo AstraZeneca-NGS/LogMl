@@ -57,6 +57,7 @@ class ResultsRankDf(ResultsDf):
     def __init__(self, index=None):
         super().__init__(index)
         self.weights = dict()
+        self.weight_default = 1.0
 
     def add_col_rank(self, name, vals, weight=None, reversed=False):
         ''' Add a column ranked by value '''
@@ -64,10 +65,7 @@ class ResultsRankDf(ResultsDf):
         s = pd.Series(vals, self.index)
         ranks = s.rank(ascending=not reversed, na_option='bottom')
         self.add_col(name, ranks)
-        if weight is not None:
-            if weight <= 0.0:
-                raise ValueError(f"Weight should be a positive number, got {weight}")
-            self.weights[name] = weight
+        self.add_weight(name, weight)
 
     def add_rank_of_ranksum(self):
         '''
@@ -78,7 +76,22 @@ class ResultsRankDf(ResultsDf):
         ranks_sum = np.zeros(len)
         for c in self.df.columns:
             if 'rank' in c:
-                weight = self.weights.get(c, 1.0)
-                ranks_sum = ranks_sum + weight * self.df[c]
+                if c not in self.weights:
+                    self.weights[c] = self.weight_default
+                ranks_sum = ranks_sum + self.weights[c] * self.df[c]
         self.add_col("ranks_sum", ranks_sum)
         self.add_col_rank("rank_of_ranksum", ranks_sum)
+
+    def add_weight(self, name, weight):
+        if weight is not None:
+            if weight <= 0.0:
+                raise ValueError(f"Weight should be a positive number, got {weight}")
+            self.weights[name] = weight
+
+    def get_weights_table(self):
+        names = list(self.weights.keys())
+        names.sort()
+        weights = np.array([self.weights.get(n, self.weight_default) for n in names])
+        wt = ResultsDf(names)
+        wt.add_col('weights', weights)
+        return wt

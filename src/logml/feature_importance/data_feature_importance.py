@@ -31,7 +31,15 @@ EPSILON = 1.0e-4
 
 class DataFeatureImportance(MlFiles):
     '''
-    Perform feature importance / feature selection analysis
+    Perform feature importance / feature selection analysis.
+
+    We perform several different approaches using "classic statistics" as
+    well as "model based" approaches.
+
+    Model-based methods, such as "drop column" or "permutataion", is weighted
+    according to the "loss" of the model (on the validation dataset). This means
+    that poorly performing models will contribute less than better performing
+    models.
     '''
 
     def __init__(self, config, datasets, model_type, set_config=True):
@@ -108,9 +116,14 @@ class DataFeatureImportance(MlFiles):
         # Display results
         self.results.sort('rank_of_ranksum')
         self.results.print("Feature importances")
+        weights = self.results.get_weights_table()
+        weights.print("Feature importance weights")
         # Save results
-        file_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
-        self._save_csv(file_csv, "Dataset feature importance", self.results.df, save_index=True)
+        fimp_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
+        fimp_weights_csv = self.datasets.get_file_name('feature_importance_weights', ext=f"csv")
+        self._info("Feature importance / feature selection: Saving redults to '{fimp_csv}', saving weights to {fimp_weights_csv}")
+        self._save_csv(fimp_csv, "Dataset feature importance", self.results.df, save_index=True)
+        self._save_csv(fimp_weights_csv, "Dataset feature importance weights", weights.df, save_index=True)
         self._info("Feature importance / feature selection: End")
         return True
 
@@ -180,7 +193,7 @@ class DataFeatureImportance(MlFiles):
         if not self.__dict__[conf]:
             self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._info(f"Feature importance: Based on SkLean '{model_name}', weight {weight}")
+        self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
         self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
 
@@ -327,7 +340,9 @@ class DataFeatureImportance(MlFiles):
             rfe = RFE(skmodel, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
         self._info(f"Feature importance: Recursive Feature Elimination '{model_name}', weight {weight}")
-        self.results.add_col(f"rfe_rank_{model_name}", fit.ranking_)
+        name = f"rfe_rank_{model_name}"
+        self.results.add_col(name, fit.ranking_)
+        self.results.add_weight(name, weight)
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
@@ -356,7 +371,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance: Regularization '{model_name}, weight {weight}'")
         imp = np.abs(skmodel.coef_)
         self.results.add_col(f"regularization_coef_{model_name}", imp)
-        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, reversed=True)
+        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
         return skmodel
 
     def select(self):
