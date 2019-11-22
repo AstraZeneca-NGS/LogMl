@@ -135,7 +135,8 @@ class DfTransform(MlLog):
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
         df_cat = pd.DataFrame()
-        df_cat[field_name] = xi_cat.cat.codes
+        # Note: Add one so that "missing" is zero instead of "-1"
+        df_cat[field_name] = xi_cat.cat.codes + 1
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df_cat
         self.columns_to_remove.add(field_name)
