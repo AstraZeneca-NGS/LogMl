@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
@@ -65,7 +66,7 @@ class DatasetsDf(Datasets):
         " Default implementation for '@dataset_preprocess' "
         self._debug(f"Using default dataset preprocess for dataset type 'DataFrame': Start")
         if self.dataset_ori is None:
-            # Keep a copy of the original dataset
+            # Keep a copy.copy of the original dataset
             self.dataset_ori = self.dataset
         self.dataset_preprocess = DfPreprocess(self.dataset, self.config, self.outputs, self.model_type)
         self.dataset = self.dataset_preprocess()
@@ -77,7 +78,7 @@ class DatasetsDf(Datasets):
         " Default implementation for '@dataset_transform' "
         self._debug(f"Using default dataset transform for dataset type 'DataFrame'")
         if self.dataset_ori is None:
-            # Keep a copy of the original dataset
+            # Keep a copy.copy of the original dataset
             self.dataset_ori = self.dataset
         self.dataset_transform = DfTransform(self.dataset, self.config, self.outputs)
         self.dataset = self.dataset_transform()
@@ -108,7 +109,7 @@ class DatasetsDf(Datasets):
             self._error("Cannot create 'missing' dataset")
             return None
         # Create a new datasets, with same parameters
-        dsna = copy(self)
+        dsna = copy.copy(self)
         dsna.reset()
         # Copy all self.dataset*, removing non 'na' variables
         dsna.dataset = self.getDataframeNa(self.dataset)

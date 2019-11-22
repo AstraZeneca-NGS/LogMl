@@ -137,8 +137,12 @@ class LogMl(MlFiles):
             self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
             return True
         model_type = self.model_ori.model_type
-        self._info("Dataset feature importance: Missing data")
-        self.dataset_feature_importance_na = DataFeatureImportance(self.config, self.datasets.getDatasetsNa(), model_type)
+        self._info("Dataset feature importance (missing data)")
+        datasets_na = self.datasets.getDatasetsNa()
+        if datasets_na is None:
+            self._debug("Dataset feature importance (missing data): Could not create 'missing' dataset, skipping")
+            return False
+        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type)
         return self.dataset_feature_importance()
 
     def get_model_eval_test(self):
