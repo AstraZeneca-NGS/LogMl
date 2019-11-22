@@ -12,7 +12,7 @@ from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, C
 from logml.datasets import Datasets, DatasetsDf
 from logml.core.files import MlFiles
 from logml.core.log import MlLog
-from logml.logml import LogMl
+from logml.core import LogMl
 from logml.models import Model
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
 
@@ -113,7 +113,6 @@ class TestLogMlIntegration(unittest.TestCase):
         print(fidf)
         self.assertEqual('x1', fidf.index[0])
         self.assertEqual('x2', fidf.index[1])
-        self.assertEqual('x3', fidf.index[2])
         # Check model search results
         mrdf = ml.model_results.df
         modsearch_best = mrdf.index[0]
