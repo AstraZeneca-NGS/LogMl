@@ -58,6 +58,7 @@ class ResultsRankDf(ResultsDf):
         super().__init__(index)
         self.weights = dict()
         self.weight_default = 1.0
+        self.weight_min = 0.001
 
     def add_col_rank(self, name, vals, weight=None, reversed=False):
         ''' Add a column ranked by value '''
@@ -84,8 +85,7 @@ class ResultsRankDf(ResultsDf):
 
     def add_weight(self, name, weight):
         if weight is not None:
-            if weight <= 0.0:
-                raise ValueError(f"Weight should be a positive number, got {weight}")
+            weight = max(weight, self.weight_min)
             self.weights[name] = weight
 
     def get_weights_table(self):

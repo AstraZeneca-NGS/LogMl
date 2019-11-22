@@ -101,7 +101,7 @@ class DataFeatureImportance(MlFiles):
         if not self.enable:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
-        self._info(f"Feature importance (model_type={self.model_type}): Start")
+        self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsRankDf(self.x.columns)
         self.feature_importance_models()
