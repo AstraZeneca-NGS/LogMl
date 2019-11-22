@@ -96,13 +96,19 @@ class DatasetsDf(Datasets):
         return len(self.dataset) > 0
 
     def getDataframeNa(self, df):
-        """ Copy only columns having missing data """
+        """ Get a new dataframe having only columns indicating missing data """
         if df is None:
             return None
-        # TODO: We have data from  df_transform to understandf which variables have "missing" values.
-        # TODO: df_transform.category_column (check for <= 0)
-        # TODO: df_transform.columns_na (check for <= 0)
-        return None
+        # Remove
+        cols_to_remove = [c for c in df.columns if not (c in self.outputs or c in self.dataset_transform.na_columns)]
+        df_na = df.drop(columns=cols_to_remove)
+        # Change cathegorical, only keep 'na' data
+        for c in df.columns:
+            if c in self.dataset_transform.category_column:
+                cat_col = self.dataset_transform.category_column[c]
+                df_na[c] = cat_col.isna().astype('int')
+        self._display(df_na.head(10))
+        return df_na
 
     def getDatasetsNa(self):
         if self.dataset_transform is None:
@@ -112,10 +118,12 @@ class DatasetsDf(Datasets):
         dsna = copy.copy(self)
         dsna.reset()
         # Copy all self.dataset*, removing non 'na' variables
+        dsna.outputs = self.outputs
         dsna.dataset = self.getDataframeNa(self.dataset)
         dsna.dataset_test = self.getDataframeNa(self.dataset_test)
         dsna.dataset_train = self.getDataframeNa(self.dataset_train)
         dsna.dataset_validate = self.getDataframeNa(self.dataset_validate)
         # Split x,y for all datasets
         dsna.in_outs()
+        self._display(dsna.dataset.head())
         return dsna

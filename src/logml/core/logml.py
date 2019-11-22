@@ -128,7 +128,7 @@ class LogMl(MlFiles):
             return True
         model_type = self.model_ori.model_type
         self._info("Dataset feature importance: Full dataset")
-        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type)
+        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type, 'all')
         return self.dataset_feature_importance()
 
     def _feature_importance_na(self):
@@ -142,8 +142,8 @@ class LogMl(MlFiles):
         if datasets_na is None:
             self._debug("Dataset feature importance (missing data): Could not create 'missing' dataset, skipping")
             return False
-        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type)
-        return self.dataset_feature_importance()
+        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type, 'na')
+        return self.dataset_feature_importance_na()
 
     def get_model_eval_test(self):
         ''' Get model test results '''

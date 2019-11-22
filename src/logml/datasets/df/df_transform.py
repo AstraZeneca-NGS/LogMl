@@ -147,8 +147,11 @@ class DfTransform(MlLog):
         " Create a one hot encodig for 'field_name' "
         self._info(f"Converting to one-hot: field '{field_name}'")
         has_na = self.df[field_name].isna().sum() > 0
+        self._debug(f"Converting to one-hot: field '{field_name}', has missing data: {has_na}")
         df_one_hot = pd.get_dummies(self.df[field_name], dummy_na=has_na)
         self.rename_category_cols(df_one_hot, f"{field_name}:")
+        if has_na:
+            self.na_columns.add(f"{field_name}:nan")
         # Add to transformations
         self.columns_to_add[field_name] = df_one_hot
         self.columns_to_remove.add(field_name)
