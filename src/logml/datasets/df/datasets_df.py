@@ -106,12 +106,16 @@ class DatasetsDf(Datasets):
             return None
         # Remove
         cols_to_remove = [c for c in df.columns if c not in cols_na]
+        self._debug(f"Get dataframe na: Removing columns: {cols_to_remove}")
         df_na = df.drop(columns=cols_to_remove)
         # Change cathegorical, only keep 'na' data
         for c in df.columns:
-            if c in cols_na and c in self.dataset_transform.category_column:
+            if c in self.outputs:
+                pass
+            elif c in cols_na and c in self.dataset_transform.category_column:
                 cat_col = self.dataset_transform.category_column[c]
                 df_na[c] = cat_col.isna().astype('int')
+                self._debug(f"Get dataframe na: Adding cathegorical column '{c}', number of nas {df_na[c].sum()}")
         return df_na
 
     def get_datasets_na(self):
@@ -125,8 +129,8 @@ class DatasetsDf(Datasets):
         # Which columns should we keep?
         cols_na = self._columns_na(self.dataset)
         self._debug(f"Creating 'missing' dataset: Columns {cols_na}")
-        if len(cols_na) <= 0:
-            self._debug(f"Creating 'missing' dataset: No columns selected, returning None")
+        if len(cols_na) <= len(self.outputs):
+            self._debug(f"Creating 'missing' dataset: No input columns selected, returning None")
             return None
         # Copy all self.dataset*, removing non 'na' variables
         dsna.outputs = self.outputs

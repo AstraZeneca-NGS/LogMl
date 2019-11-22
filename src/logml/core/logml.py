@@ -88,8 +88,8 @@ class LogMl(MlFiles):
         # Explore dataset
         if not self._dataset_explore():
             self._debug("Could not explore dataset")
-        # if not self._feature_importance():
-        #     self._debug("Could not perform feature importance")
+        if not self._feature_importance():
+            self._debug("Could not perform feature importance")
         if not self._feature_importance_na():
             self._debug("Could not perform feature importance of missing data")
         # Model Train

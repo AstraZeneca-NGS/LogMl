@@ -21,7 +21,7 @@ class TestLogMlIntegration(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        MlLog().set_log_level(logging.DEBUG)
+        # MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_linear3(self):
