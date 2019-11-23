@@ -45,6 +45,7 @@ class DataFeatureImportance(MlFiles):
     def __init__(self, config, datasets, model_type, tag, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
+        self.enable_na = True
         self.is_dropcol_extra_trees = True
         self.is_dropcol_gradient_boosting = True
         self.is_dropcol_random_forest = True
@@ -100,6 +101,9 @@ class DataFeatureImportance(MlFiles):
         ''' Feature importance '''
         if not self.enable:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
+            return True
+        if tag == 'na' and not self.enable_na:
+            self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
             return True
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
