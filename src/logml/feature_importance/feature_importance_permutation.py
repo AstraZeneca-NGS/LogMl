@@ -21,7 +21,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
 
     def __init__(self, model, model_name):
         super().__init__(model, model_name)
-        self.importance_name = 'permutataion'
+        self.importance_name = 'permutation'
 
     def change_dataset(self, col):
         """ Change datasets for column 'col' """

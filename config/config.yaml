@@ -197,6 +197,9 @@ dataset_feature_importance:
   # Set to 'false' to disable this step
   enable: true
 
+  # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
+  enable_na: true
+
   # Enable "Feature Importance using Permutations" (for different models)
   is_fip_random_forest: true
   is_fip_extra_trees: true

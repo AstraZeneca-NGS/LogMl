@@ -31,20 +31,21 @@ EPSILON = 1.0e-4
 
 class DataFeatureImportance(MlFiles):
     '''
-    Perform feature importance / feature selection analysis.
+    Perform feature importance analysis.
 
     We perform several different approaches using "classic statistics" as
     well as "model based" approaches.
 
-    Model-based methods, such as "drop column" or "permutataion", is weighted
+    Model-based methods, such as "drop column" or "permutation", is weighted
     according to the "loss" of the model (on the validation dataset). This means
     that poorly performing models will contribute less than better performing
     models.
     '''
 
-    def __init__(self, config, datasets, model_type, set_config=True):
+    def __init__(self, config, datasets, model_type, tag, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
+        self.enable_na = True
         self.is_dropcol_extra_trees = True
         self.is_dropcol_gradient_boosting = True
         self.is_dropcol_random_forest = True
@@ -54,9 +55,9 @@ class DataFeatureImportance(MlFiles):
         self.is_model_extra_trees = True
         self.is_model_gradient_boosting = True
         self.is_model_random_forest = True
-        self.is_permutataion_extra_trees = True
-        self.is_permutataion_gradient_boosting = True
-        self.is_permutataion_random_forest = True
+        self.is_permutation_extra_trees = True
+        self.is_permutation_gradient_boosting = True
+        self.is_permutation_random_forest = True
         self.is_regularization_lasso = True
         self.is_regularization_ridge = True
         self.is_regularization_lars = True
@@ -80,6 +81,7 @@ class DataFeatureImportance(MlFiles):
         if set_config:
             self._set_from_config()
         self.results = None
+        self.tag = tag
         self.weights = dict()
         self.x, self.y = None, None
 
@@ -88,7 +90,7 @@ class DataFeatureImportance(MlFiles):
         if not self.is_classification():
             self._debug("Boruta algorithm only for classification")
             return
-        self._info(f"Feature importance: Boruta algorithm")
+        self._info(f"Feature importance {self.tag}: Boruta algorithm")
         model = self.fit_random_forest()
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
         boruta.fit(self.x, self.y)
@@ -98,9 +100,12 @@ class DataFeatureImportance(MlFiles):
     def __call__(self):
         ''' Feature importance '''
         if not self.enable:
-            self._debug(f"Dataset feature importance / feature selection disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
+            self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
-        self._info(f"Feature importance / feature selection (model_type={self.model_type}): Start")
+        if self.tag == 'na' and not self.enable_na:
+            self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
+            return True
+        self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         self.results = ResultsRankDf(self.x.columns)
         self.feature_importance_models()
@@ -109,33 +114,33 @@ class DataFeatureImportance(MlFiles):
         self.select()
         self.recursive_feature_elimination()
         # Use ranks from all previously calculated models
-        self._info(f"Feature importance: Adding 'rank of rank_sum' column")
+        self._info(f"Feature importance {self.tag}: Adding 'rank of rank_sum' column")
         self.results.add_rank_of_ranksum()
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         # Display results
         self.results.sort('rank_of_ranksum')
-        self.results.print("Feature importances")
+        self.results.print(f"Feature importance {self.tag}")
         weights = self.results.get_weights_table()
-        weights.print("Feature importance weights")
+        weights.print(f"Feature importance {self.tag} weights")
         # Save results
-        fimp_csv = self.datasets.get_file_name('feature_importance', ext=f"csv")
-        fimp_weights_csv = self.datasets.get_file_name('feature_importance_weights', ext=f"csv")
-        self._info(f"Feature importance / feature selection: Saving results to '{fimp_csv}', saving weights to {fimp_weights_csv}")
-        self._save_csv(fimp_csv, "Dataset feature importance", self.results.df, save_index=True)
-        self._save_csv(fimp_weights_csv, "Dataset feature importance weights", weights.df, save_index=True)
-        self._info("Feature importance / feature selection: End")
+        fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
+        fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
+        self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}', saving weights to {fimp_weights_csv}")
+        self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
+        self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
+        self._info(f"Feature importance {self.tag}: End")
         return True
 
     def feature_importance_drop_column(self, model, model_name, config_tag):
         """ Feature importance using 'drop column' analysis """
         conf = f"is_dropcol_{config_tag}"
         if not self.__dict__[conf]:
-            self._debug(f"Feature importance (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._debug(f"Feature importance (drop column): Based on '{model_name}'")
+        self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}'")
         try:
-            fi = FeatureImportanceDropColumn(model, model_name)
+            fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}")
             if not fi():
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
@@ -150,15 +155,18 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_models(self):
         ''' Feature importance using several models '''
-        self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
-        self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
-        self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+        if self.is_fip_random_forest:
+            self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        if self.is_fip_extra_trees:
+            self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        if self.is_fip_gradient_boosting:
+            self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
 
     def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
         conf = f"is_model_{config_tag}"
         if not self.__dict__[conf]:
-            self._debug(f"Feature importance using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            self._debug(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self.feature_importance_permutation(model, model_name, config_tag)
         self.feature_importance_drop_column(model, model_name, config_tag)
@@ -166,17 +174,17 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
-        conf = f"is_permutataion_{config_tag}"
+        conf = f"is_permutation_{config_tag}"
         if not self.__dict__[conf]:
-            self._debug(f"Feature importance (permutataion) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            self._debug(f"Feature importance {self.tag} (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._debug(f"Feature importance (permutation): Based on '{model_name}'")
+        self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
         try:
-            fi = FeatureImportancePermutation(model, model_name)
+            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}")
             if not fi():
-                self._info(f"Could not analyze feature importance (permutataion) using {model.model_name}")
+                self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
-            self._info(f"Feature importance (permutataion), {model_name} , weight {fi.loss_base}")
+            self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
@@ -191,7 +199,7 @@ class DataFeatureImportance(MlFiles):
         weight = model.eval_validate if model.model_eval_validate() else None
         skmodel = model.model
         if not self.__dict__[conf]:
-            self._debug(f"Feature importance (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
         self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
@@ -310,7 +318,7 @@ class DataFeatureImportance(MlFiles):
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''
-        self._debug(f"Feature importance: Recursive feature elimination")
+        self._debug(f"Feature importance {self.tag}: Recursive feature elimination")
         if not self.is_rfe_model:
             return
         if self.is_regression():
@@ -331,7 +339,7 @@ class DataFeatureImportance(MlFiles):
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
-        self._debug(f"Feature importance: Recursive Feature Elimination, model '{model_name}'")
+        self._debug(f"Feature importance {self.tag}: Recursive Feature Elimination, model '{model_name}'")
         weight = model.eval_validate if model.model_eval_validate() else None
         skmodel = model.model
         if self.rfe_model_cv > 1:
@@ -339,7 +347,7 @@ class DataFeatureImportance(MlFiles):
         else:
             rfe = RFE(skmodel, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
-        self._info(f"Feature importance: Recursive Feature Elimination '{model_name}', weight {weight}")
+        self._info(f"Feature importance {self.tag}: Recursive Feature Elimination '{model_name}', weight {weight}")
         name = f"rfe_rank_{model_name}"
         self.results.add_col(name, fit.ranking_)
         self.results.add_weight(name, weight)
@@ -348,7 +356,7 @@ class DataFeatureImportance(MlFiles):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
         if not self.is_regression():
             return
-        self._debug(f"Feature importance: Regularization")
+        self._debug(f"Feature importance {self.tag}: Regularization")
         # LassoCV
         if self.is_regularization_lasso:
             lassocv = self.regularization_model(self.fit_lasso())
@@ -368,7 +376,7 @@ class DataFeatureImportance(MlFiles):
         weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:
             model_name = skmodel.__class__.__name__
-        self._info(f"Feature importance: Regularization '{model_name}, weight {weight}'")
+        self._info(f"Feature importance {self.tag}: Regularization '{model_name}, weight {weight}'")
         imp = np.abs(skmodel.coef_)
         self.results.add_col(f"regularization_coef_{model_name}", imp)
         self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
@@ -420,9 +428,9 @@ class DataFeatureImportance(MlFiles):
         """ Simple tree representation """
         if not self.is_tree_graph:
             return
-        self._info(f"Tree graph: Random Forest")
-        file_dot = self.datasets.get_file_name('tree_graph', ext=f"dot") if file_dot is None else file_dot
-        file_png = self.datasets.get_file_name('tree_graph', ext=f"png") if file_png is None else file_png
+        self._info(f"Tree graph {self.tag}: Random Forest")
+        file_dot = self.datasets.get_file_name(f'tree_graph_{self.tag}', ext=f"dot") if file_dot is None else file_dot
+        file_png = self.datasets.get_file_name(f'tree_graph_{self.tag}', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
         model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
         skmodel = model.model

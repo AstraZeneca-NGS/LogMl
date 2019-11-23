@@ -313,7 +313,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         self.assertTrue(ret)
         # Check categories
-        self.assertTrue(all(ds.dataset['UsageBand'].head(10) == np.array([1, 1, 1, 0, 1, 1, 1, 0, -1, 1])))
+        self.assertTrue(all(ds.dataset['UsageBand'].head(10) == np.array([2, 2, 2, 1, 2, 2, 2, 1, 0, 2])))
         # Check date convertion
         self.assertTrue('sale:year' in ds.dataset.columns)
         self.assertTrue('sale:month' in ds.dataset.columns)

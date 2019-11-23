@@ -13,9 +13,9 @@ dataset_explore:
 
 dataset_feature_importance:
   enable: true
-  is_permutataion_extra_trees: false
-  is_permutataion_gradient_boosting: false
-  is_permutataion_random_forest: true
+  is_permutation_extra_trees: false
+  is_permutation_gradient_boosting: false
+  is_permutation_random_forest: true
   is_dropcol_extra_trees: false
   is_dropcol_gradient_boosting: false
   is_dropcol_random_forest: true

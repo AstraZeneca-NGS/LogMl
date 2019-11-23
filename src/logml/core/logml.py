@@ -89,7 +89,9 @@ class LogMl(MlFiles):
         if not self._dataset_explore():
             self._debug("Could not explore dataset")
         if not self._feature_importance():
-            self._debug("Could not perform feature importance / feature selection")
+            self._debug("Could not perform feature importance")
+        if not self._feature_importance_na():
+            self._debug("Could not perform feature importance of missing data")
         # Model Train
         if not self.models_train():
             self._error("Could not train model")
@@ -125,8 +127,23 @@ class LogMl(MlFiles):
             self._debug("Dataset feature importance only available for dataset type 'df'")
             return True
         model_type = self.model_ori.model_type
-        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type)
+        self._info("Dataset feature importance: Full dataset")
+        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type, 'all')
         return self.dataset_feature_importance()
+
+    def _feature_importance_na(self):
+        " Feature importance / feature selection "
+        if not self.is_dataset_df():
+            self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
+            return True
+        model_type = self.model_ori.model_type
+        self._info("Dataset feature importance (missing data)")
+        datasets_na = self.datasets.get_datasets_na()
+        if datasets_na is None:
+            self._debug("Dataset feature importance (missing data): Could not create 'missing' dataset, skipping")
+            return False
+        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type, 'na')
+        return self.dataset_feature_importance_na()
 
     def get_model_eval_test(self):
         ''' Get model test results '''
