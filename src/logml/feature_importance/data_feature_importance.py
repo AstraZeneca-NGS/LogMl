@@ -102,7 +102,7 @@ class DataFeatureImportance(MlFiles):
         if not self.enable:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
-        if tag == 'na' and not self.enable_na:
+        if self.tag == 'na' and not self.enable_na:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
             return True
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
