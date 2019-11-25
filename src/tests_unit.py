@@ -707,6 +707,21 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x1' in cols)
         self.assertFalse('d1' in cols)
 
+    def test_dataset_transform_004(self):
+        ''' Checking dataset transform: Convert fields to categories (matching regex on field names) '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        cols = list(ds.dataset.columns)
+        self.assertTrue('x1' in cols)
+        self.assertTrue('x2' in cols)
+        for field in ['zzz_0', 'zzz_2', 'zzz_4', 'zzz_6', 'zzz_8', 'zxz_1:high', 'xzz_3:high', 'azzz_5:high', '_zzz_7:high', 'zzzz_9']:
+            self.assertTrue(field in cols, f"Field {field} not found")
+
 
 if __name__ == '__main__':
     unittest.main()

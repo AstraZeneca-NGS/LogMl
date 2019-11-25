@@ -129,6 +129,8 @@ class DfTransform(MlLog):
         self._info(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
         xi_cat = xi.astype('category').cat.as_ordered()
+        if categories == True:
+            categories = None
         if categories:
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
