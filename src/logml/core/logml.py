@@ -33,6 +33,7 @@ class LogMl(MlFiles):
         self._id_counter = 0
         self.cross_validation = None
         self.dataset_feature_importance = None
+        self.dataset_feature_importance_na = None
         self.disable_plots = False
         self.display_model_results = True
         self.display_max_columns = 1000

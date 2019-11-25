@@ -74,6 +74,8 @@ class DataFeatureImportance(MlFiles):
         self.is_skmodel_random_forest = True
         self.is_select = True
         self.is_tree_graph = True
+        self.weight_max = 10.0
+        self.weight_min = 1.0
         self.model_type = model_type
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
@@ -113,22 +115,11 @@ class DataFeatureImportance(MlFiles):
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()
-        # Use ranks from all previously calculated models
-        self._info(f"Feature importance {self.tag}: Adding 'rank of rank_sum' column")
-        self.results.add_rank_of_ranksum()
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
-        # Display results
-        self.results.sort('rank_of_ranksum')
-        self.results.print(f"Feature importance {self.tag}")
-        weights = self.results.get_weights_table()
-        weights.print(f"Feature importance {self.tag} weights")
-        # Save results
-        fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
-        fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
-        self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}', saving weights to {fimp_weights_csv}")
-        self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
-        self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
+        # Perform re-weighting, then display and save results
+        w_ori = self.reweight_results()
+        self.show_and_save_results(w_ori)
         self._info(f"Feature importance {self.tag}: End")
         return True
 
@@ -382,6 +373,38 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
         return skmodel
 
+    def reweight_results(self):
+        '''
+        Rank results according to all methods
+            - Re-weight: Current weights are 'loss functions' from each
+                methods, i.e. lower is better. We need the opposite, i.e. higher
+                weight means the result of a methods is more important.
+            - Perform weighted ranking
+        '''
+        self._debug(f"Feature importance {self.tag}: Re-weighting")
+        names = self.results.get_weight_names()
+        w_ori = dict(self.results.weights)
+        w = self.results.get_weights()
+        weight_delta = self.weight_max - self.weight_min
+        # Flip weights and scale relative to the best loss (minimum weight)
+        wp = w / -w.min()
+        # Correct range using a scaling factor if weights span more than weight_delta
+        wp_delta = wp.max() - wp.min()
+        corr = weight_delta / wp_delta if wp_delta > weight_delta else 1.0
+        # New weights
+        wp = corr * (wp - wp.min()) + self.weight_min
+        # Set new weights
+        for i in range(len(names)):
+            self.results.add_weight(names[i], wp[i])
+        # Use ranks from all previously calculated models
+        self._debug(f"Feature importance {self.tag}: Adding 'rank of rank_sum' column")
+        self.results.weight_default = self.weight_min
+        self.results.add_rank_of_ranksum()
+        # Sort by the resulting column (ranksum)
+        self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
+        self.results.sort('rank_of_ranksum')
+        return w_ori
+
     def select(self):
         '''
         User Select (Fdr or K-best) to calculate a feature importance rank
@@ -423,6 +446,21 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col(f"selectf_p_values_{fname}", select.pvalues_)
             self.results.add_col(f"selectf_keep_{fname}", keep)
         self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
+
+    def show_and_save_results(self, weights_ori):
+        ''' Show and save resutl tables '''
+        # Show and save main results table
+        self.results.print(f"Feature importance {self.tag}")
+        fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
+        self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}'")
+        self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
+        # Show and save weights table
+        fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
+        self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
+        weights = self.results.get_weights_table()
+        weights.add_col_dict('weights_ori', weights_ori)
+        weights.print(f"Feature importance {self.tag} weights")
+        self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
 
     def tree_graph(self, file_dot=None, file_png=None):
         """ Simple tree representation """

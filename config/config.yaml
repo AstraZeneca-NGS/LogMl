@@ -232,8 +232,9 @@ dataset_feature_importance:
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
   # Range to use when expanding weights
-  # Note: Weights are converted to an interval starting from 1.0, capped at max_weight_range
-  max_weight_range: 10.0
+  # Note: Weights are converted to an interval [weight_min, weight_max]
+  weight_max: 10.0
+  weight_min: 1.0
 
 #---
 # Model definition and parameters

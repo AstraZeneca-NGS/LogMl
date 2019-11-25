@@ -18,6 +18,13 @@ class ResultsDf:
         else:
             self.df = self.df.join(df)
 
+    def add_col_dict(self, name, vals_dict):
+        ''' Add column 'name:vals' to dataframe '''
+        keys = list(vals_dict.keys())
+        vals = np.array([vals_dict[k] for k in keys])
+        df_new = pd.DataFrame({name: vals}, index=keys)
+        self.df = self.df.join(df_new)
+
     def add_col(self, name, vals):
         ''' Add column 'name:vals' to dataframe '''
         vals = self._flatten(vals)
@@ -58,7 +65,6 @@ class ResultsRankDf(ResultsDf):
         super().__init__(index)
         self.weights = dict()
         self.weight_default = 1.0
-        self.weight_min = 0.001
 
     def add_col_rank(self, name, vals, weight=None, reversed=False):
         ''' Add a column ranked by value '''
@@ -85,13 +91,17 @@ class ResultsRankDf(ResultsDf):
 
     def add_weight(self, name, weight):
         if weight is not None:
-            weight = max(weight, self.weight_min)
             self.weights[name] = weight
 
+    def get_weights(self):
+        return np.array([self.weights.get(n, np.nan) for n in self.get_weight_names()])
+
     def get_weights_table(self):
+        wt = ResultsDf(self.get_weight_names())
+        wt.add_col('weights', self.get_weights())
+        return wt
+
+    def get_weight_names(self):
         names = list(self.weights.keys())
         names.sort()
-        weights = np.array([self.weights.get(n, self.weight_default) for n in names])
-        wt = ResultsDf(names)
-        wt.add_col('weights', weights)
-        return wt
+        return names
