@@ -11,7 +11,7 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: true
+  enable: false
 
   # Enable "Feature Importance using Permutations" (for different models)
   is_fip_random_forest: true
@@ -53,6 +53,8 @@ dataset_preprocess:
 dataset_transform:
   enable: true
   one_hot_max_cardinality: 4
+  categories_regex:
+    - 'zzz*': ['low', 'mid', 'high']
 
 model:
   enable: false

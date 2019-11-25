@@ -73,6 +73,13 @@ dataset_transform:
     UsageBand: ['Low', 'Medium', 'High']
     ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
 
+  # Categorical data: Match field names using regular expressions
+  # A list of categorical input variables
+  # Can be followed by a list of categories to enforce some type of categorical order in the codes
+  categories_regex:
+    - 'zzz_.*': ['low', 'mid', 'high']
+    - 'yyy_.*': True
+
   # List of data columns that are transformed into 'date/time'
   # These columns are also split into 'date parts' (year, month, day, day_of_week, etc.)
   dates: ['saledate']

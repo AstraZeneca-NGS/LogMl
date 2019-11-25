@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import re
+import traceback
 
 from ...core.config import CONFIG_DATASET_TRANSFORM
 from ...core.log import MlLog
@@ -22,6 +23,7 @@ class DfTransform(MlLog):
         self.df = df
         self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
         self.category_column = dict()  # Store Pandas categorical definition
+        self.categories_regex = dict()  # Fields to be converted to categorical if names match a regex. Entries are list of categories_regex
         self.columns_to_add = dict()
         self.columns_to_remove = set()
         self.na_columns = set()     # Columns added as 'missing data' indicators
@@ -86,14 +88,6 @@ class DfTransform(MlLog):
         self.drop_zero_std()
         return self.df
 
-    def _sanitize_column_names(self):
-        ''' Sanitize all column names '''
-        if not self.is_sanitize_column_names:
-            self._debug("Sanitize column names disabled, skipping")
-            return
-        self._info("Sanitize column names")
-        self.df.columns = [sanitize_name(c) for c in self.df.columns]
-
     def create(self):
         """ Create a new dataFrame based on the previously calculated conversions """
         # Create new dataFrame
@@ -119,7 +113,10 @@ class DfTransform(MlLog):
         for field_name in self.df.columns:
             if not self.is_categorical_column(field_name):
                 continue
-            if field_name in self.categories.keys():
+            match_re_cats = self.match_category_re(field_name)
+            if match_re_cats is not None:
+                self._create_category(field_name, match_re_cats)
+            elif field_name in self.categories.keys():
                 self._create_category(field_name, self.categories.get(field_name))
             elif field_name in self.one_hot or self.should_be_one_hot(field_name):
                 self._create_one_hot(field_name)
@@ -129,9 +126,11 @@ class DfTransform(MlLog):
 
     def _create_category(self, field_name, categories=None):
         " Convert field to category numbers "
-        self._info(f"Converting to category: field '{field_name}'")
+        self._info(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
         xi_cat = xi.astype('category').cat.as_ordered()
+        if categories == True:
+            categories = None
         if categories:
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
@@ -190,6 +189,24 @@ class DfTransform(MlLog):
             field_dtype = np.datetime64
         if not np.issubdtype(field_dtype, np.datetime64):
             df[date_field] = pd.to_datetime(df[date_field], infer_datetime_format=True)
+
+    def match_category_re(self, fname):
+        """
+        Find the fisrt match for 'fname' matching a category 'regex'
+        Return the categories list on success, None on failure
+        """
+        for re_entry in self.categories_regex:
+            if len(re_entry) < 1:
+                self._debug(f"Bad entry for 'categories_regex': {re_entry}")
+                continue
+            regex = list(re_entry.keys())[0]
+            try:
+                if re.match(regex, fname) is not None:
+                    self._debug(f"Field name '{fname}' matches regular expression '{regex}': Using categories {re_entry[regex]}")
+                    return re_entry[regex]
+            except Exception as e:
+                self._error(f"Category regex: Error trying to match regular expression: '{regex}'\nException: {e}\n{traceback.format_exc()}")
+        return None
 
     def nas(self):
         " Transform 'NA' columns (i.e. missing data) "
@@ -258,6 +275,14 @@ class DfTransform(MlLog):
             name = f"{prepend}{sanitize_name(c)}"
             names[c] = name
         df.rename(columns=names, inplace=True)
+
+    def _sanitize_column_names(self):
+        ''' Sanitize all column names '''
+        if not self.is_sanitize_column_names:
+            self._debug("Sanitize column names disabled, skipping")
+            return
+        self._info("Sanitize column names")
+        self.df.columns = [sanitize_name(c) for c in self.df.columns]
 
     def should_be_one_hot(self, field_name):
         " Should we convert to 'one hot' encoding? "
