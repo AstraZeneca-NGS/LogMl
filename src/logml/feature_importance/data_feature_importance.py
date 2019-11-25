@@ -400,9 +400,6 @@ class DataFeatureImportance(MlFiles):
         self._debug(f"Feature importance {self.tag}: Adding 'rank of rank_sum' column")
         self.results.weight_default = self.weight_min
         self.results.add_rank_of_ranksum()
-        # Sort by the resulting column (ranksum)
-        self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
-        self.results.sort('rank_of_ranksum')
         return w_ori
 
     def select(self):
@@ -451,6 +448,9 @@ class DataFeatureImportance(MlFiles):
         ''' Show and save resutl tables '''
         # Show and save main results table
         self.results.print(f"Feature importance {self.tag}")
+        # Sort by the resulting column (ranksum)
+        self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
+        self.results.sort('rank_of_ranksum')
         fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}'")
         self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
@@ -459,6 +459,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()
         weights.add_col_dict('weights_ori', weights_ori)
+        weights.sort('weights', ascending=False)
         weights.print(f"Feature importance {self.tag} weights")
         self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
 

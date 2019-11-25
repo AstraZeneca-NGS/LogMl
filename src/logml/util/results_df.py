@@ -52,10 +52,10 @@ class ResultsDf:
         with pd.option_context('display.max_rows', None, 'display.max_columns', None):
             display(self.df)
 
-    def sort(self, col_names):
+    def sort(self, col_names, ascending=True):
         if self.df is None:
             return
-        self.df.sort_values(col_names, inplace=True)
+        self.df.sort_values(col_names, ascending=ascending, inplace=True)
 
 
 class ResultsRankDf(ResultsDf):
