@@ -23,7 +23,7 @@ dataset_transform:
   enable: true
 
 model:
-  enable: false
+  enable: true
   model_type: regression
   model_name: 'linear3c'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -39,5 +39,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: false
+  enable: true
   models: !include models_search/*.yaml

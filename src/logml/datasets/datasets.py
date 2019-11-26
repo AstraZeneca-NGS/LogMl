@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import random
 
@@ -26,12 +27,12 @@ class Datasets(MlFiles):
         self.dataset_name = None
         self.dataset_type = None
         self.dataset = None
-        self.dataset_xy = InOut(None, None)
         self.dataset_test = None
-        self.dataset_test_xy = InOut(None, None)
         self.dataset_train = None
-        self.dataset_train_xy = InOut(None, None)
         self.dataset_validate = None
+        self.dataset_xy = InOut(None, None)
+        self.dataset_test_xy = InOut(None, None)
+        self.dataset_train_xy = InOut(None, None)
         self.dataset_validate_xy = InOut(None, None)
         self.do_not_load_pickle = False
         self.do_not_save = False
@@ -41,8 +42,8 @@ class Datasets(MlFiles):
         self.is_use_default_preprocess = True
         self.is_use_default_split = True
         self.is_use_default_transform = True
-        self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
         self.operations_done = set()
+        self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
         self.outputs = list()
         self.should_save = False
         if set_config:
@@ -345,14 +346,21 @@ class Datasets(MlFiles):
             return self.default_preprocess()
         return False
 
-    def reset(self):
+    def reset(self, soft=False):
         ''' Reset fields '''
         self.dataset = None
         self.dataset_test = None
         self.dataset_train = None
         self.dataset_validate = None
         self.operations_done = set()
-        self.should_save = False
+        if not soft:
+            self.dataset_xy = InOut(None, None)
+            self.dataset_test_xy = InOut(None, None)
+            self.dataset_train_xy = InOut(None, None)
+            self.dataset_validate_xy = InOut(None, None)
+            self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
+            self.outputs = list()
+            self.should_save = False
 
     def save(self):
         ''' Try to save dataset, first use user defined function otherwise save to pickle otherwise'''

@@ -31,6 +31,7 @@ class DataExplore(MlFiles):
         self.corr_thresdold = 0.7
         self.correlation_analysis_max = 100
         self.dendogram_max = 100
+        self.describe_kde_min_uniq_values = 100
         self.df = df
         self.files_base = files_base
         self.is_dendogram = True
@@ -44,7 +45,7 @@ class DataExplore(MlFiles):
         self.plot_pairs_max = 20
         self.rank_correlation_matrix = None
         self.rank_correlation_colums = None
-        self.shapiro_wilks_threshold = 0.1
+        self.shapiro_wilks_threshold = 0.05
         if set_config:
             self._set_from_config()
 
@@ -126,7 +127,7 @@ class DataExplore(MlFiles):
         """ Show basic stats and histograms for every column """
         if not self.is_describe_all:
             return
-        dfs = self.keep_uniq()
+        dfs = self.remove_non_numeric_cols(self.df)
         print(f"Plotting histograms for columns {self.name}: {list(dfs.columns)}")
         descr = ResultsDf()
         for c in sorted(dfs.columns):
@@ -134,23 +135,28 @@ class DataExplore(MlFiles):
             xi_no_na = xi[~np.isnan(xi)]  # Remove 'nan'
             df_desc = self.describe(xi_no_na, c)
             descr.add_df(df_desc)
-            bins = min(len(xi_no_na.unique()), max_bins)
+            count_uniq = len(xi_no_na.unique())
+            bins = min(count_uniq, max_bins)
             fig = plt.figure()
-            sns.distplot(xi_no_na, bins=bins)
+            # Create histogram. Only show 'kernel density estimate' if there are more than 'self.describe_min_kde_count' unique values
+            show_kde = (count_uniq >= self.describe_kde_min_uniq_values)
+            sns.distplot(xi_no_na, kde=show_kde, bins=bins)
             self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
-        descr.print(f"Descrive variables {self.name}")
+        descr.print(f"Describe variables {self.name}")
 
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
         df_desc = pd.DataFrame(x.describe())
+        # Number of unique values
+        df_uniq = pd.DataFrame({field_name: len(x.unique())}, index=['unique'])
         # Skewness
         df_skew = pd.DataFrame({field_name: scipy.stats.skew(x)}, index=['skewness'])
         # Kurtosis
-        df_kurt = pd.DataFrame({field_name: scipy.stats.skew(x)}, index=['kurtosis'])
+        df_kurt = pd.DataFrame({field_name: scipy.stats.kurtosis(x)}, index=['kurtosis'])
         # Distribution fit
         df_fit = self.distribution_fit(x, field_name)
         # Show all information
-        df_desc = pd.concat([df_desc, df_skew, df_kurt, df_fit])
+        df_desc = pd.concat([df_desc, df_uniq, df_skew, df_kurt, df_fit])
         self.print_all(f"Summary {self.name}: {field_name}", df_desc)
         return df_desc
 
@@ -218,7 +224,7 @@ class DataExplore(MlFiles):
             xi = self.df[c]
             if not self.is_numeric(xi):
                 continue
-            if len(xi.unique()) > min_count:
+            if len(xi.unique()) >= min_count:
                 df_new[c] = xi
         return df_new
 
@@ -241,30 +247,31 @@ class DataExplore(MlFiles):
         self._save_csv(f"{self.files_base}.missing_values.csv", "Missing values", self.dfnas, save_index=True)
         # Show plot of percent of missing values
         plt.plot(nas_perc)
-        num_vars = len(nas_perc.columns)
-        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}', count_vars_x=num_vars, count_vars_y=num_vars)
+        self._plot_show(f"Percent of missing values", f'dataset_explore.{self.name}')
         # Missing values plots
         self.na_plots(self.df, self.name)
-        # Create a plot of missing values: Only numeric types
-        if len(self.df.select_dtypes(include=[np.number]).columns) != len(self.df.columns):
-            self.na_plots(self.df.select_dtypes(include=[np.number]), f"{self.name}: numeric")
+        # TODO: Remove. Overall nullity plot should be enough
+        # if len(self.df.select_dtypes(include=[np.number]).columns) != len(self.df.columns):
+        # # Create a plot of missing values: Only numeric types
+        #     self.na_plots(self.df.select_dtypes(include=[np.number]), f"{self.name}: numeric")
 
     def na_plots(self, df, name):
         " Plot missing values "
         # Show missing values in data frame
         msno.matrix(df)
-        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=df.columns)
+        count_vars = len(df.columns)
+        self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=count_vars)
         # Barplot of number of misisng values
         msno.bar(df)
-        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=df.columns)
+        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=count_vars)
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
-        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=df.columns, count_vars_y=df.columns)
+        self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=count_vars, count_vars_y=count_vars)
 
     def plots_pairs(self):
         if not self.is_plot_pairs:
             return
-        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.keep_uniq()))
+        df_copy = self.remove_na_cols(self.remove_non_numeric_cols(self.df))
         count_cols = len(df_copy.columns)
         if count_cols == 0:
             self._debug(f"Plot pairs {self.name}: No columns left after removing missing values ({count_cols}), skipping")
@@ -295,7 +302,7 @@ class DataExplore(MlFiles):
 
     def remove_na_cols(self, df):
         """ Remove 'na' columns """
-        # Remove column names ending with '_na'
+        # Remove column names ending with '_na' or '_nan'
         df_copy = df.copy()
         cols_na = [c for c in df.columns if df[c].isna().sum() > 0 or c.endswith('_na') or c.endswith('_nan')]
         if cols_na:

@@ -1,0 +1,77 @@
+logger:
+  plots_path: 'logml_plots/zzz'
+
+dataset:
+  dataset_type: 'df'
+  dataset_name: 'zzz'
+  dataset_path: 'data/zzz'
+  outputs: ['y']
+
+dataset_explore:
+  enable: false
+
+dataset_feature_importance:
+  enable: false
+
+  # Enable "Feature Importance using Permutations" (for different models)
+  is_fip_random_forest: true
+  is_fip_extra_trees: true
+  is_fip_gradient_boosting: true
+
+  # Regularization methods
+  # Enable regularization methods (for different models)
+  is_regularization_lasso: true
+  is_regularization_ridge: true
+  is_regularization_lars: true
+  # Number of Cross-validation in regularization methods
+  regularization_model_cv: 10
+
+  # Enable Recursive Feature Elimination (for different models)
+  is_rfe_model: true
+  is_rfe_model_lasso: true
+  is_rfe_model_ridge: true
+  is_rfe_model_lars_aic: true
+  is_rfe_model_lars_bic: true
+  is_rfe_model_random_forest: true
+  is_rfe_model_extra_trees: true
+  is_rfe_model_gradient_boosting: true
+  rfe_model_cv: 0  # Number of Corss-validations in Recursive Feature Elimination methods
+
+  # Enable model selection methods (SelectFdr / SelectKBest)
+  is_select: true
+
+  # Tree graph
+  is_tree_graph: true
+  tree_graph_max_depth: 4  # Number of layers to show in graph
+
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
+
+dataset_transform:
+  enable: true
+  one_hot_max_cardinality: 4
+  categories_regex:
+    - 'zzz*': ['low', 'mid', 'high']
+
+model:
+  enable: false
+  model_type: regression
+  model_name: 'zzz'
+  model_class: sklearn.ensemble.RandomForestRegressor
+  model_path: 'data/zzz/model'
+
+functions:
+    dataset_split:
+        split_validate: 0.2
+        split_test: 0.0
+    model_create:
+      n_estimators: 30
+      min_samples_leaf: 3
+      max_features: 0.7
+
+model_search:
+  enable: false
+  models: !include models_search/*.yaml

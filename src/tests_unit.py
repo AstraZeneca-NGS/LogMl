@@ -12,7 +12,7 @@ from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, C
 from logml.datasets import Datasets, DatasetsDf
 from logml.core.files import MlFiles
 from logml.core.log import MlLog
-from logml.logml import LogMl
+from logml.core import LogMl
 from logml.models import Model
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 
@@ -313,11 +313,11 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         self.assertTrue(ret)
         # Check categories
-        self.assertTrue(all(ds.dataset['UsageBand'].head(10) == np.array([1, 1, 1, 0, 1, 1, 1, 0, -1, 1])))
+        self.assertTrue(all(ds.dataset['UsageBand'].head(10) == np.array([2, 2, 2, 1, 2, 2, 2, 1, 0, 2])))
         # Check date convertion
-        self.assertTrue('saleYear' in ds.dataset.columns)
-        self.assertTrue('saleMonth' in ds.dataset.columns)
-        self.assertTrue('saleDay' in ds.dataset.columns)
+        self.assertTrue('sale:year' in ds.dataset.columns)
+        self.assertTrue('sale:month' in ds.dataset.columns)
+        self.assertTrue('sale:day' in ds.dataset.columns)
         # Check date missing value new column
         self.assertTrue('MachineHoursCurrentMeter_na' in ds.dataset.columns)
 
@@ -688,7 +688,7 @@ class TestLogMl(unittest.TestCase):
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
-        for c in ['d1Year', 'd1Month', 'd1Week', 'd1Day', 'd1Dayofweek', 'd1Dayofyear', 'd1Is_month_end', 'd1Is_month_start', 'd1Is_quarter_end', 'd1Is_quarter_start', 'd1Is_year_end', 'd1Is_year_start', 'd1Hour', 'd1Minute', 'd1Second', 'd1Elapsed']:
+        for c in ['d1:year', 'd1:month', 'd1:week', 'd1:day', 'd1:dayofweek', 'd1:dayofyear', 'd1:is_month_end', 'd1:is_month_start', 'd1:is_quarter_end', 'd1:is_quarter_start', 'd1:is_year_end', 'd1:is_year_start', 'd1:hour', 'd1:minute', 'd1:second', 'd1:elapsed']:
             x = df[c]
             self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
 
@@ -706,6 +706,21 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue('y' in cols)
         self.assertFalse('x1' in cols)
         self.assertFalse('d1' in cols)
+
+    def test_dataset_transform_004(self):
+        ''' Checking dataset transform: Convert fields to categories (matching regex on field names) '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        cols = list(ds.dataset.columns)
+        self.assertTrue('x1' in cols)
+        self.assertTrue('x2' in cols)
+        for field in ['zzz_0', 'zzz_2', 'zzz_4', 'zzz_6', 'zzz_8', 'zxz_1:high', 'xzz_3:high', 'azzz_5:high', '_zzz_7:high', 'zzzz_9']:
+            self.assertTrue(field in cols, f"Field {field} not found")
 
 
 if __name__ == '__main__':

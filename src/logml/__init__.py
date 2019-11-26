@@ -1,6 +1,5 @@
 
 from .core import *
-from .logml import LogMl
 
 __all__ = ['LogMl',
            'dataset_augment',

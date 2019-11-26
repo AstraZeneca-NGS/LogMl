@@ -1,15 +1,17 @@
+#!/usr/bin/env python
+
 import copy
 import datetime
 import logging
 import pandas as pd
 
-from .core import Config, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
-from .core.files import MlFiles, set_plots
-from .core.registry import MODEL_CREATE
-from .datasets import Datasets, DatasetsDf, DataExplore
-from .feature_importance import DataFeatureImportance
-from .models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelSearch, SkLearnModel
-from .util.results_df import ResultsDf
+from . import Config, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
+from .files import MlFiles, set_plots
+from .registry import MODEL_CREATE
+from ..datasets import Datasets, DatasetsDf, DataExplore
+from ..feature_importance import DataFeatureImportance
+from ..models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelSearch, SkLearnModel
+from ..util.results_df import ResultsDf
 
 
 class LogMl(MlFiles):
@@ -31,6 +33,7 @@ class LogMl(MlFiles):
         self._id_counter = 0
         self.cross_validation = None
         self.dataset_feature_importance = None
+        self.dataset_feature_importance_na = None
         self.disable_plots = False
         self.display_model_results = True
         self.display_max_columns = 1000
@@ -87,7 +90,9 @@ class LogMl(MlFiles):
         if not self._dataset_explore():
             self._debug("Could not explore dataset")
         if not self._feature_importance():
-            self._debug("Could not perform feature importance / feature selection")
+            self._debug("Could not perform feature importance")
+        if not self._feature_importance_na():
+            self._debug("Could not perform feature importance of missing data")
         # Model Train
         if not self.models_train():
             self._error("Could not train model")
@@ -123,8 +128,21 @@ class LogMl(MlFiles):
             self._debug("Dataset feature importance only available for dataset type 'df'")
             return True
         model_type = self.model_ori.model_type
-        self.dataset_feature_importance = DataFeatureImportance(self.datasets, self.config, model_type)
+        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type, 'all')
         return self.dataset_feature_importance()
+
+    def _feature_importance_na(self):
+        " Feature importance / feature selection "
+        if not self.is_dataset_df():
+            self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
+            return True
+        model_type = self.model_ori.model_type
+        datasets_na = self.datasets.get_datasets_na()
+        if datasets_na is None:
+            self._debug("Dataset feature importance (missing data): Could not create 'missing' dataset, skipping")
+            return False
+        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type, 'na')
+        return self.dataset_feature_importance_na()
 
     def get_model_eval_test(self):
         ''' Get model test results '''

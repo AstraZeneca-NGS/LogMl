@@ -73,6 +73,13 @@ dataset_transform:
     UsageBand: ['Low', 'Medium', 'High']
     ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
 
+  # Categorical data: Match field names using regular expressions
+  # A list of categorical input variables
+  # Can be followed by a list of categories to enforce some type of categorical order in the codes
+  categories_regex:
+    - 'zzz_.*': ['low', 'mid', 'high']
+    - 'yyy_.*': True
+
   # List of data columns that are transformed into 'date/time'
   # These columns are also split into 'date parts' (year, month, day, day_of_week, etc.)
   dates: ['saledate']
@@ -156,7 +163,7 @@ dataset_explore:
   # Show dendogram
   is_dendogram: true
 
-  # Descrive all variables
+  # Describe all variables
   is_describe_all: true
 
   # Perform 'missing data' analysis
@@ -177,6 +184,10 @@ dataset_explore:
   # Do not plot pairs if there are more than 'correlation_analysis_max' variables
   correlation_analysis_max: 100
 
+  # When plotting a histogram, the columns should have at least this number of
+  # unique values to show the 'kernel density estimate' line
+  describe_kde_min_uniq_values: 100
+
   # Do not perform dendogram plot for more than 'dendogram_max' varaibles
   dendogram_max: 100
 
@@ -186,13 +197,15 @@ dataset_explore:
   # Consider a varaible 'normal' or 'log normal' if Shapiro-Wilks test is over this threshold
   shapiro_wilks_threshold: 0.1
 
-
 #---
 # Dataset: Feature importance / feature selection
 #---
 dataset_feature_importance:
   # Set to 'false' to disable this step
   enable: true
+
+  # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
+  enable_na: true
 
   # Enable "Feature Importance using Permutations" (for different models)
   is_fip_random_forest: true
@@ -224,6 +237,11 @@ dataset_feature_importance:
   # Tree graph
   is_tree_graph: true
   tree_graph_max_depth: 4  # Number of layers to show in graph
+
+  # Range to use when expanding weights
+  # Note: Weights are converted to an interval [weight_min, weight_max]
+  weight_max: 10.0
+  weight_min: 1.0
 
 #---
 # Model definition and parameters
@@ -264,6 +282,17 @@ model:
 
   # Save model validation results to pickle file?
   is_save_validate_pickle: false
+
+  # Class (e.g. from sklearn.metric) to be used when evaluating the model
+  metric_class: ''
+
+  # Max value for a metric score, used to convert from 'score' to 'loss' (loss = metric_class_max - score)
+  metric_class_max: ''
+
+  # Is the metric a score? When no 'metric_class_max' is defined, convert by doing
+  #     loss = -1 * score
+  metric_class_is_score: False
+
 
 #---
 # Cross validation methodology
