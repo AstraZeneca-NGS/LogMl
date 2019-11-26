@@ -126,10 +126,11 @@ class DfTransform(MlLog):
 
     def _create_category(self, field_name, categories=None):
         " Convert field to category numbers "
-        self._info(f"Converting to category: field '{field_name}', categories: {categories}")
+        self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
         xi_cat = xi.astype('category').cat.as_ordered()
-        if categories == True:
+        # Categories can be either 'True' or a list
+        if categories is True:
             categories = None
         if categories:
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
@@ -141,6 +142,7 @@ class DfTransform(MlLog):
         self.columns_to_add[field_name] = df_cat
         self.columns_to_remove.add(field_name)
         self.skip_nas.add(field_name)
+        self._info(f"Converted to category: field '{field_name}', categories: {list(xi_cat.cat.categories)}")
 
     def _create_one_hot(self, field_name):
         " Create a one hot encodig for 'field_name' "
