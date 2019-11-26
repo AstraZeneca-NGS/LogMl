@@ -20,6 +20,7 @@ from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
+from .logistic_regression_wilks import LogisticRegressionWilks
 from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
 from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
 from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkRidgeCV
@@ -115,6 +116,7 @@ class DataFeatureImportance(MlFiles):
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()
+        self.wilks()
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         # Perform re-weighting, then display and save results
@@ -485,3 +487,7 @@ class DataFeatureImportance(MlFiles):
         subprocess.run(args)
         self._info(f"Created image: '{file_png}'")
         self._display(Image(filename=file_png))
+
+    def wilks(self):
+        self._info(f"Logistic regression, Wilks {self.tag}: Start")
+        LogisticRegressionWilks(self, )
