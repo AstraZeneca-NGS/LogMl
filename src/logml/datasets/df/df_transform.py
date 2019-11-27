@@ -286,7 +286,12 @@ class DfTransform(MlLog):
             self._debug("Sanitize column names disabled, skipping")
             return
         self._info("Sanitize column names")
-        self.df.columns = [sanitize_name(c) for c in self.df.columns]
+        cols_ori = list(self.df.columns)
+        cols_new = [sanitize_name(c) for c in self.df.columns]
+        self.df.columns = cols_new
+        for i in range(len(self.df.columns)):
+            if cols_new[i] != cols_ori[i]:
+                self._info(f"Sanitize column names: Changed '{cols_ori[i]}' to '{cols_new[i]}'")
 
     def should_be_one_hot(self, field_name):
         " Should we convert to 'one hot' encoding? "

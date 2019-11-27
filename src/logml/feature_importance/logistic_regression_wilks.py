@@ -61,7 +61,7 @@ class LogisticRegressionWilks(MlFiles):
             cols.append(alt_model_variables)
         x = self.x[cols]
         logit_model = Logit(self.y, x)
-        res = logit_model.fit()
+        res = logit_model.fit(disp=0)
         return logit_model, res
 
     def p_value(self, cols):
