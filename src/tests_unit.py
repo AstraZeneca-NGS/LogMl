@@ -338,7 +338,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('auctioneerID' in ds.dataset.columns)
 
     def test_dataset_feature_importance_001(self):
-        ''' Checking feature importance on dataset (dataframe) '''
+        ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
         config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -359,7 +359,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.p_values['x6'] > 0.1)
 
     def test_dataset_feature_importance_002(self):
-        ''' Checking feature importance on dataset (dataframe) '''
+        ''' Checking feature importance on dataset (dataframe): Clasification test (random forest) '''
         config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -376,6 +376,26 @@ class TestLogMl(unittest.TestCase):
         fi_vars = list(fi.results.df.index.values)
         self.assertTrue(fi_vars[0] == 'x1')
         self.assertTrue(fi_vars[1] == 'x2')
+
+    def test_dataset_feature_importance_003(self):
+        ''' Checking feature importance on dataset (dataframe): Regression test (linear) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_003.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'regression', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1')
+        self.assertTrue(fi_vars[1] == 'x2')
+        self.assertTrue(fi_vars[3] == 'x3')
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe '''
