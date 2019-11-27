@@ -71,4 +71,4 @@ model:
 functions:
   dataset_split:
     split_test: 0.0
-    split_validate: 0.5
+    split_validate: 0.2

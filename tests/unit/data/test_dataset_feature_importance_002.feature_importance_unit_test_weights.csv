@@ -1,4 +1,4 @@
 ,weights,weights_ori
-importance_skmodel_rank_RandomForest,1.0564102564102564,0.39473684210526316
-importance_dropcol_rank_RandomForest,1.0256410256410255,0.4068825910931174
-importance_permutation_rank_RandomForest,1.0,0.417004048582996
+importance_skmodel_rank_RandomForest,1.0470588235294118,0.40865384615384615
+importance_dropcol_rank_RandomForest,1.011764705882353,0.42307692307692313
+importance_permutation_rank_RandomForest,1.0,0.4278846153846154

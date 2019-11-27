@@ -348,15 +348,14 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        lrw = LogisticRegressionWilks(ds, ['x3'], 'test_dataset_feature_importance_001')
+        lrw = LogisticRegressionWilks(ds, ['x6'], 'test_dataset_feature_importance_001')
         ret = lrw()
         self.assertTrue(ret)
-        self.assertTrue(lrw.p_values['x1'] < 0.000001)
-        self.assertTrue(lrw.p_values['x2'] < 0.000001)
-        self.assertTrue(lrw.p_values['x3'] < 0.000001)
-        self.assertTrue(lrw.p_values['x4'] > 0.1)
-        self.assertTrue(lrw.p_values['x5'] > 0.1)
-        self.assertTrue(lrw.p_values['x6'] > 0.1)
+        self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")
+        self.assertTrue(lrw.p_values['x2'] < 0.05, f"p-value = {lrw.p_values['x2']}")
+        self.assertTrue(lrw.p_values['x3'] < 0.05, f"p-value = {lrw.p_values['x3']}")
+        self.assertTrue(lrw.p_values['x4'] > 0.1, f"p-value = {lrw.p_values['x4']}")
+        self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_feature_importance_002(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (random forest) '''
@@ -374,8 +373,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
         fi_vars = list(fi.results.df.index.values)
-        self.assertTrue(fi_vars[0] == 'x1')
-        self.assertTrue(fi_vars[1] == 'x2')
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_feature_importance_003(self):
         ''' Checking feature importance on dataset (dataframe): Regression test (linear) '''
@@ -393,9 +391,9 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
         fi_vars = list(fi.results.df.index.values)
-        self.assertTrue(fi_vars[0] == 'x1')
-        self.assertTrue(fi_vars[1] == 'x2')
-        self.assertTrue(fi_vars[2] == 'x3')
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+        self.assertTrue(fi_vars[1] == 'x2', f"Feature importance variables are: {fi_vars}")
+        self.assertTrue(fi_vars[2] == 'x3', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe '''

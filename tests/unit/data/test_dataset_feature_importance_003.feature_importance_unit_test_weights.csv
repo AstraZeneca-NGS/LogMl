@@ -1,5 +1,5 @@
 ,weights,weights_ori
-regularization_rank_LassoCV,1.0209986056534301,0.002339860292134066
-regularization_rank_RidgeCV,1.0187800442618657,0.0023450514158398494
-regularization_rank_Lars_AIC,1.0,0.002388994095692709
-regularization_rank_Lars_BIC,1.0,0.002388994095692709
+regularization_rank_RidgeCV,1.002152749638018,0.0019442832389167108
+regularization_rank_LassoCV,1.0006982394283246,0.001947111218738251
+regularization_rank_Lars_AIC,1.0,0.0019484687939554934
+regularization_rank_Lars_BIC,1.0,0.0019484687939554934
