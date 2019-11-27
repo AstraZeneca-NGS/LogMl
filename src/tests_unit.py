@@ -395,7 +395,7 @@ class TestLogMl(unittest.TestCase):
         fi_vars = list(fi.results.df.index.values)
         self.assertTrue(fi_vars[0] == 'x1')
         self.assertTrue(fi_vars[1] == 'x2')
-        self.assertTrue(fi_vars[3] == 'x3')
+        self.assertTrue(fi_vars[2] == 'x3')
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe '''
