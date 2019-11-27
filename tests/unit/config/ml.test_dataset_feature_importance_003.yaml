@@ -1,17 +1,26 @@
 logger:
-  plots_path: 'logml_plots/zzz'
 
 dataset:
-  dataset_type: 'df'
-  dataset_name: 'zzz'
-  dataset_path: 'data/zzz'
-  outputs: ['y']
+    dataset_name: 'test_dataset_feature_importance_003'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    is_use_default_split: true
+    outputs: ['y']
 
-dataset_explore:
+dataset_transform:
   enable: false
 
+dataset_preprocess:
+  enable: false
+  normalize:
+    standard: true
+
 dataset_feature_importance:
+  # Set to 'false' to disable this step
   enable: true
+
+  # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
+  enable_na: false
 
   # Enable "Feature Importance using Permutations" (for different models)
   is_fip_random_forest: false
@@ -20,9 +29,9 @@ dataset_feature_importance:
 
   # Regularization methods
   # Enable regularization methods (for different models)
-  is_regularization_lasso: false
-  is_regularization_ridge: false
-  is_regularization_lars: false
+  is_regularization_lasso: true
+  is_regularization_ridge: true
+  is_regularization_lars: true
   # Number of Cross-validation in regularization methods
   regularization_model_cv: 10
 
@@ -44,37 +53,22 @@ dataset_feature_importance:
   is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
-  is_wilks: true
+  # Range to use when expanding weights
+  # Note: Weights are converted to an interval [weight_min, weight_max]
+  weight_max: 10.0
+  weight_min: 1.0
+
+  # Logistic regression p-value (Wilks)
+  is_wilks: false
+  # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
-
-dataset_preprocess:
-  enable: true
-  normalize:
-    standard: true
-    skip: ['y']
-
-dataset_transform:
-  enable: true
-  one_hot_max_cardinality: 4
-  categories_regex:
-    - 'zzz*': ['low', 'mid', 'high']
 
 model:
   enable: false
-  model_type: regression
-  model_name: 'zzz'
-  model_class: sklearn.ensemble.RandomForestRegressor
-  model_path: 'data/zzz/model'
+  model_name: 'test_model_dataset_feature_importance_003'
+  model_path: 'tests/tmp/test_model_dataset_feature_importance_003'
 
 functions:
-    dataset_split:
-        split_validate: 0.2
-        split_test: 0.0
-    model_create:
-      n_estimators: 30
-      min_samples_leaf: 3
-      max_features: 0.7
-
-model_search:
-  enable: false
-  models: !include models_search/*.yaml
+  dataset_split:
+    split_test: 0.0
+    split_validate: 0.5

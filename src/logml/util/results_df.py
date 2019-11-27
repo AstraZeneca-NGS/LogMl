@@ -46,6 +46,9 @@ class ResultsDf:
     def _flatten(self, x):
         return x if x.ndim == 1 else x.flatten()
 
+    def is_empty(self):
+        return self.df.empty
+
     def print(self, msg=None):
         if msg is not None:
             print(msg)

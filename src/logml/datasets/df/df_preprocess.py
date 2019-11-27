@@ -44,6 +44,9 @@ class DfPreprocess(MlLog):
         Preprocess dataframe columns
         Returns a new (transformed) dataset
         """
+        if not self.enable:
+            self._debug(f"Preprocessing dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', enable='{self.enable}'")
+            return self.df
         self._debug("Preprocessing dataframe: Start")
         self._normalize()
         self._debug("Preprocessing dataframe: End")

@@ -8,13 +8,15 @@ import sys
 import time
 import unittest
 
-from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
-from logml.datasets import Datasets, DatasetsDf
-from logml.core.files import MlFiles
-from logml.core.log import MlLog
 from logml.core import LogMl
-from logml.models import Model
+from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
+from logml.core.files import set_plots, MlFiles
+from logml.core.log import MlLog
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
+from logml.datasets import Datasets, DatasetsDf
+from logml.feature_importance.data_feature_importance import DataFeatureImportance
+from logml.feature_importance.logistic_regression_wilks import LogisticRegressionWilks
+from logml.models import Model
 
 
 # Create dataset
@@ -108,6 +110,7 @@ class TestLogMl(unittest.TestCase):
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
         # MlLog().set_log_level(logging.DEBUG)
+        set_plots(disable=True, show=False, save=False)
         MlRegistry().reset()
 
     def test_config_001(self):
@@ -333,6 +336,159 @@ class TestLogMl(unittest.TestCase):
         # Check that columns having zero std are dropped
         self.assertFalse('datasource' in ds.dataset.columns)
         self.assertFalse('auctioneerID' in ds.dataset.columns)
+
+    def test_dataset_feature_importance_001(self):
+        ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        lrw = LogisticRegressionWilks(ds, ['x6'], 'test_dataset_feature_importance_001')
+        ret = lrw()
+        self.assertTrue(ret)
+        self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")
+        self.assertTrue(lrw.p_values['x2'] < 0.05, f"p-value = {lrw.p_values['x2']}")
+        self.assertTrue(lrw.p_values['x3'] < 0.05, f"p-value = {lrw.p_values['x3']}")
+        self.assertTrue(lrw.p_values['x4'] > 0.1, f"p-value = {lrw.p_values['x4']}")
+        self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
+
+    def test_dataset_feature_importance_002(self):
+        ''' Checking feature importance on dataset (dataframe): Clasification test (random forest) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+
+    def test_dataset_feature_importance_003(self):
+        ''' Checking feature importance on dataset (dataframe): Regression test (linear) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_003.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'regression', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+        self.assertTrue(fi_vars[1] == 'x2', f"Feature importance variables are: {fi_vars}")
+        self.assertTrue(fi_vars[2] == 'x3', f"Feature importance variables are: {fi_vars}")
+
+    def test_dataset_preprocess_001(self):
+        ''' Checking dataset preprocess for dataframe '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # x1
+        self.assertTrue(np.min(df.x1) >= 0.0)
+        self.assertTrue(np.max(df.x1) <= 1.0)
+        # x2
+        self.assertTrue(np.min(df.x2) >= 0.0)
+        self.assertTrue(np.max(df.x2) <= 1.0)
+        # x3
+        self.assertTrue(np.max(df.x3) <= 1.0)
+        self.assertTrue(abs(np.min(df.x3)) <= 1.0)
+        # x4
+        self.assertTrue(np.min(df.x4) >= 0.0)
+        self.assertTrue(np.min(df.x4) < 0.0001)
+        self.assertTrue(np.max(df.x4) > 0.9999)
+        self.assertTrue(np.max(df.x4) <= 1.0)
+        # x5
+        self.assertTrue(np.min(df.x5) >= -1.0)
+        self.assertTrue(np.min(df.x5) < -0.9999)
+        self.assertTrue(np.max(df.x5) > 0.9999)
+        self.assertTrue(np.max(df.x5) <= 1.0)
+        # x6
+        x6_mean = np.mean(df.x6)
+        x6_std = np.std(df.x6)
+        self.assertTrue(abs(x6_mean - 2) < 0.2)
+        self.assertTrue(abs(x6_std - 3) <= 0.1)
+        # x7
+        x7_mean = np.mean(df.x7)
+        x7_std = np.std(df.x7)
+        self.assertTrue(abs(x7_mean) < 0.001)
+        self.assertTrue(abs(x7_std - 1) <= 0.001)
+
+    def test_dataset_transform_001(self):
+        ''' Checking dataset transform: Remove missing output rows '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Check that rows in 'y' have been removed
+        self.assertTrue(df.shape[0] < 990)
+
+    def test_dataset_transform_002(self):
+        ''' Checking dataset transform: Remove missing output rows '''
+        # create_dataset_transform_002()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        for c in ['d1:year', 'd1:month', 'd1:week', 'd1:day', 'd1:dayofweek', 'd1:dayofyear', 'd1:is_month_end', 'd1:is_month_start', 'd1:is_quarter_end', 'd1:is_quarter_start', 'd1:is_year_end', 'd1:is_year_start', 'd1:hour', 'd1:minute', 'd1:second', 'd1:elapsed']:
+            x = df[c]
+            self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
+
+    def test_dataset_transform_003(self):
+        ''' Checking dataset transform: Remove missing column '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_003.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        cols = list(ds.dataset.columns)
+        self.assertTrue('x2' in cols)
+        self.assertTrue('y' in cols)
+        self.assertFalse('x1' in cols)
+        self.assertFalse('d1' in cols)
+
+    def test_dataset_transform_004(self):
+        ''' Checking dataset transform: Convert fields to categories (matching regex on field names) '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        cols = list(ds.dataset.columns)
+        self.assertTrue('x1' in cols)
+        self.assertTrue('x2' in cols)
+        for field in ['zzz_0', 'zzz_2', 'zzz_4', 'zzz_6', 'zzz_8', 'zxz_1:high', 'xzz_3:high', 'azzz_5:high', '_zzz_7:high', 'zzzz_9']:
+            self.assertTrue(field in cols, f"Field {field} not found")
 
     def test_files_001(self):
         mf = MlFiles()
@@ -626,101 +782,6 @@ class TestLogMl(unittest.TestCase):
         epsilon = 0.000001
         self.assertTrue(ret)
         self.assertTrue(abs(mltrain.eval_validate - eval_expected) < epsilon)
-
-    def test_dataset_preprocess_001(self):
-        ''' Checking dataset preprocess for dataframe '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_001.yaml')
-        config = Config(argv=['logml.py', '-c', config_file])
-        config()
-        ds = DatasetsDf(config)
-        rm(ds.get_file_name())
-        ret = ds()
-        df = ds.dataset
-        # x1
-        self.assertTrue(np.min(df.x1) >= 0.0)
-        self.assertTrue(np.max(df.x1) <= 1.0)
-        # x2
-        self.assertTrue(np.min(df.x2) >= 0.0)
-        self.assertTrue(np.max(df.x2) <= 1.0)
-        # x3
-        self.assertTrue(np.max(df.x3) <= 1.0)
-        self.assertTrue(abs(np.min(df.x3)) <= 1.0)
-        # x4
-        self.assertTrue(np.min(df.x4) >= 0.0)
-        self.assertTrue(np.min(df.x4) < 0.0001)
-        self.assertTrue(np.max(df.x4) > 0.9999)
-        self.assertTrue(np.max(df.x4) <= 1.0)
-        # x5
-        self.assertTrue(np.min(df.x5) >= -1.0)
-        self.assertTrue(np.min(df.x5) < -0.9999)
-        self.assertTrue(np.max(df.x5) > 0.9999)
-        self.assertTrue(np.max(df.x5) <= 1.0)
-        # x6
-        x6_mean = np.mean(df.x6)
-        x6_std = np.std(df.x6)
-        self.assertTrue(abs(x6_mean - 2) < 0.2)
-        self.assertTrue(abs(x6_std - 3) <= 0.1)
-        # x7
-        x7_mean = np.mean(df.x7)
-        x7_std = np.std(df.x7)
-        self.assertTrue(abs(x7_mean) < 0.001)
-        self.assertTrue(abs(x7_std - 1) <= 0.001)
-
-    def test_dataset_transform_001(self):
-        ''' Checking dataset transform: Remove missing output rows '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_001.yaml')
-        config = Config(argv=['logml.py', '-c', config_file])
-        config()
-        ds = DatasetsDf(config)
-        rm(ds.get_file_name())
-        ret = ds()
-        df = ds.dataset
-        # Check that rows in 'y' have been removed
-        self.assertTrue(df.shape[0] < 990)
-
-    def test_dataset_transform_002(self):
-        ''' Checking dataset transform: Remove missing output rows '''
-        # create_dataset_transform_002()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_002.yaml')
-        config = Config(argv=['logml.py', '-c', config_file])
-        config()
-        ds = DatasetsDf(config)
-        rm(ds.get_file_name())
-        ret = ds()
-        df = ds.dataset
-        for c in ['d1:year', 'd1:month', 'd1:week', 'd1:day', 'd1:dayofweek', 'd1:dayofyear', 'd1:is_month_end', 'd1:is_month_start', 'd1:is_quarter_end', 'd1:is_quarter_start', 'd1:is_year_end', 'd1:is_year_start', 'd1:hour', 'd1:minute', 'd1:second', 'd1:elapsed']:
-            x = df[c]
-            self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
-
-    def test_dataset_transform_003(self):
-        ''' Checking dataset transform: Remove missing column '''
-        # create_dataset_transform_003()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_003.yaml')
-        config = Config(argv=['logml.py', '-c', config_file])
-        config()
-        ds = DatasetsDf(config)
-        rm(ds.get_file_name())
-        ret = ds()
-        cols = list(ds.dataset.columns)
-        self.assertTrue('x2' in cols)
-        self.assertTrue('y' in cols)
-        self.assertFalse('x1' in cols)
-        self.assertFalse('d1' in cols)
-
-    def test_dataset_transform_004(self):
-        ''' Checking dataset transform: Convert fields to categories (matching regex on field names) '''
-        # create_dataset_transform_003()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_004.yaml')
-        config = Config(argv=['logml.py', '-c', config_file])
-        config()
-        ds = DatasetsDf(config)
-        rm(ds.get_file_name())
-        ret = ds()
-        cols = list(ds.dataset.columns)
-        self.assertTrue('x1' in cols)
-        self.assertTrue('x2' in cols)
-        for field in ['zzz_0', 'zzz_2', 'zzz_4', 'zzz_6', 'zzz_8', 'zxz_1:high', 'xzz_3:high', 'azzz_5:high', '_zzz_7:high', 'zzzz_9']:
-            self.assertTrue(field in cols, f"Field {field} not found")
 
 
 if __name__ == '__main__':

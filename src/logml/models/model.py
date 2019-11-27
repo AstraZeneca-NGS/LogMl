@@ -144,7 +144,7 @@ class Model(MlFiles):
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
             ret = math.inf
-        self._debug(f"Loss = {ret}")
+        self._debug(f"Model evaluate {name} (default): Loss = {ret}")
         return ret
 
     def default_model_predict(self, x):

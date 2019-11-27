@@ -26,12 +26,12 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     def change_dataset(self, col):
         """ Change datasets for column 'col' """
         x_val = self.x_val.copy()
-        xi = np.random.permutation(x_val[col])
-        x_val[col] = xi
+        x_val[col] = np.random.permutation(x_val[col])
         return None, None, x_val, self.y_val
 
     def initialize(self):
         """ Initialzie the model (the model is trained only once) """
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")
         self.model.fit(self.x_train, self.y_train)
 
     def loss(self, x_train, y_train, x_val, y_val):
