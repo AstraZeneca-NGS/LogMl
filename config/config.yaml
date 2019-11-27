@@ -243,6 +243,12 @@ dataset_feature_importance:
   weight_max: 10.0
   weight_min: 1.0
 
+  # Logistic regression p-value (Wilks)
+  is_wilks: true
+  # Variables used for setting the null model
+  wilks_null_model_variables: ['age', 'sex', 'pc_1', 'pc_2', 'pc_3', 'pc_4']
+
+
 #---
 # Model definition and parameters
 #---

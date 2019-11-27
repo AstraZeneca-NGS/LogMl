@@ -40,7 +40,6 @@ class LogisticRegressionWilks(MlFiles):
         cols_count = len(cols)
         for i in range(cols_count):
             c = cols[i]
-            self._debug(f"Logistic regression Wilks ({self.tag}): Column {i} / {cols_count}, '{c}'")
             if c in null_vars:
                 self._debug(f"Logistic regression Wilks ({self.tag}): Null variable '{c}', skipped")
                 continue
@@ -48,6 +47,7 @@ class LogisticRegressionWilks(MlFiles):
                 self._debug(f"Logistic regression Wilks ({self.tag}): Output variable '{c}', skipped")
                 continue
             self.p_values[c] = self.p_value(c)
+            self._info(f"Logistic regression Wilks ({self.tag}): Column {i} / {cols_count}, '{c}', pvalue: {self.p_values[c]}")
         return len(self.p_values) > 0
 
     def get_pvalues(self):

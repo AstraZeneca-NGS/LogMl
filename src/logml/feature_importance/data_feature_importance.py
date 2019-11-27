@@ -389,19 +389,18 @@ class DataFeatureImportance(MlFiles):
         names = self.results.get_weight_names()
         w_ori = dict(self.results.weights)
         w = self.results.get_weights()
-        if len(w) == 0:
-            return None
-        weight_delta = self.weight_max - self.weight_min
-        # Flip weights and scale relative to the best loss (minimum weight)
-        wp = w / -w.min()
-        # Correct range using a scaling factor if weights span more than weight_delta
-        wp_delta = wp.max() - wp.min()
-        corr = weight_delta / wp_delta if wp_delta > weight_delta else 1.0
-        # New weights
-        wp = corr * (wp - wp.min()) + self.weight_min
-        # Set new weights
-        for i in range(len(names)):
-            self.results.add_weight(names[i], wp[i])
+        if len(w) > 0:
+            weight_delta = self.weight_max - self.weight_min
+            # Flip weights and scale relative to the best loss (minimum weight)
+            wp = w / -w.min()
+            # Correct range using a scaling factor if weights span more than weight_delta
+            wp_delta = wp.max() - wp.min()
+            corr = weight_delta / wp_delta if wp_delta > weight_delta else 1.0
+            # New weights
+            wp = corr * (wp - wp.min()) + self.weight_min
+            # Set new weights
+            for i in range(len(names)):
+                self.results.add_weight(names[i], wp[i])
         # Use ranks from all previously calculated models
         self._debug(f"Feature importance {self.tag}: Adding 'rank of rank_sum' column")
         self.results.weight_default = self.weight_min
