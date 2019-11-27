@@ -11,38 +11,41 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
+  enable: true
 
   # Enable "Feature Importance using Permutations" (for different models)
-  is_fip_random_forest: true
-  is_fip_extra_trees: true
-  is_fip_gradient_boosting: true
+  is_fip_random_forest: false
+  is_fip_extra_trees: false
+  is_fip_gradient_boosting: false
 
   # Regularization methods
   # Enable regularization methods (for different models)
-  is_regularization_lasso: true
-  is_regularization_ridge: true
-  is_regularization_lars: true
+  is_regularization_lasso: false
+  is_regularization_ridge: false
+  is_regularization_lars: false
   # Number of Cross-validation in regularization methods
   regularization_model_cv: 10
 
   # Enable Recursive Feature Elimination (for different models)
-  is_rfe_model: true
-  is_rfe_model_lasso: true
-  is_rfe_model_ridge: true
-  is_rfe_model_lars_aic: true
-  is_rfe_model_lars_bic: true
-  is_rfe_model_random_forest: true
-  is_rfe_model_extra_trees: true
-  is_rfe_model_gradient_boosting: true
+  is_rfe_model: false
+  is_rfe_model_lasso: false
+  is_rfe_model_ridge: false
+  is_rfe_model_lars_aic: false
+  is_rfe_model_lars_bic: false
+  is_rfe_model_random_forest: false
+  is_rfe_model_extra_trees: false
+  is_rfe_model_gradient_boosting: false
   rfe_model_cv: 0  # Number of Corss-validations in Recursive Feature Elimination methods
 
   # Enable model selection methods (SelectFdr / SelectKBest)
-  is_select: true
+  is_select: false
 
   # Tree graph
-  is_tree_graph: true
+  is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
+
+  is_wilks: true
+  wilks_null_model_variables: ['x3']
 
 dataset_preprocess:
   enable: true

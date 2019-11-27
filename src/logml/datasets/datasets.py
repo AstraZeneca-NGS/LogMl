@@ -196,6 +196,12 @@ class Datasets(MlFiles):
     def __getitem__(self, key):
         return self.dataset[key]
 
+    def get(self):
+        return self.dataset
+
+    def get_xy(self):
+        return self.dataset_xy
+
     def get_file_name(self, dataset_type=None, ext='pkl'):
         ''' Create a file name for dataset '''
         self._debug(f"dataset_type={dataset_type}, ext='{ext}'")

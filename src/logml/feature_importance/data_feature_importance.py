@@ -75,12 +75,14 @@ class DataFeatureImportance(MlFiles):
         self.is_skmodel_random_forest = True
         self.is_select = True
         self.is_tree_graph = True
+        self.is_wilks = True
         self.weight_max = 10.0
         self.weight_min = 1.0
         self.model_type = model_type
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
         self.tree_graph_max_depth = 4
+        self.wilks_null_model_variables = list()
         if set_config:
             self._set_from_config()
         self.results = None
@@ -387,6 +389,8 @@ class DataFeatureImportance(MlFiles):
         names = self.results.get_weight_names()
         w_ori = dict(self.results.weights)
         w = self.results.get_weights()
+        if len(w) == 0:
+            return None
         weight_delta = self.weight_max - self.weight_min
         # Flip weights and scale relative to the best loss (minimum weight)
         wp = w / -w.min()
@@ -402,6 +406,9 @@ class DataFeatureImportance(MlFiles):
         self._debug(f"Feature importance {self.tag}: Adding 'rank of rank_sum' column")
         self.results.weight_default = self.weight_min
         self.results.add_rank_of_ranksum()
+        # Sort by the resulting column (ranksum)
+        self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
+        self.results.sort('rank_of_ranksum')
         return w_ori
 
     def select(self):
@@ -410,8 +417,7 @@ class DataFeatureImportance(MlFiles):
         Use different functions, depending on model_type and inputs
         '''
         # Select functions to use, defined as dictionary {function: has_pvalue}
-        # TODO: How do we weight these values?
-        #       Quick options: No weight or average
+        # These results have no "weight" set
         if not self.is_select:
             return True
         if self.is_regression():
@@ -444,15 +450,17 @@ class DataFeatureImportance(MlFiles):
         if has_pvalue:
             self.results.add_col(f"selectf_p_values_{fname}", select.pvalues_)
             self.results.add_col(f"selectf_keep_{fname}", keep)
-        self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
+            self.results.add_col_rank(f"selectf_pvalue_rank_{fname}", select.pvalues_, reversed=False)
+        else:
+            self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
     def show_and_save_results(self, weights_ori):
         ''' Show and save resutl tables '''
+        if self.results.is_empty():
+            self._debug(f"Feature importance {self.tag}: Enpty resutls, nothing to show or save")
+            return
         # Show and save main results table
         self.results.print(f"Feature importance {self.tag}")
-        # Sort by the resulting column (ranksum)
-        self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
-        self.results.sort('rank_of_ranksum')
         fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}'")
         self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
@@ -460,7 +468,8 @@ class DataFeatureImportance(MlFiles):
         fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()
-        weights.add_col_dict('weights_ori', weights_ori)
+        if weights_ori:
+            weights.add_col_dict('weights_ori', weights_ori)
         weights.sort('weights', ascending=False)
         weights.print(f"Feature importance {self.tag} weights")
         self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
@@ -489,5 +498,16 @@ class DataFeatureImportance(MlFiles):
         self._display(Image(filename=file_png))
 
     def wilks(self):
+        """ Calculate p-values using logistic regression (Wilks theorem) """
+        if not self.is_wilks:
+            return True
+        if not self.wilks_null_model_variables:
+            self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
+            return False
         self._info(f"Logistic regression, Wilks {self.tag}: Start")
-        LogisticRegressionWilks(self, )
+        wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
+        ok = wilks()
+        if ok:
+            self.results.add_col(f"wilks_p_values", wilks.get_pvalues())
+            self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
+        return ok
