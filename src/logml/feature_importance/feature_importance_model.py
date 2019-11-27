@@ -33,6 +33,7 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
         self.loss_base = self.loss(self.x_train, self.y_train, self.x_val, self.y_val)
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {self.loss_base}")
         # Shuffle each column
         perf = list()
         cols = list(self.x_train.columns)
