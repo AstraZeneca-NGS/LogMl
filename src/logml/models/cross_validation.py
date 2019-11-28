@@ -9,6 +9,7 @@ from ..core.log import MlLog
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
 
 
+
 class CrossValidation(MlLog):
     ''' Cross validation class '''
     def __init__(self, logml):
