@@ -42,7 +42,7 @@ class CrossValidation(MlLog):
         args = self.parameters[cv_type]
         self._debug(f"Found cross-validation method '{cv_type}', with parameters {args}")
         to_eval = f"sklearn.model_selection.{cv_type}(**{args})"
-        self._debug(f"to_eval={to_eval}")
+        self._debug(f"Method to evaluate: {to_eval}")
         cv = eval(to_eval)
         return cv
 

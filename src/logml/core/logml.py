@@ -10,7 +10,7 @@ from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
 from ..datasets import Datasets, DatasetsDf, DataExplore
 from ..feature_importance import DataFeatureImportance
-from ..models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelSearch, SkLearnModel
+from ..models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
 from ..util.results_df import ResultsDf
 
 
@@ -194,9 +194,9 @@ class LogMl(MlFiles):
         elif self.hyper_parameter_optimization.enable:
             self._debug(f"Hyper-parameter optimization: single model")
             return self.hyper_parameter_optimization()
-        elif self.cross_validation.enable:
-            self._debug(f"Cross-validate: single model")
-            return self.cross_validation()
+        # elif self.cross_validation.enable:
+        #     self._debug(f"Cross-validate: single model")
+        #     return self.cross_validation()
         else:
             self._debug(f"Create and train: single model")
             return self.model_train()
@@ -223,4 +223,4 @@ class LogMl(MlFiles):
             model_params = config.get_parameters_functions(MODEL_CREATE)
             if model_class.startswith('sklearn'):
                 return SkLearnModel(config, datasets, model_class, model_params)
-        return Model(config, datasets)
+        return ModelCv(config, datasets)

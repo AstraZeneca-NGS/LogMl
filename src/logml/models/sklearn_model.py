@@ -8,14 +8,14 @@ from sklearn.base import clone
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
 
-from .model import Model
+from .model_cv import ModelCv
 from ..util.etc import camel_to_snake
 
 
-class SkLearnModel(Model):
+class SkLearnModel(ModelCv):
     ''' Create a wrapper for a SkLearn model '''
     def __init__(self, config, datasets, class_name, params, set_config=True):
-        super().__init__(config, datasets)
+        super().__init__(config, datasets, set_config)
         self.is_save_params = False
         # Set model specific paramters
         self.class_name = class_name

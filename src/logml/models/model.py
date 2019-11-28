@@ -22,8 +22,7 @@ class Model(MlFiles):
 
     def __init__(self, config, datasets=None, set_config=True):
         '''
-        config: An Config object
-        datasets: An Datasets object
+        Model: A model that can be created, trained and evaluated
         '''
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
