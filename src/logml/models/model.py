@@ -114,10 +114,10 @@ class Model(MlFiles):
         self.model_results.add_row(f"{self.model_class}.{self._id}", model_results)
         return True
 
-    def clone(self):
+    def clone(self, clone_datasets=True):
         """ Clone the model """
         model_clone = copy.copy(self)
-        if self.datasets is not None:
+        if clone_datasets and self.datasets is not None:
             model_clone.datasets = copy.copy(self.datasets)
         return model_clone
 
