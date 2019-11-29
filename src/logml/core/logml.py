@@ -10,7 +10,7 @@ from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
 from ..datasets import Datasets, DatasetsDf, DataExplore
 from ..feature_importance import DataFeatureImportance
-from ..models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
+from ..models import HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
 from ..util.results_df import ResultsDf
 
 
@@ -31,7 +31,6 @@ class LogMl(MlFiles):
         super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
-        self.cross_validation = None
         self.dataset_feature_importance = None
         self.dataset_feature_importance_na = None
         self.disable_plots = False
@@ -160,8 +159,6 @@ class LogMl(MlFiles):
             self.model_ori = Model(self.config)
         if self.hyper_parameter_optimization is None:
             self.hyper_parameter_optimization = HyperOpt(self)
-        if self.cross_validation is None:
-            self.cross_validation = CrossValidation(self)
         if self.model_search is None:
             self.model_search = ModelSearch(self)
         # Table width
@@ -194,9 +191,6 @@ class LogMl(MlFiles):
         elif self.hyper_parameter_optimization.enable:
             self._debug(f"Hyper-parameter optimization: single model")
             return self.hyper_parameter_optimization()
-        # elif self.cross_validation.enable:
-        #     self._debug(f"Cross-validate: single model")
-        #     return self.cross_validation()
         else:
             self._debug(f"Create and train: single model")
             return self.model_train()
