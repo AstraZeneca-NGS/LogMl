@@ -11,7 +11,6 @@ from . import Model
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
 
 
-
 class ModelCv(Model):
     '''
     A Model with cross-validation capabilities
