@@ -128,15 +128,9 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(logml.hyper_parameter_optimization.enable, False)
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
 
-    # TODO: Is this test is obsolete? Remove?
-    # def test_config_002(self):
-    #     ''' Test sanity check: hyper-param and cross-validation both enabled '''
-    #     config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_config_002.yaml'), argv=list())
-    #     ret = config()
-    #     config.exit_on_fatal_error = False
-    #     logml = LogMl(config=config)
-    #     self.assertEqual(logml._config_sanity_check(), False)
-    #     self.assertEqual(logml.hyper_parameter_optimization.enable, True)
+    # TODO: Obsolete test. Replace
+    def test_config_002(self):
+        pass
 
     def test_config_003(self):
         config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_config_003.yaml'), argv=list())
