@@ -86,88 +86,113 @@ class SkLearnModel(ModelCv):
 class ModelSkExtraTreesRegressor(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100):
         super().__init__(config, datasets, class_name='ModelSkExtraTreesRegressor', params=None, set_config=False)
-        self.model = ExtraTreesRegressor(n_jobs=n_jobs, n_estimators=n_estimators)
+        self.n_jobs = n_jobs
+        self.n_estimators = n_estimators
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = ExtraTreesRegressor(n_jobs=self.n_jobs, n_estimators=self.n_estimators)
         return True
 
 
 class ModelSkExtraTreesClassifier(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100):
         super().__init__(config, datasets, class_name='ModelSkExtraTreesClassifier', params=None, set_config=False)
-        self.model = ExtraTreesClassifier(n_jobs=n_jobs, n_estimators=n_estimators)
+        self.n_jobs = n_jobs
+        self.n_estimators = n_estimators
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = ExtraTreesClassifier(n_jobs=self.n_jobs, n_estimators=self.n_estimators)
         return True
 
 
 class ModelSkGradientBoostingRegressor(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkGradientBoostingRegressor', params=None, set_config=False)
-        self.model = GradientBoostingRegressor()
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = GradientBoostingRegressor()
         return True
 
 
 class ModelSkGradientBoostingClassifier(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkGradientBoostingClassifier', params=None, set_config=False)
-        self.model = GradientBoostingClassifier()
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = GradientBoostingClassifier()
         return True
 
 
 class ModelSkLassoCV(SkLearnModel):
     def __init__(self, config, datasets, cv):
         super().__init__(config, datasets, class_name='ModelSkLassoCV', params=None, set_config=False)
-        self.model = LassoCV(cv=cv)
+        self.cv = cv
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = LassoCV(cv=self.cv)
         return True
 
 
 class ModelSkLassoLarsAIC(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkLassoLarsAIC', params=None, set_config=False)
-        self.model = LassoLarsIC(criterion='aic')
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = LassoLarsIC(criterion='aic')
         return True
 
 
 class ModelSkLassoLarsBIC(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkLassoLarsBIC', params=None, set_config=False)
-        self.model = LassoLarsIC(criterion='bic')
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = LassoLarsIC(criterion='bic')
         return True
 
 
 class ModelSkRandomForestRegressor(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, bootstrap=True):
         super().__init__(config, datasets, class_name='ModelSkRandomForestRegressor', params=None, set_config=False)
-        self.model = RandomForestRegressor(n_jobs=n_jobs, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
+        self.n_jobs = n_jobs
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.bootstrap = bootstrap
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = RandomForestRegressor(n_jobs=self.n_jobs, n_estimators=self.n_estimators, max_depth=self.max_depth, bootstrap=self.bootstrap)
         return True
 
 
 class ModelSkRandomForestClassifier(SkLearnModel):
     def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, max_depth=None, class_weight='balanced', bootstrap=True):
         super().__init__(config, datasets, class_name='ModelSkRandomForestClassifier', params=None, set_config=False)
-        self.model = RandomForestClassifier(n_jobs=-1, n_estimators=n_estimators, max_depth=None, class_weight='balanced', bootstrap=bootstrap)
+        self.n_jobs = n_jobs
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.class_weight = class_weight
+        self.bootstrap = bootstrap
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = RandomForestClassifier(n_jobs=self.n_jobs, n_estimators=self.n_estimators, max_depth=self.None, class_weight=self.class_weight, bootstrap=self.bootstrap)
         return True
 
 
 class ModelSkRidgeCV(SkLearnModel):
     def __init__(self, config, datasets, cv):
         super().__init__(config, datasets, class_name='ModelSkRidgeCV', params=None, set_config=False)
-        self.model = RidgeCV(cv=cv)
+        self.cv = cv
+        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
+        self.model = RidgeCV(cv=self.cv)
         return True
