@@ -183,7 +183,7 @@ class ModelSkRandomForestClassifier(SkLearnModel):
         self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
-        self.model = RandomForestClassifier(n_jobs=self.n_jobs, n_estimators=self.n_estimators, max_depth=self.None, class_weight=self.class_weight, bootstrap=self.bootstrap)
+        self.model = RandomForestClassifier(n_jobs=self.n_jobs, n_estimators=self.n_estimators, max_depth=self.max_depth, class_weight=self.class_weight, bootstrap=self.bootstrap)
         return True
 
 

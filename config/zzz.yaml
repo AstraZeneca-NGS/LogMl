@@ -11,10 +11,10 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
+  enable: true
 
   # Enable "Feature Importance using Permutations" (for different models)
-  is_fip_random_forest: false
+  is_fip_random_forest: true
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
 
@@ -54,7 +54,7 @@ dataset_transform:
   enable: false
 
 model:
-  enable: true
+  enable: false
   model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
