@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 
 import copy
-import csv
-import matplotlib.pyplot as plt
-import numpy as np
-import os
 import pandas as pd
-import pickle
-import tensorflow as tf
 
 from ..datasets import Datasets, InOut
 from .df_preprocess import DfPreprocess

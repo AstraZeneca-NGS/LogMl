@@ -60,7 +60,7 @@ class SkLearnModel(ModelCv):
             self._debug(f"Model predict ({self.class_name}): End")
             return y_hat
         except Exception as e:
-            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            self._error(f"Exception: {e}\n{traceback.format_stack()}")
             return None
 
     def default_model_train(self, x, y):
@@ -71,8 +71,23 @@ class SkLearnModel(ModelCv):
             self._debug(f"Model train ({self.class_name}): End")
             return True
         except Exception as e:
-            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            self._error(f"Exception: {e}\n{traceback.format_stack()}")
             return False
+
+    def invoke_model_create(self, x, y):
+        return False    # We don't want to call user functions
+
+    def invoke_model_evaluate(self, x, y, name):
+        return (False, None)    # We don't want to call user functions
+
+    def invoke_model_predict(self, x):
+        return (False, None)    # We don't want to call user functions
+
+    def invoke_model_save(self):
+        return False    # We don't want to call user functions
+
+    def invoke_model_train(self, x, y):
+        return False    # We don't want to call user functions
 
     def loss_(self, x, y):
         """ Return the loss """
@@ -88,7 +103,6 @@ class ModelSkExtraTreesRegressor(SkLearnModel):
         super().__init__(config, datasets, class_name='ModelSkExtraTreesRegressor', params=None, set_config=False)
         self.n_jobs = n_jobs
         self.n_estimators = n_estimators
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = ExtraTreesRegressor(n_jobs=self.n_jobs, n_estimators=self.n_estimators)
@@ -100,7 +114,6 @@ class ModelSkExtraTreesClassifier(SkLearnModel):
         super().__init__(config, datasets, class_name='ModelSkExtraTreesClassifier', params=None, set_config=False)
         self.n_jobs = n_jobs
         self.n_estimators = n_estimators
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = ExtraTreesClassifier(n_jobs=self.n_jobs, n_estimators=self.n_estimators)
@@ -110,7 +123,6 @@ class ModelSkExtraTreesClassifier(SkLearnModel):
 class ModelSkGradientBoostingRegressor(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkGradientBoostingRegressor', params=None, set_config=False)
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = GradientBoostingRegressor()
@@ -120,7 +132,6 @@ class ModelSkGradientBoostingRegressor(SkLearnModel):
 class ModelSkGradientBoostingClassifier(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkGradientBoostingClassifier', params=None, set_config=False)
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = GradientBoostingClassifier()
@@ -131,7 +142,6 @@ class ModelSkLassoCV(SkLearnModel):
     def __init__(self, config, datasets, cv):
         super().__init__(config, datasets, class_name='ModelSkLassoCV', params=None, set_config=False)
         self.cv = cv
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = LassoCV(cv=self.cv)
@@ -141,7 +151,6 @@ class ModelSkLassoCV(SkLearnModel):
 class ModelSkLassoLarsAIC(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkLassoLarsAIC', params=None, set_config=False)
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = LassoLarsIC(criterion='aic')
@@ -151,7 +160,6 @@ class ModelSkLassoLarsAIC(SkLearnModel):
 class ModelSkLassoLarsBIC(SkLearnModel):
     def __init__(self, config, datasets):
         super().__init__(config, datasets, class_name='ModelSkLassoLarsBIC', params=None, set_config=False)
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = LassoLarsIC(criterion='bic')
@@ -165,7 +173,6 @@ class ModelSkRandomForestRegressor(SkLearnModel):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.bootstrap = bootstrap
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = RandomForestRegressor(n_jobs=self.n_jobs, n_estimators=self.n_estimators, max_depth=self.max_depth, bootstrap=self.bootstrap)
@@ -180,7 +187,6 @@ class ModelSkRandomForestClassifier(SkLearnModel):
         self.max_depth = max_depth
         self.class_weight = class_weight
         self.bootstrap = bootstrap
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = RandomForestClassifier(n_jobs=self.n_jobs, n_estimators=self.n_estimators, max_depth=self.max_depth, class_weight=self.class_weight, bootstrap=self.bootstrap)
@@ -191,7 +197,6 @@ class ModelSkRidgeCV(SkLearnModel):
     def __init__(self, config, datasets, cv):
         super().__init__(config, datasets, class_name='ModelSkRidgeCV', params=None, set_config=False)
         self.cv = cv
-        self.default_model_create(None, None)
 
     def default_model_create(self, x, y):
         self.model = RidgeCV(cv=self.cv)

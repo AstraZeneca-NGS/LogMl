@@ -201,28 +201,20 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
 
     def fit_lars_aic(self):
-        model = ModelSkLassoLarsAIC(self.config, self.datasets)
-        model.fit(self.x, self.y)
-        return model
+        m = ModelSkLassoLarsAIC(self.config, self.datasets)
+        m.model_create()
+        m.fit(self.x, self.y)
+        return m
 
     def fit_lars_bic(self):
-        model = ModelSkLassoLarsBIC(self.config, self.datasets)
-        model.fit(self.x, self.y)
-        return model
+        m = ModelSkLassoLarsBIC(self.config, self.datasets)
+        m.model_create()
+        m.fit(self.x, self.y)
+        return m
 
     def fit_lasso(self):
-        model = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
-        model.fit(self.x, self.y)
-        return model
-
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
-        ''' Create a RandomForest model '''
-        if self.is_regression():
-            m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-        elif self.is_classification():
-            m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
-        else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
+        m = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
+        m.model_create()
         m.fit(self.x, self.y)
         return m
 
@@ -234,6 +226,7 @@ class DataFeatureImportance(MlFiles):
             m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
+        m.model_create()
         m.fit(self.x, self.y)
         return m
 
@@ -245,6 +238,7 @@ class DataFeatureImportance(MlFiles):
             m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
+        m.model_create()
         m.fit(self.x, self.y)
         return m
 
@@ -256,13 +250,15 @@ class DataFeatureImportance(MlFiles):
             m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
+        m.model_create()
         m.fit(self.x, self.y)
         return m
 
     def fit_ridge(self):
-        model = ModelSkRidgeCV(self.config, self.datasets, cv=self.regularization_model_cv)
-        model.fit(self.x, self.y)
-        return model
+        m = ModelSkRidgeCV(self.config, self.datasets, cv=self.regularization_model_cv)
+        m.model_create()
+        m.fit(self.x, self.y)
+        return m
 
     def is_classification(self):
         return self.model_type == 'classification'

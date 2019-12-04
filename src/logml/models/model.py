@@ -142,6 +142,7 @@ class Model(MlFiles):
                 ret = np.inf
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            traceback.print_stack()
             ret = math.inf
         self._debug(f"Model evaluate {name} (default): Loss = {ret}")
         return ret
@@ -203,6 +204,7 @@ class Model(MlFiles):
             return invoked, ret
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             return True, math.inf
 
     def invoke_model_predict(self, x):
@@ -215,6 +217,7 @@ class Model(MlFiles):
             return invoked, ret
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             return True, None
 
     def invoke_model_save(self):
@@ -333,6 +336,7 @@ class Model(MlFiles):
             return ret
         except Exception as e:
             self._error(f"Model train exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             return None
 
     def _new_id(self):
