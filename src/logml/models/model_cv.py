@@ -27,7 +27,7 @@ class ModelCv(Model):
         self.eval_validate_std = None
         self.cv_datasets = DatasetsCv(config, datasets)
 
-    def _cross_validate_f(self, f, collect_name):
+    def _cross_validate_f(self, f, collect_name, args=None):
         """
         Run cross-validation evaluating function 'f' and collecting field 'collect_name'
         Returns a tuple of two lists: (rets, collects)
@@ -46,13 +46,23 @@ class ModelCv(Model):
             self.datasets = self.cv_datasets[i]
             self.model = self.cv_models[i]
             self._debug(f"Cross-validation: Invoking function '{f.__name__}', dataset.id={_id(self.datasets)}, model.id={_id(self.model)}")
-            rets.append(f())
+            if args is None:
+                rets.append(f())
+            else:
+                rets.append(f(*args))
             if collect_name is not None:
                 collect.append(self.__dict__[collect_name])
         # Restore original datasets and model
         self.datasets = datasets_ori
         self.model = model_ori
         return rets, collect
+
+    def fit(self, x, y):
+        """ Fit (train models) for cross-validation """
+        if not self.cv_enable:
+            return super().fit(x, y)
+        rets, self.train_results = self._cross_validate_f(super().fit, 'train_results', [x, y])
+        return all(rets)
 
     def model_create(self):
         """ Create model for cross-validation """
