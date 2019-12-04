@@ -23,11 +23,12 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         super().__init__(model, model_name)
         self.importance_name = 'permutation'
 
-    def change_dataset(self, col):
+    def dataset_change(self, col):
         """ Change datasets for column 'col' """
-        x_val = self.x_val.copy()
-        x_val[col] = np.random.permutation(x_val[col])
-        return None, None, x_val, self.y_val
+        col_ori = model.datasets.shuffle_column(c)
+        # x_val = self.x_val.copy()
+        # x_val[col] = np.random.permutation(x_val[col])
+        return col_ori
 
     def initialize(self):
         """ Initialzie the model (the model is trained only once) """

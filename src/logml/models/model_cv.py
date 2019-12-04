@@ -57,13 +57,13 @@ class ModelCv(Model):
         self.model = model_ori
         return rets, collect
 
-    def fit(self, x, y):
-        """ Fit (train models) for cross-validation """
-        if not self.cv_enable:
-            return super().fit(x, y)
-        rets, self.train_results = self._cross_validate_f(super().fit, 'train_results', [x, y])
-        return all(rets)
-
+    # def fit(self, x, y):
+    #     """ Fit (train models) for cross-validation """
+    #     if not self.cv_enable:
+    #         return super().fit(x, y)
+    #     rets, self.train_results = self._cross_validate_f(super().fit, 'train_results', [x, y])
+    #     return all(rets)
+    #
     def model_create(self):
         """ Create model for cross-validation """
         if not self.cv_enable:
