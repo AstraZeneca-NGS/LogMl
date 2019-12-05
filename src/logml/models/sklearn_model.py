@@ -60,7 +60,7 @@ class SkLearnModel(ModelCv):
             self._debug(f"Model predict ({self.class_name}): End")
             return y_hat
         except Exception as e:
-            self._error(f"Exception: {e}\n{traceback.format_stack()}")
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
             return None
 
     def default_model_train(self, x, y):
@@ -71,7 +71,8 @@ class SkLearnModel(ModelCv):
             self._debug(f"Model train ({self.class_name}): End")
             return True
         except Exception as e:
-            self._error(f"Exception: {e}\n{traceback.format_stack()}")
+            self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            traceback.print_stack()
             return False
 
     def invoke_model_create(self, x, y):

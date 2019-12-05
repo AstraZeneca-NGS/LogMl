@@ -2,6 +2,7 @@
 
 import copy
 import pandas as pd
+import numpy as np
 
 from ..datasets import Datasets, InOut
 from .df_preprocess import DfPreprocess
@@ -94,6 +95,10 @@ class DatasetsDf(Datasets):
         self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
         return True
 
+    def get_columns(self):
+        """ Get dataset's column names (i.e. variable names) """
+        return self.dataset.columns
+
     def _get_dataframe_na(self, df, cols_na):
         """ Get a new dataframe having only columns indicating missing data """
         if df is None:
@@ -146,3 +151,15 @@ class DatasetsDf(Datasets):
         self._debug(f"Loading csv file '{csv_file}'")
         self.dataset = pd.read_csv(csv_file, low_memory=False, parse_dates=self.dates)
         return len(self.dataset) > 0
+
+    def set_column(self, col_name, values):
+        self.dataset[col_name] = values
+
+    def shuffle_column(self, col_name):
+        """
+        Shuffle column 'col'
+        Return: the original column values
+        """
+        x_col = self.dataset[col_name]
+        self.dataset[col_name] = np.random.permutation(x_col)
+        return x_col

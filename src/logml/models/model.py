@@ -142,7 +142,7 @@ class Model(MlFiles):
                 ret = np.inf
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
-            traceback.print_stack()
+            # traceback.print_stack()
             ret = math.inf
         self._debug(f"Model evaluate {name} (default): Loss = {ret}")
         return ret

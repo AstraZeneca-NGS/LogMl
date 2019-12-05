@@ -112,7 +112,7 @@ class DataFeatureImportance(MlFiles):
             return True
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
-        self.results = ResultsRankDf(self.x.columns)
+        self.results = ResultsRankDf(self.datasets.get_columns())
         self.feature_importance_models()
         # FIXME:  self.boruta()
         self.regularization_models()
@@ -203,19 +203,19 @@ class DataFeatureImportance(MlFiles):
     def fit_lars_aic(self):
         m = ModelSkLassoLarsAIC(self.config, self.datasets)
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def fit_lars_bic(self):
         m = ModelSkLassoLarsBIC(self.config, self.datasets)
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def fit_lasso(self):
         m = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def fit_extra_trees(self, n_estimators=100):
@@ -227,7 +227,7 @@ class DataFeatureImportance(MlFiles):
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def fit_gradient_boosting(self):
@@ -239,7 +239,7 @@ class DataFeatureImportance(MlFiles):
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
@@ -251,13 +251,13 @@ class DataFeatureImportance(MlFiles):
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def fit_ridge(self):
         m = ModelSkRidgeCV(self.config, self.datasets, cv=self.regularization_model_cv)
         m.model_create()
-        m.fit(self.x, self.y)
+        m.model_train()
         return m
 
     def is_classification(self):

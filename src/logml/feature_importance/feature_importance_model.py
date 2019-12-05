@@ -35,7 +35,7 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {self.loss_base}")
         # Shuffle each column
         perf = list()
-        cols = list(self.x_train.columns)
+        cols = list(self.datasets.get_columns())
         cols_count = len(cols)
         for i in range(cols_count):
             # Change dataset, evaluate performance, restore originla dataset
@@ -56,12 +56,12 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
         return True
 
-    def dataset_change(self, col):
-        """ Change datasets for column 'col' """
+    def dataset_change(self, col_name):
+        """ Change datasets for column 'col_name' """
         raise Exception("Unimplemented!")
 
-    def dataset_restore(self, col):
-        """ Restore datasets after changing column 'c' """
+    def dataset_restore(self, col_name, col_ori):
+        """ Restore column 'col_name' using values from col_ori """
         raise Exception("Unimplemented!")
 
     def initialize(self):
