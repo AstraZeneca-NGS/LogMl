@@ -11,7 +11,7 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: true
+  enable: false
 
   # Enable "Feature Importance using Permutations" (for different models)
   is_fip_random_forest: true
@@ -54,7 +54,7 @@ dataset_transform:
   enable: false
 
 model:
-  enable: false
+  enable: true
   model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
