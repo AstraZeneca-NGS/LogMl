@@ -34,6 +34,12 @@ class DatasetsBase(MlFiles):
         6) Split into train, validation and testing
         7) Split inputs and outputs
 
+    For each of these steps, we first try to call a 'user defined function'. This
+    is done in methods `invoke_*()`, for instance `invoke_preprocess()`,
+    `invoke_split()`, ``invoke_transform()`, etc. If there is no user defined
+    function defeined then a default implementation is used, for example methods
+    `default_preprocess()`, `default_split()`, `default_transform()`, etc.
+
     """
     def __init__(self, config, set_config=True):
         super().__init__(config, CONFIG_DATASET)
