@@ -5,10 +5,10 @@ import datetime
 import logging
 import pandas as pd
 
-from . import Config, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
+from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
-from ..datasets import Datasets, DatasetsDf, DataExplore
+from ..datasets import Datasets, DatasetsCv, DatasetsDf, DataExplore
 from ..feature_importance import DataFeatureImportance
 from ..models import HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
 from ..util.results_df import ResultsDf
@@ -46,10 +46,10 @@ class LogMl(MlFiles):
         self.save_model_results = True
         self.save_plots = True
         self.show_plots = True
+        self.cv_enable = False
         self._set_from_config()
         if self.config is not None:
             self.initialize()
-            self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
         self.model_results = ResultsDf()
 
     def _config_sanity_check(self):
@@ -167,6 +167,7 @@ class LogMl(MlFiles):
         pd.set_option('display.max_rows', self.display_max_rows)
         # Set plots options
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
+        self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
         return self._config_sanity_check()
 
     def is_dataset_df(self):
@@ -198,16 +199,18 @@ class LogMl(MlFiles):
 
     def _new_dataset(self):
         model_type = self.model_ori.model_type
-        self._fatal_error("!!!!!!! CREATE DatasetsCv HERE !!!!!!")
+        ds = None
         if self.is_dataset_df():
             self._debug(f"Using dataset class 'DatasetsDf'")
-            return DatasetsDf(self.config, model_type)
-        elif self.cv_enable:
-            self._debug(f"Using dataset class 'DatasetCv'")
-            return DatasetsCv(self.config)
+            ds = DatasetsDf(self.config, model_type)
         else:
             self._debug(f"Using dataset class 'Dataset'")
-            return Datasets(self.config)
+            ds = Datasets(self.config)
+        # Cross-validation enabled? Then we should wrap the dataset using a DatasetCv
+        if self.cv_enable:
+            self._debug(f"Using dataset class 'DatasetCv'")
+            ds = DatasetsCv(self.config, ds)
+        return ds
 
     def _new_model(self, config=None, datasets=None):
         ''' Create an Model: This is a factory method '''

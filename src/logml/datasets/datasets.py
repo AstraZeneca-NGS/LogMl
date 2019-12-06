@@ -2,7 +2,7 @@ import copy
 import numpy as np
 import random
 
-from .datasets_base import DatasetsBase
+from .datasets_base import DatasetsBase, InOut
 from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles

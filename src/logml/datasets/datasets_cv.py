@@ -75,7 +75,7 @@ class DatasetsCv(DatasetsBase):
         # Get train and validate indeces for each split
         for idx_train, idx_validate in cv_it.split(x):
             self._debug(f"DatasetsCv: Create cross-validation indexes: idx_train length = {len(idx_train)}, idx_validate length = {len(idx_validate)}")
-            ds = copy.copy(self)
+            ds = copy.copy(self.datasets)
             ds.split_idx(idx_train, idx_validate)
             self.cv_datasets.append(ds)
             self._debug(f"DatasetsCv: Created datasets: {len(self.cv_datasets)}")
