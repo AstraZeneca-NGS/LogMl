@@ -10,7 +10,17 @@ CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSpli
 
 
 class DatasetsCv(MlFiles):
-    ''' A set of datasets used to perform cross validation '''
+    """ Datasets used for cross-validation
+    Ths object creates a list of datasets which are used for cross-validation.
+    For example, if we are using 5-fold cross validation, then we create 5
+    datatsets (one for each validation). The list of datasets is stored
+    in self.cv_datasets
+
+    Note: Usually cross-validation is used when the dataset is small, so having
+    many copies in memory shoudl not be prohibitive. Nevertheless, keep in
+    mind that this implementation is not memory efficient.
+
+    """
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!
 #  datasets_cv = DatasetsCv(dataset)
