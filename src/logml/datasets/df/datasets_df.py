@@ -159,13 +159,13 @@ class DatasetsDf(Datasets):
     def set_column(self, col_name, values):
         self.dataset[col_name] = values
 
-    def shuffle_input(self, name, ds_name='validate_xy'):
+    def shuffle_input(self, name, ds_type='validate_xy'):
         """
         Shuffle input variable from dataset
         Return: the original column values
         """
-        x_col = self.dataset[col_name]
-        self.dataset[col_name] = np.random.permutation(x_col)
+        x_col = self.dataset[name]
+        self.dataset[name] = np.random.permutation(x_col)
         return x_col
 
     def drop_input_train_xy(self, name):

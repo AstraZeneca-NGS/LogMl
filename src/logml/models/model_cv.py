@@ -18,13 +18,16 @@ class ModelCv(Model):
     def __init__(self, config, datasets=None, set_config=True):
         super().__init__(config, datasets, set_config)
         # Get cross-validation parameters
-        self.datasets_cv = datasets
         self.cv_config = self.config.get_parameters(CONFIG_CROSS_VALIDATION)
         self.cv_enable = self.cv_config.get('enable', False)
         self.cv_models = list()   # A list of models for each cross-validation
         self.eval_train_std = None
         self.eval_validate_std = None
-        self.cv_count = self.datasets_cv.cv_count
+        self.cv_count = 0
+        self.datasets_cv = None
+        if self.cv_enable:
+            self.cv_count = self.datasets_cv.cv_count
+            self.datasets_cv = datasets
 
     def _cross_validate_f(self, f, collect_name, args=None):
         """

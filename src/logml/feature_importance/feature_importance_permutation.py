@@ -25,7 +25,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
 
     def dataset_change(self, col_name):
         """ Change datasets for column 'col_name' """
-        col_ori = self.datasets.shuffle_column(col_name)
+        col_ori = self.datasets.shuffle_input(col_name, ds_name='validate_xy')
         return col_ori
 
     def dataset_restore(self, col_name, col_ori):

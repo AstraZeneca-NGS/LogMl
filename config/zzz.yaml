@@ -11,7 +11,7 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
+  enable: true
 
   # Enable "Feature Importance using Permutations" (for different models)
   is_fip_random_forest: true
@@ -70,7 +70,7 @@ functions:
       max_features: 0.7
 
 cross_validation:
-    enable: true
+    enable: false
     KFold:
         n_splits: 5
 

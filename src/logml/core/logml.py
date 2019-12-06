@@ -136,6 +136,8 @@ class LogMl(MlFiles):
         if not self.is_dataset_df():
             self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
             return True
+        if not self.dataset_feature_importance.enable:
+            return True
         model_type = self.model_ori.model_type
         datasets_na = self.datasets.get_datasets_na()
         if datasets_na is None:
