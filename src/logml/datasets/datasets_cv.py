@@ -22,18 +22,27 @@ class DatasetsCv(DatasetsBase):
 
     Creating this object always assumes that cross-validation is enables.
     Otherwise, unexpected results may ocurr
+
+    The object is iterable, so we can easily iterate over dataset for each
+    cross-validation simply doing: `for d in self: ...`
+
+    Most methods in this class, just invoke the original Dataset methods
+    on each dataset.
+
+    Creating a DatasetsCv requires the original Datasets object, then it
+    creates copies and sub-sets of that dataset.
+    Typical usage:
+        ```
+        ds = Datasets(config)
+
+        dscv = DatasetsCv(config, ds)
+        dscv()  # Create cross-validation datasets
+        ```
     """
 
-    def __init__(self, config, dataset, set_config=True):
-        """ Creating a DatasetsCv requires the original Datasets object, then
-        creates copies and sub-sets of it.
-        Usage:
-            ```
-            ds = Datasets(config)
-            dscv = DatasetsCv(config, ds)
-            ```
-        """
+    def __init__(self, config, datasets, set_config=True):
         super().__init__(config, set_config)
+        self.datasets = datasets
         self.cv_datasets = list()   # A list of datasets for each cross-validation
         self.cv_iterator_args = dict()
         self.cv_config = self.config.get_parameters(CONFIG_CROSS_VALIDATION)
@@ -45,34 +54,14 @@ class DatasetsCv(DatasetsBase):
         if not self.cv_type:
             self._fatal_error(f"Unsupported cross-validation method found. Options {CV_METHODS}")
 
-    def _get_cv_iterator(self):
-        ''' Get cross-validation iterators '''
-        if not self.cv_type:
-            self._error(f"No supported cross-validation method found. Options {CV_METHODS}")
-            return None
-        self.cv_iterator_args = self.cv_config[self.cv_type]
-        self._debug(f"Found cross-validation method '{self.cv_type}', with parameters {self.cv_iterator_args}")
-        to_eval = f"sklearn.model_selection.{self.cv_type}(**{self.cv_iterator_args})"
-        self._debug(f"Method to evaluate: {to_eval}")
-        cv = eval(to_eval)
-        return cv
+    def __call__(self):
+        ok = self.datasets()
+        if ok:
+            self._create_cv_datasets()
+        return ok
 
-    def in_outs(self, all=True):
-        ''' Get inputs & outputs for all datasets '''
-        if not self.cv_enable:
-            super().in_outs(all)
-        else:
-            for d in self:
-                d.in_outs(all)
-
-    def __iter__(self):
-        """ Iterate over all datasets in cross-validation """
-        return self.cv_datasets.__iter__()
-
-    def split(self):
-        ''' Split dataset for cross-valdation '''
-        if not self.cv_enable:
-            return super().split(all)
+    def _create_cv_datasets(self):
+        ''' Create cross-validation datasets '''
         cv_it = self._get_cv_iterator()
         if not cv_it:
             self._error(f"Could not get cross-validation iterator for {self.cv_type}")
@@ -91,4 +80,63 @@ class DatasetsCv(DatasetsBase):
             self._debug(f"Cross-validation: Created datasets: {len(self.cv_datasets)}")
         self._debug(f"Create cross-validation indexes: End")
         self.cv_count = len(self.cv_datasets)
-        return True
+
+    def _get_cv_iterator(self):
+        ''' Get cross-validation iterators '''
+        if not self.cv_type:
+            self._error(f"No supported cross-validation method found. Options {CV_METHODS}")
+            return None
+        self.cv_iterator_args = self.cv_config[self.cv_type]
+        self._debug(f"Found cross-validation method '{self.cv_type}', with parameters {self.cv_iterator_args}")
+        to_eval = f"sklearn.model_selection.{self.cv_type}(**{self.cv_iterator_args})"
+        self._debug(f"Method to evaluate: {to_eval}")
+        cv = eval(to_eval)
+        return cv
+
+    def __getitem__(self, key):
+        """ Get item/s from the dataset.
+        Key could be an int, a list or a slice.
+        Returns: Selected elements, as a Numpy array
+        """
+        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+
+    def get(self):
+        return self.datasets.get()
+
+    def get_xy(self) -> InOut:
+        return self.datasets.get_xy()
+
+    def get_test(self):
+        return self.datasets.get_test()
+
+    def get_test_xy(self):
+        return self.datasets.get_test_xy()
+
+    def get_train(self):
+        return self.datasets.get_train()
+
+    def get_train_xy(self):
+        return self.datasets.get_train_xy()
+
+    def get_validate(self):
+        return self.datasets.get_validate()
+
+    def get_validate_xy(self):
+        return self.datasets.get_validate_xy()
+
+    def in_outs(self, all=True) -> None:
+        return all([d.in_outs(all) for d in self])
+
+    def __iter__(self):
+        """ Iterate over all datasets in cross-validation """
+        return self.cv_datasets.__iter__()
+
+    def __len__(self):
+        """ Length (number of samples) in the 'raw dataset' """
+        return 0 if self.datasets.dataset is None else len(self.datasets.dataset)
+
+    def reset(self, soft=False):
+        return all([d.reset(soft) for d in self])
+
+    def split_idx(self, idx_train, idx_validate, idx_test=None) -> bool:
+        [d.split_idx(idx_train, idx_validate, idx_test) for d in self]
