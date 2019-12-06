@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestRegressor
 from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
 
 
-class DatasetsDf(DatasetsCv):
+class DatasetsDf(Datasets):
     '''
     A dataset based on a Pandas DataFrame
     (i.e. Dataset.dataset must be a DataFrame)

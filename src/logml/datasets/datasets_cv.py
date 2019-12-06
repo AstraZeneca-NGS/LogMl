@@ -4,6 +4,7 @@ import sklearn.model_selection
 
 from ..core.config import CONFIG_CROSS_VALIDATION
 from ..core.files import MlFiles
+from .datasets_base import DatasetsBase, InOut
 
 
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
@@ -67,18 +68,18 @@ class DatasetsCv(DatasetsBase):
             self._error(f"Could not get cross-validation iterator for {self.cv_type}")
             return False
         # For each split...
-        self._debug(f"Create cross-validation indexes: Start")
+        self._debug(f"DatasetsCv: Create cross-validation indexes: Start")
         dlen = len(self.datasets)
-        self._debug(f"Dataset length: {dlen}")
+        self._debug(f"DatasetsCv: Dataset length={dlen}")
         x = np.arange(dlen)
         # Get train and validate indeces for each split
         for idx_train, idx_validate in cv_it.split(x):
-            self._debug(f"Create cross-validation indexes: idx_train length = {len(idx_train)}, idx_validate length = {len(idx_validate)}")
+            self._debug(f"DatasetsCv: Create cross-validation indexes: idx_train length = {len(idx_train)}, idx_validate length = {len(idx_validate)}")
             ds = copy.copy(self)
             ds.split_idx(idx_train, idx_validate)
             self.cv_datasets.append(ds)
-            self._debug(f"Cross-validation: Created datasets: {len(self.cv_datasets)}")
-        self._debug(f"Create cross-validation indexes: End")
+            self._debug(f"DatasetsCv: Created datasets: {len(self.cv_datasets)}")
+        self._debug(f"DatasetsCv: Create cross-validation indexes: End")
         self.cv_count = len(self.cv_datasets)
 
     def _get_cv_iterator(self):
@@ -87,9 +88,9 @@ class DatasetsCv(DatasetsBase):
             self._error(f"No supported cross-validation method found. Options {CV_METHODS}")
             return None
         self.cv_iterator_args = self.cv_config[self.cv_type]
-        self._debug(f"Found cross-validation method '{self.cv_type}', with parameters {self.cv_iterator_args}")
+        self._debug(f"DatasetsCv: Found cross-validation method '{self.cv_type}', with parameters {self.cv_iterator_args}")
         to_eval = f"sklearn.model_selection.{self.cv_type}(**{self.cv_iterator_args})"
-        self._debug(f"Method to evaluate: {to_eval}")
+        self._debug(f"DatasetsCv: Method to evaluate={to_eval}")
         cv = eval(to_eval)
         return cv
 

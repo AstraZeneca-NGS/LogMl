@@ -49,8 +49,8 @@ class LogMl(MlFiles):
         self._set_from_config()
         if self.config is not None:
             self.initialize()
+            self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
         self.model_results = ResultsDf()
-        self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
 
     def _config_sanity_check(self):
         '''
