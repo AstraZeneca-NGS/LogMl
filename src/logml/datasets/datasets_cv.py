@@ -12,14 +12,13 @@ CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSpli
 class DatasetsCv(MlFiles):
     ''' A set of datasets used to perform cross validation '''
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!
- datasets_cv = DatasetsCv(dataset)
-
- # TODO: Add _cross_validate_f method
- # TODO: Add wrapper methods implementing (important) datasets methods
- # NOTE: Only created if cv_enable=True
-!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!
+#  datasets_cv = DatasetsCv(dataset)
+#
+#  # TODO: Add _cross_validate_f method
+#  # TODO: Add wrapper methods implementing (important) datasets methods
+#  # NOTE: Only created if cv_enable=True
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def __init__(self, config, set_config=True):
         super().__init__(config, set_config)

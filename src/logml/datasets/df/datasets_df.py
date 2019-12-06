@@ -4,7 +4,8 @@ import copy
 import pandas as pd
 import numpy as np
 
-from ..datasets import Datasets, InOut
+from ..datasets import Datasets
+from ..datasets_base import InOut
 from .df_preprocess import DfPreprocess
 from .df_transform import DfTransform
 

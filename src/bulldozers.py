@@ -32,13 +32,13 @@ def df_split(df, n):
 
 @model_evaluate
 def meval(m, df):
-    x, y = in_out(df)
+    x, y = _in_out(df)
     return 1.0 - m.score(x, y)
 
 
 @model_train
 def mtrain(m, df):
-    x, y = in_out(df)
+    x, y = _in_out(df)
     return m.fit(x, y)
 
 
