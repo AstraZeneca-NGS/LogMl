@@ -9,7 +9,7 @@ from ..core.files import MlFiles
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
 
 
-class DatasetsCv(MlFiles):
+class DatasetsCv(DatasetsBase):
     """ Datasets used for cross-validation
     Ths object creates a list of datasets which are used for cross-validation.
     For example, if we are using 5-fold cross validation, then we create 5
@@ -20,17 +20,19 @@ class DatasetsCv(MlFiles):
     many copies in memory shoudl not be prohibitive. Nevertheless, keep in
     mind that this implementation is not memory efficient.
 
+    Creating this object always assumes that cross-validation is enables.
+    Otherwise, unexpected results may ocurr
     """
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!
-#  datasets_cv = DatasetsCv(dataset)
-#
-#  # TODO: Add _cross_validate_f method
-#  # TODO: Add wrapper methods implementing (important) datasets methods
-#  # NOTE: Only created if cv_enable=True
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    def __init__(self, config, set_config=True):
+    def __init__(self, config, dataset, set_config=True):
+        """ Creating a DatasetsCv requires the original Datasets object, then
+        creates copies and sub-sets of it.
+        Usage:
+            ```
+            ds = Datasets(config)
+            dscv = DatasetsCv(config, ds)
+            ```
+        """
         super().__init__(config, set_config)
         self.cv_datasets = list()   # A list of datasets for each cross-validation
         self.cv_iterator_args = dict()
