@@ -18,14 +18,13 @@ class ModelCv(Model):
     def __init__(self, config, datasets=None, set_config=True):
         super().__init__(config, datasets, set_config)
         # Get cross-validation parameters
-        self.config = config
-        self.datasets = datasets
+        self.datasets_cv = datasets
         self.cv_config = self.config.get_parameters(CONFIG_CROSS_VALIDATION)
         self.cv_enable = self.cv_config.get('enable', False)
         self.cv_models = list()   # A list of models for each cross-validation
         self.eval_train_std = None
         self.eval_validate_std = None
-        self.cv_datasets = DatasetsCv(config, datasets)
+        self.cv_count = self.datasets_cv.cv_count
 
     def _cross_validate_f(self, f, collect_name, args=None):
         """
@@ -35,16 +34,13 @@ class ModelCv(Model):
             - collects: All collected values, after each f() invokation
         """
         # Replace datasets for each cross-validation datasets
-        datasets_ori = self.datasets
-        model_ori = self.model
+        datasets_ori, model_ori = self.datasets, self.model
         # Initialize
-        num_cv = len(self.cv_datasets)
         rets = list()
         collect = list()
-        for i in range(num_cv):
+        for d, m in zip(self.datasets_cv, self):
             # Evaluate model (without cross-validation) on cv_dataset[i]
-            self.datasets = self.cv_datasets[i]
-            self.model = self.cv_models[i]
+            self.datasets, self.model = d, m
             self._debug(f"Cross-validation: Invoking function '{f.__name__}', dataset.id={_id(self.datasets)}, model.id={_id(self.model)}")
             if args is None:
                 rets.append(f())
@@ -53,15 +49,18 @@ class ModelCv(Model):
             if collect_name is not None:
                 collect.append(self.__dict__[collect_name])
         # Restore original datasets and model
-        self.datasets = datasets_ori
-        self.model = model_ori
+        self.datasets, self.model = datasets_ori, model_ori
         return rets, collect
+
+    def __iter__(self):
+        """ Iterate over all datasets in cross-validation """
+        return self.cv_models.__iter__()
 
     def model_create(self):
         """ Create model for cross-validation """
         if not self.cv_enable:
             return super().model_create()
-        self.cv_models = [None] * len(self.cv_datasets)
+        self.cv_models = [None] * self.cv_count
         rets, self.cv_models = self._cross_validate_f(super().model_create, 'model')
         return all(rets)
 

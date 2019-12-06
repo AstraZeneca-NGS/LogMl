@@ -50,6 +50,7 @@ class LogMl(MlFiles):
         if self.config is not None:
             self.initialize()
         self.model_results = ResultsDf()
+        self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
 
     def _config_sanity_check(self):
         '''
@@ -201,6 +202,9 @@ class LogMl(MlFiles):
         if self.is_dataset_df():
             self._debug(f"Using dataset class 'DatasetsDf'")
             return DatasetsDf(self.config, model_type)
+        elif self.cv_enable:
+            self._debug(f"Using dataset class 'DatasetCv'")
+            return DatasetsCv(self.config)
         else:
             self._debug(f"Using dataset class 'Dataset'")
             return Datasets(self.config)
@@ -218,4 +222,6 @@ class LogMl(MlFiles):
             model_params = config.get_parameters_functions(MODEL_CREATE)
             if model_class.startswith('sklearn'):
                 return SkLearnModel(config, datasets, model_class, model_params)
-        return ModelCv(config, datasets)
+        if self.cv_enable:
+            return ModelCv(config, datasets)
+        return Model(config, datasets)
