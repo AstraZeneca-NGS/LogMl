@@ -114,11 +114,11 @@ class LogMl(MlFiles):
             self._debug("Dataset exploration only available for dataset type 'df'")
             return True
         files_base = self.datasets.get_file_name(f"dataset_explore.transformed", ext='')
-        self.dataset_explore_transformed = DataExplore(self.datasets.dataset, 'transformed', self.config, files_base)
+        self.dataset_explore_transformed = DataExplore(self.datasets.get(), 'transformed', self.config, files_base)
         ok = self.dataset_explore_transformed()
         if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori'):
             files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
-            self.dataset_explore_original = DataExplore(self.datasets.dataset_ori, 'original', self.config, files_base)
+            self.dataset_explore_original = DataExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         return ok
 

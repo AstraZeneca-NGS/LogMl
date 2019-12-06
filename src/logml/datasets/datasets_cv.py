@@ -104,8 +104,8 @@ class DatasetsCv(DatasetsBase):
     def get(self):
         return self.datasets.get()
 
-    def get_xy(self) -> InOut:
-        return self.datasets.get_xy()
+    def get_ori(self):
+        return self.datasets.get_ori()
 
     def get_test(self):
         return self.datasets.get_test()
@@ -125,6 +125,9 @@ class DatasetsCv(DatasetsBase):
     def get_validate_xy(self):
         return self.datasets.get_validate_xy()
 
+    def get_xy(self) -> InOut:
+        return self.datasets.get_xy()
+
     def in_outs(self, all=True) -> None:
         return all([d.in_outs(all) for d in self])
 
@@ -133,8 +136,7 @@ class DatasetsCv(DatasetsBase):
         return self.cv_datasets.__iter__()
 
     def __len__(self):
-        """ Length (number of samples) in the 'raw dataset' """
-        return 0 if self.datasets.dataset is None else len(self.datasets.dataset)
+        return len(self.datasets)
 
     def reset(self, soft=False):
         return all([d.reset(soft) for d in self])

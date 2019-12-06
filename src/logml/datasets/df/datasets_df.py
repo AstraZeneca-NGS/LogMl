@@ -31,7 +31,10 @@ class DatasetsDf(Datasets):
             self._set_from_config()
 
     def _columns_na(self, df):
-        """ Get a columns that should b used for a new dataframe having only columns indicating missing data """
+        """
+        Get a columns that should b used for a new dataframe having only
+        columns indicating missing data
+        """
         if df is None:
             return None
         # Keep output and 'na_columns'
@@ -156,9 +159,18 @@ class DatasetsDf(Datasets):
     def set_column(self, col_name, values):
         self.dataset[col_name] = values
 
-    def shuffle_column(self, col_name):
+    def shuffle_input_validate_xy(self, name):
         """
-        Shuffle column 'col'
+        Shuffle column 'name' from validation dataset
+        Return: the original column values
+        """
+        x_col = self.dataset[col_name]
+        self.dataset[col_name] = np.random.permutation(x_col)
+        return x_col
+
+    def shuffle_input_validate_xy(self, name):
+        """
+        Shuffle column 'col' from validation dataset
         Return: the original column values
         """
         x_col = self.dataset[col_name]

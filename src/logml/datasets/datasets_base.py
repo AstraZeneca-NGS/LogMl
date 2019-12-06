@@ -138,6 +138,11 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
+    def get_file_name(self, dataset_type=None, ext='pkl'):
+        ''' Create a file name for dataset '''
+        self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
+        return self._get_file_name(self.dataset_path, self.dataset_name, dataset_type, ext)
+
     def __getitem__(self, key):
         """ Get item/s from the dataset.
         Key could be an int, a list or a slice.
@@ -149,9 +154,17 @@ class DatasetsBase(MlFiles):
         """ Get the 'raw' dataset """
         return self.dataset
 
-    def get_xy(self) -> InOut:
-        """ Get the 'raw' dataset split into InOut"""
-        return self.dataset_xy
+    def get_datasets_na(self):
+        """
+        Create a dataset of missing data indicators.
+        The new datasets should have the same samples and inputs, but replacing
+        'missing' by 1 and 'not missing' by 0
+        """
+        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+
+    def get_ori(self):
+        """ Get the 'raw' dataset (original) """
+        return self.dataset_ori
 
     def get_test(self):
         """ Get the 'raw' test dataset """
@@ -192,6 +205,10 @@ class DatasetsBase(MlFiles):
             self._debug(f"Validate dataset not found, using whole dataset")
             return self.dataset_xy
         return self.dataset_validate_xy
+
+    def get_xy(self) -> InOut:
+        """ Get the 'raw' dataset split into InOut"""
+        return self.dataset_xy
 
     def _in_out(self, ds, name) -> InOut:
         '''
@@ -332,6 +349,13 @@ class DatasetsBase(MlFiles):
         """ Try to save dataset.
         First use user defined function otherwise save to pickle otherwise
         Returns: True if the dataset was saved, False otherwise
+        """
+        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+
+    def shuffle_input(self, name):
+        """
+        Shuffle input 'name' from train and validate datasets
+        Return: A tuple with the original values
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 

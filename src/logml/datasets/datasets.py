@@ -170,11 +170,6 @@ class Datasets(DatasetsBase):
     def __getitem__(self, key):
         return self.dataset[key]
 
-    def get_file_name(self, dataset_type=None, ext='pkl'):
-        ''' Create a file name for dataset '''
-        self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
-        return self._get_file_name(self.dataset_path, self.dataset_name, dataset_type, ext)
-
     def _in_out(self, ds, name):
         '''
         Split dataset inputs and outputs from dataset 'ds'
