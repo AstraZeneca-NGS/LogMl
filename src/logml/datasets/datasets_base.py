@@ -138,17 +138,6 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
-    def drop_input(self, name, ds_type='train_xy'):
-        """
-        Drop input 'name' from a dataset
-        For instance, drop column 'name' from a dataframe
-        Args:
-            name: Input variable name
-            ds_type: Type of dataset to change, possible values are {'train', 'validate', 'test', 'train_xy', 'validate_xy', 'test_xy'}
-        Return: The original values
-        """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
-
     def get_file_name(self, dataset_type=None, ext='pkl'):
         ''' Create a file name for dataset '''
         self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
@@ -363,14 +352,14 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
-    def shuffle_input(self, name, ds_type='validate_xy'):
+    def shuffle_input(self, name):
         """
-        Shuffle input 'name' from a dataset
-        For instance, shuffle column 'name' from a dataframe
+        Shuffle input 'name' from a dataset.
+        For instance, shuffle column 'name' from a dataframe.
         Args:
             name: Input variable name
-            ds_type: Type of dataset to change, possible values are {'train', 'validate', 'test', 'train_xy', 'validate_xy', 'test_xy'}
-        Return: The original values
+        Return:
+            The original values om that column
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
@@ -396,5 +385,16 @@ class DatasetsBase(MlFiles):
         """ Perform transform step.
         Invoke a user defined function, if none available, call `default_transform()` method.
         Returns: True if the transform was performed, False otherwise
+        """
+        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+
+    def zero_input(self, name):
+        """
+        Set all inputs to zero
+        For instance, set to zero column 'name' from a dataframe
+        Args:
+            name: Input variable name
+        Return:
+            The original values
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
