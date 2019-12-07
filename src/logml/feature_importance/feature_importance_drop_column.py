@@ -24,19 +24,18 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
         super().__init__(model, model_name)
         self.importance_name = 'drop column'
 
-    def change_dataset(self, col):
-        """ Change datasets for column 'col' """
-        x_train = self.x_train.drop(col, axis=1)
-        x_val = self.x_val.drop(col, axis=1)
-        return x_train, self.y_train, x_val, self.y_val
+    def dataset_change(self, col_name):
+        """ Change datasets for column 'col_name' """
+        col_ori = self.datasets.zero_input(col_name)
+        return col_ori
 
-    def loss(self, x_train, y_train, x_val, y_val):
-        """
-        Train (if necesary) and calculate loss
-        In this case, there is no training, just calculate the loss
-        """
+    def dataset_restore(self, col_name, col_ori):
+        """ Restore column 'col_name' using values 'col_ori' """
+        self.datasets.zero_input(col_name, col_ori)
+
+    def loss(self):
+        """ Train and calculate loss """
         model_clone = self.model.clone()
-        self.model_set_datasets(model_clone, x_train, y_train, x_val, y_val)
         model_clone.model_train()
         model_clone.model_eval_validate()
         return model_clone.eval_validate

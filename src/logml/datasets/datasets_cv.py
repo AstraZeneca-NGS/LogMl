@@ -143,3 +143,9 @@ class DatasetsCv(DatasetsBase):
 
     def split_idx(self, idx_train, idx_validate, idx_test=None) -> bool:
         [d.split_idx(idx_train, idx_validate, idx_test) for d in self]
+
+    def shuffle_input(self, name, restore=None):
+        return [d.shuffle_input(name, restore) for d in self]
+
+    def zero_input(self, name, restore=None):
+        return [d.zero_input(name, restore) for d in self]

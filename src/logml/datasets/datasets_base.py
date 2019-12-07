@@ -352,12 +352,14 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
-    def shuffle_input(self, name):
+    def shuffle_input(self, name, restore=None):
         """
         Shuffle input 'name' from a dataset.
         For instance, shuffle column 'name' from a dataframe.
+        If 'restore' is provided, the data is restored (un-shuffle)
         Args:
             name: Input variable name
+            restore: If not None, the input should be restored from this object's data
         Return:
             The original values om that column
         """
@@ -388,12 +390,14 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
-    def zero_input(self, name):
+    def zero_input(self, name, restore):
         """
         Set all inputs to zero
         For instance, set to zero column 'name' from a dataframe
+        If 'restore' is provided, the data is restored (un-zeroed)
         Args:
             name: Input variable name
+            restore: If not None, the input should be restored from this object's data
         Return:
             The original values
         """

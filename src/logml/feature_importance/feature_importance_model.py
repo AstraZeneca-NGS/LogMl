@@ -38,8 +38,11 @@ class FeatureImportanceModel(MlFiles):
         cols = list(self.datasets.get_columns())
         cols_count = len(cols)
         for i in range(cols_count):
-            # Change dataset, evaluate performance, restore originla dataset
             c = cols[i]
+            # Only estimate importance of input variables
+            if c in self.datasets.outputs:
+                continue
+            # Change dataset, evaluate performance, restore originla dataset
             ori = self.dataset_change(c)
             loss_c = self.loss()
             self.dataset_restore(c, ori)

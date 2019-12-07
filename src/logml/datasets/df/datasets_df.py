@@ -147,7 +147,9 @@ class DatasetsDf(Datasets):
         return dsna
 
     def __getitem__(self, key):
-        return self.dataset.iloc[key]
+        # Make sure we create a copy of the DataFrame so that we don't run
+        # into 'SettingWithCopyWarning' later
+        return self.dataset.iloc[key].copy()
 
     def _load_from_csv(self):
         ''' Load dataframe from CSV '''
@@ -159,20 +161,61 @@ class DatasetsDf(Datasets):
     def set_column(self, col_name, values):
         self.dataset[col_name] = values
 
-    def shuffle_input(self, name):
+    def shuffle_input(self, name, restore=None):
         """
-        Shuffle input variable from dataset
+        Shuffle input variable (in all datasets)
         Return: the original column values
         """
-        x_col = self.dataset[name]
-        self.dataset[name] = np.random.permutation(x_col)
-        return x_col
+        dfs = [self.dataset, self.dataset_train, self.dataset_validate, self.dataset_test, self.dataset_xy.x, self.dataset_train_xy.x, self.dataset_validate_xy.x, self.dataset_test_xy.x]
+        if restore is None:
+            restore = [None] * len(dfs)
+        dfs = zip(dfs, restore)
+        return [self._shuffle_input(df, name, res) for df, res in dfs]
 
-    def zero_input(self, name):
+    def _shuffle_input(self, df, name, restore):
         """
-        Drop input variable (e.g. column in a dataframe) from validation dataset
+        Shuffle column 'name' from dataframe df and return the original values
+        If 'restore' is assigned, use that data to restore the original values
+        """
+        if df is None:
+            return None
+        if restore is not None:
+            # Restore original data (un-shuffle)
+            df[name] = restore
+            return restore
+        else:
+            # Shuffle column
+            x_col = df[name].copy()
+            df[name] = np.random.permutation(x_col)
+            return x_col
+
+    def zero_input(self, name, restore=None):
+        """
+        Zero input variable (i.e. make the column all zeros)
         Return: the original column values
         """
+        dfs = [self.dataset, self.dataset_train, self.dataset_validate, self.dataset_test, self.dataset_xy.x, self.dataset_train_xy.x, self.dataset_validate_xy.x, self.dataset_test_xy.x]
+        if restore is None:
+            restore = [None] * len(dfs)
+        dfs = zip(dfs, restore)
+        return [self._zero_input(df, name, res) for df, res in dfs]
         x_col = self.dataset[col_name]
         self.dataset[col_name] = np.random.permutation(x_col)
         return x_col
+
+    def _zero_input(self, df, name, restore):
+        """
+        Zero column 'name' from dataframe df and return the original values
+        If 'restore' is assigned, use that data to restore the original values
+        """
+        if df is None:
+            return None
+        if restore is not None:
+            # Restore original data (un-shuffle)
+            df[name] = restore
+            return restore
+        else:
+            # Zero column
+            x_col = df[name].copy()
+            df[name] = np.zeros(x_col.shape)
+            return x_col
