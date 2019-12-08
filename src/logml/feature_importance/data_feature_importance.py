@@ -199,9 +199,10 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
-        self._error(f"RESULTS: {skmodel.feature_importances_}")
-        self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
+        fi = model.get_feature_importances()
+        self._error(f"RESULTS: {fi}")
+        self.results.add_col(f"importance_skmodel_{model_name}", fi)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
 
     def fit_lars_aic(self):
         m = ModelSkLassoLarsAIC(self.config, self.datasets)

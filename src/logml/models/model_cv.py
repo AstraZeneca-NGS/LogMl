@@ -29,7 +29,7 @@ class ModelCv(Model):
             self.cv_count = self.datasets_cv.cv_count
             self.datasets_cv = datasets
 
-    def _cross_validate_f(self, f, collect_name, args=None):
+    def _cross_validate_f(self, f, collect_name=None, args=None):
         """
         Run cross-validation evaluating function 'f' and collecting field 'collect_name'
         Returns a tuple of two lists: (rets, collects)

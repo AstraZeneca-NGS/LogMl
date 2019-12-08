@@ -75,6 +75,14 @@ class SkLearnModel(ModelCv):
             traceback.print_stack()
             return False
 
+    def get_feature_importances(self):
+        if not self.cv_enable:
+            return self.model.feature_importances_
+        else:
+            # Calculate the average of all improtances
+            rets = [m.feature_importances_ for m in self]
+            return sum(rets) / len(rets)
+
     def invoke_model_create(self, x, y):
         return False    # We don't want to call user functions
 
