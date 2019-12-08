@@ -122,6 +122,7 @@ class DatasetsDf(Datasets):
         return df_na
 
     def get_datasets_na(self):
+        """ Create a dataset of 'missing value indicators' """
         if self.dataset_transform is None:
             self._error("Cannot create 'missing' dataset")
             return None

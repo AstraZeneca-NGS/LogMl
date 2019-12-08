@@ -94,6 +94,15 @@ class DatasetsCv(DatasetsBase):
         cv = eval(to_eval)
         return cv
 
+    def get_datasets_na(self):
+        """ Create a dataset of 'missing value indicators' """
+        dsna = copy.copy(self)
+        dsna.datasets = self.datasets.get_datasets_na()
+        dsna.cv_datasets = [d.get_datasets_na() for d in self]
+        if any([d is None for d in dsna.cv_datasets]):
+            return None
+        return dsna
+
     def get_input_names(self):
         return self.datasets.get_input_names()
 
