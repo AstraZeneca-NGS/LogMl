@@ -123,8 +123,8 @@ class DataFeatureImportance(MlFiles):
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         # Perform re-weighting, then display and save results
-        w_ori = self.reweight_results()
-        self.show_and_save_results(w_ori)
+        loss_ori = self.reweight_results()
+        self.show_and_save_results(loss_ori)
         self._info(f"Feature importance {self.tag}: End")
         return True
 
@@ -181,7 +181,6 @@ class DataFeatureImportance(MlFiles):
                 self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
             self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
-            self._error(f"RESULTS: {fi.performance_norm}")
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
@@ -200,7 +199,6 @@ class DataFeatureImportance(MlFiles):
             return
         self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
         fi = model.get_feature_importances()
-        self._error(f"RESULTS: {fi}")
         self.results.add_col(f"importance_skmodel_{model_name}", fi)
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
 
@@ -401,7 +399,7 @@ class DataFeatureImportance(MlFiles):
         '''
         self._debug(f"Feature importance {self.tag}: Re-weighting")
         names = self.results.get_weight_names()
-        w_ori = dict(self.results.weights)
+        loss_ori = dict(self.results.weights)
         w = self.results.get_weights()
         if len(w) > 0:
             weight_delta = self.weight_max - self.weight_min
@@ -422,7 +420,7 @@ class DataFeatureImportance(MlFiles):
         # Sort by the resulting column (ranksum)
         self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
         self.results.sort('rank_of_ranksum')
-        return w_ori
+        return loss_ori
 
     def select(self):
         '''
@@ -467,7 +465,7 @@ class DataFeatureImportance(MlFiles):
         else:
             self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
-    def show_and_save_results(self, weights_ori):
+    def show_and_save_results(self, loss_ori):
         ''' Show and save resutl tables '''
         if self.results.is_empty():
             self._debug(f"Feature importance {self.tag}: Enpty resutls, nothing to show or save")
@@ -481,8 +479,8 @@ class DataFeatureImportance(MlFiles):
         fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()
-        if weights_ori:
-            weights.add_col_dict('weights_ori', weights_ori)
+        if loss_ori:
+            weights.add_col_dict('loss', loss_ori)
         weights.sort('weights', ascending=False)
         weights.print(f"Feature importance {self.tag} weights")
         self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
