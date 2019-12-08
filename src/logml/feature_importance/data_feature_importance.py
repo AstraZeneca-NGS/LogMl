@@ -514,6 +514,7 @@ class DataFeatureImportance(MlFiles):
             return True
         # Wilks p-value only for (binary) classification models
         if not self.is_classification():
+            self._debug("Logistic Regression (Wilks p-value): Not a classification model, skipping")
             return True
         if not self.wilks_null_model_variables:
             self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
@@ -523,5 +524,7 @@ class DataFeatureImportance(MlFiles):
         ok = wilks()
         if ok:
             self.results.add_col(f"wilks_p_values", wilks.get_pvalues())
+            self.results.add_col(f"wilks_p_values_fdr", wilks.p_values_corrected)
+            self.results.add_col(f"wilks_significant", wilks.rejected)
             self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
         return ok

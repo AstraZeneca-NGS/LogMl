@@ -9,6 +9,7 @@ from scipy.stats import chi2
 from sklearn.base import clone
 from sklearn.preprocessing import MinMaxScaler
 from statsmodels.discrete.discrete_model import Logit
+from statsmodels.stats.multitest import fdrcorrection
 
 from ..core.files import MlFiles
 from ..datasets import InOut
@@ -24,10 +25,13 @@ class LogisticRegressionWilks(MlFiles):
         self.null_model_variables = null_model_variables
         self.tag = tag
         self.x, self.y = datasets.get_xy()  # Note: We use the full dataset
+        self.columns = list(self.x.columns)
         self.loss_base = None
-        self.p_values = dict()
         self.model_null = None
         self.model_null_results = None
+        self.p_values = dict()  # Dictionary of 'raw' p-values
+        self.p_values_corrected = None  # Array of FDR-corrected p-values (sorted by 'columns')
+        self.rejected = None # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
 
     def __call__(self):
         # Base performance
@@ -36,10 +40,9 @@ class LogisticRegressionWilks(MlFiles):
         self.model_null, self.model_null_results = self.model_fit()
         # Create 'alt' models (one per column)
         null_vars = set(self.null_model_variables)
-        cols = list(self.x.columns)
-        cols_count = len(cols)
+        cols_count = len(self.columns)
         for i in range(cols_count):
-            c = cols[i]
+            c = self.columns[i]
             if c in null_vars:
                 self._debug(f"Logistic regression Wilks ({self.tag}): Null variable '{c}', skipped")
                 continue
@@ -48,11 +51,16 @@ class LogisticRegressionWilks(MlFiles):
                 continue
             self.p_values[c] = self.p_value(c)
             self._info(f"Logistic regression Wilks ({self.tag}): Column {i} / {cols_count}, '{c}', pvalue: {self.p_values[c]}")
+        self.fdr()
         return len(self.p_values) > 0
+
+    def fdr(self):
+        """ Perform multiple testing correction using FDR """
+        self.rejected, self.p_values_corrected = fdrcorrection(self.get_pvalues())
 
     def get_pvalues(self):
         """ Get all p-values as a vector """
-        return np.array([self.p_values.get(c, 1.0) for c in self.x.columns])
+        return np.array([self.p_values.get(c, 1.0) for c in self.columns])
 
     def model_fit(self, alt_model_variables=None):
         """ Fit a model using 'null_model_variables' + 'alt_model_variables' """
