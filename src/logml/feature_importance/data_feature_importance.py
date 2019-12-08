@@ -112,7 +112,8 @@ class DataFeatureImportance(MlFiles):
             return True
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
-        self.results = ResultsRankDf(self.datasets.get_columns())
+        inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
+        self.results = ResultsRankDf(inputs)
         self.feature_importance_models()
         # FIXME:  self.boruta()
         self.regularization_models()
@@ -180,6 +181,7 @@ class DataFeatureImportance(MlFiles):
                 self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
             self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
+            self._error(f"RESULTS: {fi.performance_norm}")
             self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
             fi.plot()
@@ -197,6 +199,7 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
+        self._error(f"RESULTS: {skmodel.feature_importances_}")
         self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
 

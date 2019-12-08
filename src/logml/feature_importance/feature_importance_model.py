@@ -35,7 +35,7 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {self.loss_base}")
         # Shuffle each column
         perf = list()
-        cols = list(self.datasets.get_columns())
+        cols = list(self.datasets.get_input_names())
         cols_count = len(cols)
         for i in range(cols_count):
             c = cols[i]

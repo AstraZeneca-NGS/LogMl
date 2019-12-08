@@ -162,6 +162,10 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
+    def get_input_names(self):
+        """ Returns: A list of dataset's input names """
+        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+
     def get_ori(self):
         """ Get the 'raw' dataset (original) """
         return self.dataset_ori

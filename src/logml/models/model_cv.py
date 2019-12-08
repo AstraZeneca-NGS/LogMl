@@ -24,7 +24,7 @@ class ModelCv(Model):
         self.eval_train_std = None
         self.eval_validate_std = None
         self.cv_count = 0
-        self.datasets_cv = None
+        self.datasets_cv = datasets
         if self.cv_enable:
             self.cv_count = self.datasets_cv.cv_count
             self.datasets_cv = datasets

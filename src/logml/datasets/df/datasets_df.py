@@ -99,8 +99,8 @@ class DatasetsDf(Datasets):
         self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
         return True
 
-    def get_columns(self):
-        """ Get dataset's column names (i.e. variable names) """
+    def get_input_names(self):
+        """ Get dataset's input names """
         return self.dataset.columns
 
     def _get_dataframe_na(self, df, cols_na):

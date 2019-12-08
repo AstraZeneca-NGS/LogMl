@@ -13,3 +13,5 @@ rm -rvf data/zzz/zzz.pkl data/zzz/model
 
 # Run LogMl
 time ./src/logml.py -d -c config/zzz.yaml 2>&1 | tee zzz.out
+
+echo "Exit code: $?"
