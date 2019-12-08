@@ -512,6 +512,9 @@ class DataFeatureImportance(MlFiles):
         """ Calculate p-values using logistic regression (Wilks theorem) """
         if not self.is_wilks:
             return True
+        # Wilks p-value only for (binary) classification models
+        if not self.is_classification():
+            return True
         if not self.wilks_null_model_variables:
             self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
             return False
