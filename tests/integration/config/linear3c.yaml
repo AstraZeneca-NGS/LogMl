@@ -20,6 +20,8 @@ dataset_preprocess:
     standard: true
     minmax: ['c1', 'c2']
     skip: ['y']
+  impute:
+    median: true
 
 dataset_transform:
   enable: true
