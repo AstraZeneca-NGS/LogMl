@@ -8,10 +8,7 @@ from collections import namedtuple
 from ...core.config import CONFIG_DATASET_PREPROCESS
 from ...core.log import MlLog
 from .df_normalize import DfNormalize
-
-
-NORMALIZATION_METHODS = ['log', 'log1p', 'maxabs', 'minmax', 'minmax_neg', 'quantile', 'skip', 'standard']
-NormalizationMethod = namedtuple('NormalizationMethod', ['method', 'fields'])
+from .df_impute import DfImpute
 
 
 class DfPreprocess(MlLog):
@@ -38,6 +35,8 @@ class DfPreprocess(MlLog):
             self._debug(f"Preprocessing dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', enable='{self.enable}'")
             return self.df
         self._debug("Preprocessing dataframe: Start")
+        self.impute_df = DfImpute(self.df, self.config, self.outputs, self.model_type)
+        self.df = self.impute_df()
         self.normalize_df = DfNormalize(self.df, self.config, self.outputs, self.model_type)
         self.df = self.normalize_df()
         self._debug("Preprocessing dataframe: End")

@@ -59,7 +59,6 @@ class DfNormalize(MethodsFields):
         ''' Normalize variables '''
         self._debug("Normalizing dataset (dataframe): Start")
         fields_to_normalize = list(self.df.columns)
-        fields_normalized = set()
         is_classification = (self.model_type == 'classification')
         for c in fields_to_normalize:
             if not self.is_numertic(c):
