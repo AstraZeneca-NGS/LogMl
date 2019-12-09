@@ -2,15 +2,14 @@ import copy
 import numpy as np
 import random
 
+from .datasets_base import DatasetsBase, InOut
 from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
 from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
 
-InOut = namedtuple('InOut', ['x', 'y'])
 
-
-class Datasets(MlFiles):
+class Datasets(DatasetsBase):
     '''
     Datasets class cotaining trainig, test and validation datasets
         self.dataset             : Original dataset
@@ -22,32 +21,7 @@ class Datasets(MlFiles):
         self.dataset_validate_xy : Validation dataset inputs and outputs
     '''
     def __init__(self, config, set_config=True):
-        super().__init__(config, CONFIG_DATASET)
-        self.dataset_path = None
-        self.dataset_name = None
-        self.dataset_type = None
-        self.dataset = None
-        self.dataset_test = None
-        self.dataset_train = None
-        self.dataset_validate = None
-        self.dataset_xy = InOut(None, None)
-        self.dataset_test_xy = InOut(None, None)
-        self.dataset_train_xy = InOut(None, None)
-        self.dataset_validate_xy = InOut(None, None)
-        self.do_not_load_pickle = False
-        self.do_not_save = False
-        self.enable = True
-        self.is_use_all_inputs = False
-        self.is_use_default_in_out = True
-        self.is_use_default_preprocess = True
-        self.is_use_default_split = True
-        self.is_use_default_transform = True
-        self.operations_done = set()
-        self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
-        self.outputs = list()
-        self.should_save = False
-        if set_config:
-            self._set_from_config()
+        super().__init__(config, set_config)
 
     def augment(self):
         return self.invoke_augment()
@@ -196,52 +170,7 @@ class Datasets(MlFiles):
     def __getitem__(self, key):
         return self.dataset[key]
 
-    def get(self):
-        return self.dataset
-
-    def get_xy(self):
-        return self.dataset_xy
-
-    def get_file_name(self, dataset_type=None, ext='pkl'):
-        ''' Create a file name for dataset '''
-        self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
-        return self._get_file_name(self.dataset_path, self.dataset_name, dataset_type, ext)
-
-    def get_test(self):
-        if self.dataset_test is None:
-            self._info(f"Test dataset not found")
-        return self.dataset_test
-
-    def get_test_xy(self):
-        if self.dataset_test_xy.x is None:
-            self._info(f"Test dataset not found")
-        return self.dataset_test_xy
-
-    def get_train(self):
-        if self.dataset_train is None:
-            self._debug(f"Training dataset not found, using whole dataset")
-            return self.dataset
-        return self.dataset_train
-
-    def get_train_xy(self):
-        if self.dataset_train_xy.x is None:
-            self._debug(f"Training dataset not found, using whole dataset")
-            return self.dataset_xy
-        return self.dataset_train_xy
-
-    def get_validate(self):
-        if self.dataset_validate is None:
-            self._debug(f"Validate dataset not found, using whole dataset")
-            return self.dataset
-        return self.dataset_validate
-
-    def get_validate_xy(self):
-        if self.dataset_validate_xy.x is None:
-            self._debug(f"Validate dataset not found, using whole dataset")
-            return self.dataset_xy
-        return self.dataset_validate_xy
-
-    def in_out(self, ds, name):
+    def _in_out(self, ds, name):
         '''
         Split dataset inputs and outputs from dataset 'ds'
         Returns an InOut named tuple
@@ -261,10 +190,10 @@ class Datasets(MlFiles):
     def in_outs(self, all=True):
         ''' Get inputs & outputs for all datasets '''
         if all:
-            self.dataset_xy = self.in_out(self.dataset, 'all')
-        self.dataset_test_xy = self.in_out(self.dataset_test, 'test')
-        self.dataset_train_xy = self.in_out(self.dataset_train, 'train')
-        self.dataset_validate_xy = self.in_out(self.dataset_validate, 'validate')
+            self.dataset_xy = self._in_out(self.dataset, 'all')
+        self.dataset_test_xy = self._in_out(self.dataset_test, 'test')
+        self.dataset_train_xy = self._in_out(self.dataset_train, 'train')
+        self.dataset_validate_xy = self._in_out(self.dataset_validate, 'validate')
 
     def invoke_augment(self):
         " Invoke user defined function for '@dataset_augment' "

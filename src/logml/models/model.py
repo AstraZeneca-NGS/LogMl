@@ -22,8 +22,7 @@ class Model(MlFiles):
 
     def __init__(self, config, datasets=None, set_config=True):
         '''
-        config: An Config object
-        datasets: An Datasets object
+        Model: A model that can be created, trained and evaluated
         '''
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
@@ -115,10 +114,10 @@ class Model(MlFiles):
         self.model_results.add_row(f"{self.model_class}.{self._id}", model_results)
         return True
 
-    def clone(self):
+    def clone(self, clone_datasets=True):
         """ Clone the model """
         model_clone = copy.copy(self)
-        if self.datasets is not None:
+        if clone_datasets and self.datasets is not None:
             model_clone.datasets = copy.copy(self.datasets)
         return model_clone
 
@@ -143,6 +142,7 @@ class Model(MlFiles):
                 ret = np.inf
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             ret = math.inf
         self._debug(f"Model evaluate {name} (default): Loss = {ret}")
         return ret
@@ -204,6 +204,7 @@ class Model(MlFiles):
             return invoked, ret
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             return True, math.inf
 
     def invoke_model_predict(self, x):
@@ -216,6 +217,7 @@ class Model(MlFiles):
             return invoked, ret
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             return True, None
 
     def invoke_model_save(self):
@@ -334,6 +336,7 @@ class Model(MlFiles):
             return ret
         except Exception as e:
             self._error(f"Model train exception: {e}\n{traceback.format_exc()}")
+            # traceback.print_stack()
             return None
 
     def _new_id(self):

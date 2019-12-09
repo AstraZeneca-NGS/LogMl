@@ -23,22 +23,24 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         super().__init__(model, model_name)
         self.importance_name = 'permutation'
 
-    def change_dataset(self, col):
-        """ Change datasets for column 'col' """
-        x_val = self.x_val.copy()
-        x_val[col] = np.random.permutation(x_val[col])
-        return None, None, x_val, self.y_val
+    def dataset_change(self, col_name):
+        """ Change datasets for column 'col_name' """
+        col_ori = self.datasets.shuffle_input(col_name)
+        return col_ori
+
+    def dataset_restore(self, col_name, col_ori):
+        """ Restore column 'col_name' using values 'col_ori' """
+        self.datasets.shuffle_input(col_name, col_ori)
 
     def initialize(self):
         """ Initialzie the model (the model is trained only once) """
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")
-        self.model.fit(self.x_train, self.y_train)
+        self.model.model_train()
 
-    def loss(self, x_train, y_train, x_val, y_val):
+    def loss(self):
         """
         Train (if necesary) and calculate loss
         In this case, there is no training, just evaluate the loss
         """
-        self.model_set_datasets(self.model, x_train, y_train, x_val, y_val)
         self.model.model_eval_validate()
         return self.model.eval_validate

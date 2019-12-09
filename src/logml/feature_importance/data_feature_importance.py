@@ -112,7 +112,8 @@ class DataFeatureImportance(MlFiles):
             return True
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
-        self.results = ResultsRankDf(self.x.columns)
+        inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
+        self.results = ResultsRankDf(inputs)
         self.feature_importance_models()
         # FIXME:  self.boruta()
         self.regularization_models()
@@ -122,8 +123,8 @@ class DataFeatureImportance(MlFiles):
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
         # Perform re-weighting, then display and save results
-        w_ori = self.reweight_results()
-        self.show_and_save_results(w_ori)
+        loss_ori = self.reweight_results()
+        self.show_and_save_results(loss_ori)
         self._info(f"Feature importance {self.tag}: End")
         return True
 
@@ -197,36 +198,35 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
-        self.results.add_col(f"importance_skmodel_{model_name}", skmodel.feature_importances_)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", skmodel.feature_importances_, weight=weight, reversed=True)
+        fi = model.get_feature_importances()
+        self.results.add_col(f"importance_skmodel_{model_name}", fi)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
 
-    def fit_lars_aic(self):
-        model = ModelSkLassoLarsAIC(self.config, self.datasets)
-        model.fit(self.x, self.y)
-        return model
-
-    def fit_lars_bic(self):
-        model = ModelSkLassoLarsBIC(self.config, self.datasets)
-        model.fit(self.x, self.y)
-        return model
-
-    def fit_lasso(self):
-        model = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
-        model.fit(self.x, self.y)
-        return model
-
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
-        ''' Create a RandomForest model '''
-        if self.is_regression():
-            m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-        elif self.is_classification():
-            m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
-        else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
+    def fit_lars_aic(self, cv_enable=None):
+        m = ModelSkLassoLarsAIC(self.config, self.datasets)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
         return m
 
-    def fit_extra_trees(self, n_estimators=100):
+    def fit_lars_bic(self, cv_enable=None):
+        m = ModelSkLassoLarsBIC(self.config, self.datasets)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
+        return m
+
+    def fit_lasso(self, cv_enable=None):
+        m = ModelSkLassoCV(self.config, self.datasets, cv=self.regularization_model_cv)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
+        return m
+
+    def fit_extra_trees(self, n_estimators=100, cv_enable=None):
         ''' Create a ExtraTrees model '''
         if self.is_regression():
             m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
@@ -234,10 +234,13 @@ class DataFeatureImportance(MlFiles):
             m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
         return m
 
-    def fit_gradient_boosting(self):
+    def fit_gradient_boosting(self, cv_enable=None):
         ''' Create a ExtraTrees model '''
         if self.is_regression():
             m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
@@ -245,10 +248,13 @@ class DataFeatureImportance(MlFiles):
             m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
         return m
 
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True):
+    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, cv_enable=None):
         ''' Create a RandomForest model '''
         if self.is_regression():
             m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
@@ -256,13 +262,19 @@ class DataFeatureImportance(MlFiles):
             m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
-        m.fit(self.x, self.y)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
         return m
 
-    def fit_ridge(self):
-        model = ModelSkRidgeCV(self.config, self.datasets, cv=self.regularization_model_cv)
-        model.fit(self.x, self.y)
-        return model
+    def fit_ridge(self, cv_enable=None):
+        m = ModelSkRidgeCV(self.config, self.datasets, cv=self.regularization_model_cv)
+        if cv_enable is not None:
+            m.cv_enable = cv_enable
+        m.model_create()
+        m.model_train()
+        return m
 
     def is_classification(self):
         return self.model_type == 'classification'
@@ -318,19 +330,19 @@ class DataFeatureImportance(MlFiles):
             return
         if self.is_regression():
             if self.is_rfe_model_lasso:
-                self.recursive_feature_elimination_model(self.fit_lasso(), 'Lasso')
+                self.recursive_feature_elimination_model(self.fit_lasso(cv_enable=False), 'Lasso')
             if self.is_rfe_model_ridge:
-                self.recursive_feature_elimination_model(self.fit_ridge(), 'Ridge')
+                self.recursive_feature_elimination_model(self.fit_ridge(cv_enable=False), 'Ridge')
             if self.is_rfe_model_lars_aic:
-                self.recursive_feature_elimination_model(self.fit_lars_aic(), 'Lars_AIC')
+                self.recursive_feature_elimination_model(self.fit_lars_aic(cv_enable=False), 'Lars_AIC')
             if self.is_rfe_model_lars_bic:
-                self.recursive_feature_elimination_model(self.fit_lars_bic(), 'Lars_BIC')
+                self.recursive_feature_elimination_model(self.fit_lars_bic(cv_enable=False), 'Lars_BIC')
         if self.is_rfe_model_random_forest:
-            self.recursive_feature_elimination_model(self.fit_random_forest(), 'RandomForest')
+            self.recursive_feature_elimination_model(self.fit_random_forest(cv_enable=False), 'RandomForest')
         if self.is_rfe_model_extra_trees:
-            self.recursive_feature_elimination_model(self.fit_extra_trees(), 'ExtraTrees')
+            self.recursive_feature_elimination_model(self.fit_extra_trees(cv_enable=False), 'ExtraTrees')
         if self.is_rfe_model_gradient_boosting:
-            self.recursive_feature_elimination_model(self.fit_gradient_boosting(), 'GradientBoosting')
+            self.recursive_feature_elimination_model(self.fit_gradient_boosting(cv_enable=False), 'GradientBoosting')
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
@@ -354,15 +366,15 @@ class DataFeatureImportance(MlFiles):
         self._debug(f"Feature importance {self.tag}: Regularization")
         # LassoCV
         if self.is_regularization_lasso:
-            lassocv = self.regularization_model(self.fit_lasso())
+            lassocv = self.regularization_model(self.fit_lasso(cv_enable=False))
             self.plot_lasso_alphas(lassocv)
         # RidgeCV
         if self.is_regularization_ridge:
-            ridgecv = self.regularization_model(self.fit_ridge())
+            ridgecv = self.regularization_model(self.fit_ridge(cv_enable=False))
         # LARS
         if self.is_regularization_lars:
-            lars_aic = self.regularization_model(self.fit_lars_aic(), 'Lars_AIC')
-            lars_bic = self.regularization_model(self.fit_lars_bic(), 'Lars_BIC')
+            lars_aic = self.regularization_model(self.fit_lars_aic(cv_enable=False), 'Lars_AIC')
+            lars_bic = self.regularization_model(self.fit_lars_bic(cv_enable=False), 'Lars_BIC')
             self.plot_lars(lars_aic, lars_bic)
 
     def regularization_model(self, model, model_name=None):
@@ -387,7 +399,7 @@ class DataFeatureImportance(MlFiles):
         '''
         self._debug(f"Feature importance {self.tag}: Re-weighting")
         names = self.results.get_weight_names()
-        w_ori = dict(self.results.weights)
+        loss_ori = dict(self.results.weights)
         w = self.results.get_weights()
         if len(w) > 0:
             weight_delta = self.weight_max - self.weight_min
@@ -408,7 +420,7 @@ class DataFeatureImportance(MlFiles):
         # Sort by the resulting column (ranksum)
         self._debug(f"Feature importance {self.tag}: Sorting by 'rank of ranksum'")
         self.results.sort('rank_of_ranksum')
-        return w_ori
+        return loss_ori
 
     def select(self):
         '''
@@ -453,7 +465,7 @@ class DataFeatureImportance(MlFiles):
         else:
             self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
-    def show_and_save_results(self, weights_ori):
+    def show_and_save_results(self, loss_ori):
         ''' Show and save resutl tables '''
         if self.results.is_empty():
             self._debug(f"Feature importance {self.tag}: Enpty resutls, nothing to show or save")
@@ -467,8 +479,8 @@ class DataFeatureImportance(MlFiles):
         fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()
-        if weights_ori:
-            weights.add_col_dict('weights_ori', weights_ori)
+        if loss_ori:
+            weights.add_col_dict('loss', loss_ori)
         weights.sort('weights', ascending=False)
         weights.print(f"Feature importance {self.tag} weights")
         self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
@@ -481,7 +493,7 @@ class DataFeatureImportance(MlFiles):
         file_dot = self.datasets.get_file_name(f'tree_graph_{self.tag}', ext=f"dot") if file_dot is None else file_dot
         file_png = self.datasets.get_file_name(f'tree_graph_{self.tag}', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
-        model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False)
+        model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False, cv_enable=False)
         skmodel = model.model
         # Export the tree to a graphviz 'dot' format
         str_tree = export_graphviz(skmodel.estimators_[0],
@@ -500,6 +512,10 @@ class DataFeatureImportance(MlFiles):
         """ Calculate p-values using logistic regression (Wilks theorem) """
         if not self.is_wilks:
             return True
+        # Wilks p-value only for (binary) classification models
+        if not self.is_classification():
+            self._debug("Logistic Regression (Wilks p-value): Not a classification model, skipping")
+            return True
         if not self.wilks_null_model_variables:
             self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
             return False
@@ -508,5 +524,7 @@ class DataFeatureImportance(MlFiles):
         ok = wilks()
         if ok:
             self.results.add_col(f"wilks_p_values", wilks.get_pvalues())
+            self.results.add_col(f"wilks_p_values_fdr", wilks.p_values_corrected)
+            self.results.add_col(f"wilks_significant", wilks.rejected)
             self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
         return ok

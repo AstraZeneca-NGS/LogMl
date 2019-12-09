@@ -5,12 +5,12 @@ import datetime
 import logging
 import pandas as pd
 
-from . import Config, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
+from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
-from ..datasets import Datasets, DatasetsDf, DataExplore
+from ..datasets import Datasets, DatasetsCv, DatasetsDf, DataExplore
 from ..feature_importance import DataFeatureImportance
-from ..models import CrossValidation, HyperOpt, HYPER_PARAM_TYPES, Model, ModelSearch, SkLearnModel
+from ..models import HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
 from ..util.results_df import ResultsDf
 
 
@@ -31,7 +31,6 @@ class LogMl(MlFiles):
         super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
-        self.cross_validation = None
         self.dataset_feature_importance = None
         self.dataset_feature_importance_na = None
         self.disable_plots = False
@@ -47,6 +46,7 @@ class LogMl(MlFiles):
         self.save_model_results = True
         self.save_plots = True
         self.show_plots = True
+        self.cv_enable = False
         self._set_from_config()
         if self.config is not None:
             self.initialize()
@@ -114,11 +114,11 @@ class LogMl(MlFiles):
             self._debug("Dataset exploration only available for dataset type 'df'")
             return True
         files_base = self.datasets.get_file_name(f"dataset_explore.transformed", ext='')
-        self.dataset_explore_transformed = DataExplore(self.datasets.dataset, 'transformed', self.config, files_base)
+        self.dataset_explore_transformed = DataExplore(self.datasets.get(), 'transformed', self.config, files_base)
         ok = self.dataset_explore_transformed()
         if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori'):
             files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
-            self.dataset_explore_original = DataExplore(self.datasets.dataset_ori, 'original', self.config, files_base)
+            self.dataset_explore_original = DataExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         return ok
 
@@ -135,6 +135,8 @@ class LogMl(MlFiles):
         " Feature importance / feature selection "
         if not self.is_dataset_df():
             self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
+            return True
+        if not self.dataset_feature_importance.enable:
             return True
         model_type = self.model_ori.model_type
         datasets_na = self.datasets.get_datasets_na()
@@ -160,8 +162,6 @@ class LogMl(MlFiles):
             self.model_ori = Model(self.config)
         if self.hyper_parameter_optimization is None:
             self.hyper_parameter_optimization = HyperOpt(self)
-        if self.cross_validation is None:
-            self.cross_validation = CrossValidation(self)
         if self.model_search is None:
             self.model_search = ModelSearch(self)
         # Table width
@@ -169,6 +169,7 @@ class LogMl(MlFiles):
         pd.set_option('display.max_rows', self.display_max_rows)
         # Set plots options
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
+        self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
         return self._config_sanity_check()
 
     def is_dataset_df(self):
@@ -194,21 +195,24 @@ class LogMl(MlFiles):
         elif self.hyper_parameter_optimization.enable:
             self._debug(f"Hyper-parameter optimization: single model")
             return self.hyper_parameter_optimization()
-        elif self.cross_validation.enable:
-            self._debug(f"Cross-validate: single model")
-            return self.cross_validation()
         else:
             self._debug(f"Create and train: single model")
             return self.model_train()
 
     def _new_dataset(self):
         model_type = self.model_ori.model_type
+        ds = None
         if self.is_dataset_df():
             self._debug(f"Using dataset class 'DatasetsDf'")
-            return DatasetsDf(self.config, model_type)
+            ds = DatasetsDf(self.config, model_type)
         else:
             self._debug(f"Using dataset class 'Dataset'")
-            return Datasets(self.config)
+            ds = Datasets(self.config)
+        # Cross-validation enabled? Then we should wrap the dataset using a DatasetCv
+        if self.cv_enable:
+            self._debug(f"Using dataset class 'DatasetCv'")
+            ds = DatasetsCv(self.config, ds)
+        return ds
 
     def _new_model(self, config=None, datasets=None):
         ''' Create an Model: This is a factory method '''
@@ -223,4 +227,6 @@ class LogMl(MlFiles):
             model_params = config.get_parameters_functions(MODEL_CREATE)
             if model_class.startswith('sklearn'):
                 return SkLearnModel(config, datasets, model_class, model_params)
+        if self.cv_enable:
+            return ModelCv(config, datasets)
         return Model(config, datasets)

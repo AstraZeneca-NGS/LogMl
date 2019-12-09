@@ -125,19 +125,12 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(mltrain.model_name, 'model_001')
         self.assertEqual(mldataset.get_file_name(), os.path.join('tests', 'tmp', 'test_001.pkl'))
         self.assertEqual(mltrain.get_file_name(), os.path.join('tests', 'tmp', 'model', f"model_001.{mltrain._id}.pkl"))
-        self.assertEqual(logml.cross_validation.enable, False)
         self.assertEqual(logml.hyper_parameter_optimization.enable, False)
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
 
+    # TODO: Obsolete test. Replace
     def test_config_002(self):
-        ''' Test sanity check: hyper-param and cross-validation both enabled '''
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_config_002.yaml'), argv=list())
-        ret = config()
-        config.exit_on_fatal_error = False
-        logml = LogMl(config=config)
-        self.assertEqual(logml._config_sanity_check(), False)
-        self.assertEqual(logml.cross_validation.enable, True)
-        self.assertEqual(logml.hyper_parameter_optimization.enable, True)
+        pass
 
     def test_config_003(self):
         config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_config_003.yaml'), argv=list())
@@ -639,10 +632,10 @@ class TestLogMl(unittest.TestCase):
         logml = LogMl(config=config)
         ret = logml()
         # Check values
-        cv = logml.cross_validation
+        cv_model = logml.model
         self.assertTrue(ret)
-        self.assertEqual(cv.mean, 37.134368623752614)
-        self.assertEqual(cv.std, 19.504326451560278)
+        self.assertEqual(cv_model.eval_validate, 37.134368623752614)
+        self.assertEqual(cv_model.eval_validate_std, 19.504326451560278)
 
     def test_train_003_hyper_opt(self):
         ''' Check hyper-parameter optimization '''

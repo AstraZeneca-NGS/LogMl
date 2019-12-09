@@ -20,8 +20,7 @@ class FeatureImportanceModel(MlFiles):
     def __init__(self, model, model_type):
         self.model = model.clone()
         self.model_type = model_type
-        self.x_train, self.y_train = model.datasets.get_train_xy()
-        self.x_val, self.y_val = model.datasets.get_validate_xy()
+        self.datasets = model.datasets
         self.loss_base = None
         self.performance = dict()
         self.importance_name = ''
@@ -32,18 +31,21 @@ class FeatureImportanceModel(MlFiles):
         # Base performance
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
-        self.loss_base = self.loss(self.x_train, self.y_train, self.x_val, self.y_val)
+        self.loss_base = self.loss()
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {self.loss_base}")
         # Shuffle each column
         perf = list()
-        cols = list(self.x_train.columns)
+        cols = list(self.datasets.get_input_names())
         cols_count = len(cols)
         for i in range(cols_count):
             c = cols[i]
-            # Change dataset
-            x_train, y_train, x_val, y_val = self.change_dataset(c)
-            # Performance after modifying column 'c'
-            loss_c = self.loss(x_train, y_train, x_val, y_val)
+            # Only estimate importance of input variables
+            if c in self.datasets.outputs:
+                continue
+            # Change dataset, evaluate performance, restore originla dataset
+            ori = self.dataset_change(c)
+            loss_c = self.loss()
+            self.dataset_restore(c, ori)
             # Performance is the loss difference respect to self.loss_base
             # (the higher the loss, the more important the variable)
             perf_c = loss_c - self.loss_base
@@ -57,22 +59,20 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
         return True
 
-    def change_dataset(self, col):
-        """ Change datasets for column 'col' """
+    def dataset_change(self, col_name):
+        """ Change datasets for column 'col_name' """
+        raise Exception("Unimplemented!")
+
+    def dataset_restore(self, col_name, col_ori):
+        """ Restore column 'col_name' using values from col_ori """
         raise Exception("Unimplemented!")
 
     def initialize(self):
         pass
 
-    def loss(self, x_train, y_train, x_val, y_val):
+    def loss(self):
         """ Train (if necesary) and calculate loss """
         raise Exception("Unimplemented!")
-
-    def model_set_datasets(self, model, x_train, y_train, x_val, y_val):
-        """ Create a model clone, update datasets """
-        # Update datasets
-        model.datasets.dataset_train_xy = InOut(x_train, y_train)
-        model.datasets.dataset_validate_xy = InOut(x_val, y_val)
 
     def plot(self, x=None):
         " Plot importance distributions "

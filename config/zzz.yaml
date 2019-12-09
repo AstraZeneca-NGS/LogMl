@@ -48,20 +48,14 @@ dataset_feature_importance:
   wilks_null_model_variables: ['x3']
 
 dataset_preprocess:
-  enable: true
-  normalize:
-    standard: true
-    skip: ['y']
+  enable: false
 
 dataset_transform:
-  enable: true
-  one_hot_max_cardinality: 4
-  categories_regex:
-    - 'zzz*': ['low', 'mid', 'high']
+  enable: false
 
 model:
-  enable: false
-  model_type: regression
+  enable: true
+  model_type: classification
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'
@@ -69,11 +63,16 @@ model:
 functions:
     dataset_split:
         split_validate: 0.2
-        split_test: 0.0
+        split_test: 0.1
     model_create:
       n_estimators: 30
       min_samples_leaf: 3
       max_features: 0.7
+
+cross_validation:
+    enable: true
+    KFold:
+        n_splits: 5
 
 model_search:
   enable: false
