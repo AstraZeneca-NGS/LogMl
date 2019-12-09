@@ -120,9 +120,32 @@ dataset_preprocess:
   # Set to 'false' to disable this step
   enable: true
 
+  # Impute values
+  # Imputation method name, followed by list of variables or 'true' meaning
+  # that all variables should be imputed using this method
+  impute:
+    # Use the mean value
+    mean:  ['x2', 'x5']
+
+    # Impute using the median value
+    median: true
+
+    # Impute using the most frequent value
+    most_frequent: ['x3', 'x4']
+
+    # Impute by assigning value '1'
+    one: ['x9']
+
+    # Do not impute these variables
+    skip: ['x7', 'x8']
+
+    # Impute by assigning value '0'
+    zero: ['x10']
+
+
   # Normalize values
   # Normalization methods followed by list of variables or 'true' meaning
-  # that all variables shoudl be normalized using this method
+  # that all variables should be normalized using this method
   normalize:
     # Transform so that mean(x)=0 var(x)=1
     # Set to 'true' means to use as default (i.e. use this normalization

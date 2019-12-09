@@ -389,7 +389,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[2] == 'x3', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_preprocess_001(self):
-        ''' Checking dataset preprocess for dataframe '''
+        ''' Checking dataset preprocess for dataframe: Normalization '''
         config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -426,6 +426,41 @@ class TestLogMl(unittest.TestCase):
         x7_std = np.std(df.x7)
         self.assertTrue(abs(x7_mean) < 0.001)
         self.assertTrue(abs(x7_std - 1) <= 0.001)
+
+    def test_dataset_preprocess_002(self):
+        ''' Checking dataset preprocess for dataframe: Imputation '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Check results
+        epsilon = 0.0000001
+        var = 'x0'
+        idx = 11
+        expected = 0.017394156072708448
+        self.assertTrue(abs(df.x0[11] - expected) < epsilon, f"df.x0[11] = {df.x0[11]}")
+        var = 'x2'
+        idx = 7
+        expected = -0.04392194621855322
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var = 'x3'
+        idx = 12
+        expected = 1.0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var = 'x5'
+        idx = 17
+        expected = 0.0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var = 'x6'
+        idx = 4
+        self.assertTrue(np.isnan(df[var][idx]), f"df.{var}[{idx}] = {df[var][idx]}")
+        var = 'x10'
+        idx = 12
+        expected = 2.0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
 
     def test_dataset_transform_001(self):
         ''' Checking dataset transform: Remove missing output rows '''
