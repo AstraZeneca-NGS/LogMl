@@ -1,0 +1,24 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_preprpocess_003'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    is_use_default_split: False
+    outputs: ['y']
+
+dataset_transform:
+  enable: true
+
+# Dataset prerpocessing
+dataset_preprocess:
+  enable: true
+  impute:
+    one:  ['x2', 'o.*']
+    zero: ['x1', 'z.*']
+    mean: true
+
+model:
+  enable: false
+  model_name: 'model_test_dataset_preprpocess_003'
+  model_path: 'tests/tmp/model_test_dataset_preprpocess_003'

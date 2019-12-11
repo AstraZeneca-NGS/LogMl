@@ -441,7 +441,7 @@ class TestLogMl(unittest.TestCase):
         var = 'x0'
         idx = 11
         expected = 0.017394156072708448
-        self.assertTrue(abs(df.x0[11] - expected) < epsilon, f"df.x0[11] = {df.x0[11]}")
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
         var = 'x2'
         idx = 7
         expected = -0.04392194621855322
@@ -460,6 +460,36 @@ class TestLogMl(unittest.TestCase):
         var = 'x10'
         idx = 12
         expected = 2.0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+
+    def test_dataset_preprocess_003(self):
+        ''' Checking dataset preprocess for dataframe: Imputation '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_003.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Check results
+        epsilon = 0.0000001
+        var, idx, expected = 'x1', 996, 0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'x2', 49, 1
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'z0', 13, 0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'z1', 17, 0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'z2', 12, 0
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'o0', 0, 1
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'o1', 5, 1
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'o2', 28, 1
+        self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+        var, idx, expected = 'oz2', 1, 1
         self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
 
     def test_dataset_transform_001(self):

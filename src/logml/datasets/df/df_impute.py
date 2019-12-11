@@ -19,7 +19,7 @@ class DfImpute(MethodsFields):
     '''
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'impute', IMPUTATION_METHODS)
+        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'impute', IMPUTATION_METHODS, df.columns)
         self.df = df
         self.model_type = model_type
         self.outputs = set(outputs)
@@ -63,7 +63,7 @@ class DfImpute(MethodsFields):
                 replace_value = nm(self.df[c])
                 if replace_value is not None:
                     xi[xi.isna()] = replace_value
-                    self._info(f"Impute: Field '{c}' has {count_na} NA values, imputing with value '{replace_value}")
+                    self._info(f"Impute: Field '{c}' has {count_na} NA values, imputing with value '{replace_value}'")
                     self.df[c] = xi
             else:
                 self._debug(f"Impute: Field '{c}' has no 'NA' values, skipping")

@@ -111,7 +111,7 @@ dataset_transform:
 dataset_augment:
   # Set to 'false' to disable this step
   enable: true
-  add_interactions: ['*', '-', '+', '/']
+  # TODO: add_interactions: ['*', '-', '+', '/']
 
 #---
 # Dataset prerpocessing
@@ -121,11 +121,11 @@ dataset_preprocess:
   enable: true
 
   # Impute values
-  # Imputation method name, followed by list of variables or 'true' meaning
+  # Imputation method name, followed by list of variables, regex or 'true' (this last option means "use as default method")
   # that all variables should be imputed using this method
   impute:
     # Use the mean value
-    mean:  ['x2', 'x5']
+    mean:  ['x2', 'x5', 'xx.*']
 
     # Impute using the median value
     median: true
@@ -134,17 +134,17 @@ dataset_preprocess:
     most_frequent: ['x3', 'x4']
 
     # Impute by assigning value '1'
-    one: ['x9']
+    one: ['x9', 'o.*']
 
     # Do not impute these variables
     skip: ['x7', 'x8']
 
     # Impute by assigning value '0'
-    zero: ['x10']
+    zero: ['x10', 'z.*']
 
 
   # Normalize values
-  # Normalization methods followed by list of variables or 'true' meaning
+  # Normalization methods followed by list of variables, regex or 'true' meaning
   # that all variables should be normalized using this method
   normalize:
     # Transform so that mean(x)=0 var(x)=1
@@ -153,13 +153,13 @@ dataset_preprocess:
     standard: true
 
     # Normalize dividing by max(abs(x_i))
-    maxabs: ['x2', 'x5']
+    maxabs: ['x2', 'x5', 'xx.*']
 
     # Use min/max normalizer, i.e. transform to interval [0,1]
     minmax: ['x3']
 
     # Use min/max normalizer with negative values, i.e. transform to interval [-1,1]
-    minmax_neg: ['x6']
+    minmax_neg: ['x6', 'neg_.*']
 
     # Apply log(x)
     log: ['x9']
@@ -168,7 +168,7 @@ dataset_preprocess:
     log1p: ['x10', 'x11']
 
     # Quantile transformation: This method transforms the features to follow a uniform or a normal distribution
-    quantile: ['x12']
+    quantile: ['q.*']
 
     # Do not normalize these variables
     skip: ['x7', 'x8']

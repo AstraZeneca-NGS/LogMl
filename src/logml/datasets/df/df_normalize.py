@@ -19,7 +19,7 @@ class DfNormalize(MethodsFields):
     '''
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'normalize', NORMALIZATION_METHODS)
+        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'normalize', NORMALIZATION_METHODS, df.columns)
         self.df = df
         self.model_type = model_type
         self.outputs = set(outputs)
@@ -50,7 +50,6 @@ class DfNormalize(MethodsFields):
         in [0.0 , 0.1] and the max is in [0.9, 1.0]
         '''
         xi = self.df[col_name]
-        self._debug(f"DTYPE: {col_name}\t{xi.dtype}")
         xi_min = xi.unique().min()
         xi_max = xi.unique().max()
         return 0.0 <= xi_min and xi_min <= 0.1 and 0.9 <= xi_max and xi_max <= 1.0
