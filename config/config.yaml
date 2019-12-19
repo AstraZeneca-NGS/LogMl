@@ -93,6 +93,9 @@ dataset_transform:
   # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
   one_hot_max_cardinality: 7
 
+  # Remove repeated inputs (i.e. input variables that have the exact same values as other inputs)
+  remove_equal_inputs: true
+
   # Remove rows having missing output/s
   remove_missing_outputs: true
 

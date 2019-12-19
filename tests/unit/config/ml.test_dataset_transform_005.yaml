@@ -1,0 +1,23 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_transform_005'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    is_use_default_split: False
+    outputs: ['y']
+
+dataset_transform:
+  enable: true
+  # Remove repeated inputs (i.e. input variables that have the exact same values as other inputs)
+  remove_equal_inputs: true
+
+dataset_preprocess:
+  enable: false
+  normalize:
+    standard: true
+
+model:
+  enable: false
+  model_name: 'test_model_dataset_transform_005'
+  model_path: 'tests/tmp/test_model_dataset_transform_005'
