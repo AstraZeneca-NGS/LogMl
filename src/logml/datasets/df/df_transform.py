@@ -79,7 +79,7 @@ class DfTransform(MlLog):
             self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
             return self.df
         self._sanitize_column_names()
-        self._remove_missing_outputs()
+        self._remove_rows_with_missing_outputs()
         self._remove_columns()
         self.convert_dates()
         self.create_categories()
@@ -141,8 +141,23 @@ class DfTransform(MlLog):
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
         df_cat = pd.DataFrame()
-        # Note: Add one so that "missing" is zero instead of "-1"
-        df_cat[field_name] = xi_cat.cat.codes + 1
+        codes = xi_cat.cat.codes
+        add_to_codes = 0
+        missing_values = codes < 0
+        if np.any(missing_values):
+            if field_name in self.outputs and self.remove_missing_outputs:
+                # We need to remove these missing outputs as well. These outputs
+                # might be created when we forced the cathegory values. For
+                # instance the real cathegories are ['a', 'b', 'c'] and we forced them
+                # to ['a', 'b'], all the input having values 'c' will now be 'NA'.
+                # Since 'remove_missing_outputs' optione is active, we have to remove these new 'NA' rows
+                self._remove_rows_with_missing_outputs(rows_to_remove=missing_values)
+                add_to_codes = 0
+            else:
+                # Note: Add one so that "missing" is zero instead of "-1"
+                self._debug(f"Converting to category: field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding 1 to transform missing to '0'")
+                add_to_codes = 1
+        df_cat[field_name] = codes + add_to_codes
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df_cat
         self.columns_to_remove.add(field_name)
@@ -274,16 +289,18 @@ class DfTransform(MlLog):
         self._info(f"Removing columns (after): {self.remove_columns_after}")
         self.df.drop(self.remove_columns_after, inplace=True, axis=1)
 
-    def _remove_missing_outputs(self):
+    def _remove_rows_with_missing_outputs(self, rows_to_remove=None):
         ''' Remove rows if output variable/s are missing '''
         if not self.remove_missing_outputs:
             self._debug("Remove missing outputs disabled, skipping")
             return
-        self._debug(f"Remove missing outputs: Start")
-        self.df_ori = self.df
-        outs_na = self.df[self.outputs].isna().any(axis=1)
-        self.df = self.df.loc[~outs_na]
-        self._info(f"Remove rows with missing outputs: Removed: {outs_na.sum()} rows, dataFrame previous shape: {self.df_ori.shape}, new shape: {self.df.shape}")
+        self._debug(f"Remove missing outputs: Start, outputs: {self.outputs}")
+        if rows_to_remove is None:
+            rows_to_remove = self.df[self.outputs].isna().any(axis=1)
+        if rows_to_remove.sum() > 0:
+            self.df_ori = self.df
+            self.df = self.df.loc[~rows_to_remove].copy()
+            self._info(f"Remove missing outputs: Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {self.df_ori.shape}, new shape: {self.df.shape}")
         self._debug(f"Remove missing outputs: End")
 
     def rename_category_cols(self, df, prepend):
