@@ -548,6 +548,23 @@ class TestLogMl(unittest.TestCase):
         for field in ['zzz_0', 'zzz_2', 'zzz_4', 'zzz_6', 'zzz_8', 'zxz_1:high', 'xzz_3:high', 'azzz_5:high', '_zzz_7:high', 'zzzz_9']:
             self.assertTrue(field in cols, f"Field {field} not found")
 
+    def test_dataset_transform_005(self):
+        ''' Checking dataset transform: Remove duplicate inputs '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_005.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        cols = list(ds.dataset.columns)
+        self.assertTrue('x1' in cols)
+        self.assertTrue('x2' in cols)
+        self.assertTrue('x3' in cols)
+        self.assertFalse('x1r' in cols)
+        self.assertFalse('x2r' in cols)
+        self.assertFalse('x3r' in cols)
+
     def test_files_001(self):
         mf = MlFiles()
         data = {'a': random.random(), 'b': random.random(), 'c': random.random()}

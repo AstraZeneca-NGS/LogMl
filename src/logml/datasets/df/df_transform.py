@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import hashlib
 import numpy as np
 import pandas as pd
 import re
@@ -35,6 +36,7 @@ class DfTransform(MlLog):
         self.remove_missing_outputs = True
         self.remove_columns = list()
         self.remove_columns_after = list()
+        self.remove_equal_inputs = True    # Remove columns having the exact same values
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
@@ -86,6 +88,7 @@ class DfTransform(MlLog):
         self.df = self.create()
         self._remove_columns_after()
         self.drop_zero_std()
+        self.drop_equal_inputs()
         return self.df
 
     def create(self):
@@ -167,6 +170,25 @@ class DfTransform(MlLog):
         for field in self.dates:
             self._add_datepart(field)
         self._debug(f"Converting to 'date/time' values: End")
+
+    def drop_equal_inputs(self):
+        " Remove input columns having the exact same values "
+        if not self.remove_equal_inputs:
+            self._debug(f"Dropping columns with exact same values disables, skipping")
+            return
+        self._debug(f"Dropping columns with exact same values: Start")
+        column_hash = dict()
+        to_remove = list()
+        for c in self.df.columns:
+            # Create a hash of column 'c'
+            c_hash = hashlib.sha256(pd.util.hash_pandas_object(self.df[c], index=True).values).hexdigest()
+            if c_hash in column_hash:
+                self._info(f"Dropping column '{c}', same values as column {column_hash[c_hash]}, hash {c_hash}")
+                to_remove.append(c)
+            else:
+                column_hash[c_hash] = c
+        self.df.drop(to_remove, axis=1, inplace=True)
+        self._debug(f"Dropping columns with exact same values: End")
 
     def drop_zero_std(self):
         " Drop features that have standard deviation below a threshold "

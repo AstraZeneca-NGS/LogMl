@@ -48,14 +48,16 @@ dataset_feature_importance:
   wilks_null_model_variables: ['x3']
 
 dataset_preprocess:
-  enable: true
+  enable: false
   impute:
     one:  ['x2', 'o.*']
     zero: ['x1', 'z.*']
     mean: true
 
 dataset_transform:
-  enable: false
+  enable: true
+  # Remove input variables that have the exact same values
+  remove_equal_inputs: true
 
 model:
   enable: false
