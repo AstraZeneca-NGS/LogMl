@@ -14,6 +14,7 @@ MethodAndFields = namedtuple('MethodAndFields', ['method', 'fields'])
 
 METHOD_SKIP_NAME = 'skip'
 
+
 class MethodsFields(MlLog):
     ''' A mapping from methods to fields (e.g. normalization methods applied to fields)'''
 
@@ -24,7 +25,7 @@ class MethodsFields(MlLog):
         self.method_names = method_names
         self.field_names = field_names
         self.fields_by_method = dict()
-        self.__dict__[self.subsection] = dict() # List of fields indexed by method (this is populated from config file)
+        self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
 
     def find_method(self, name):
         '''
