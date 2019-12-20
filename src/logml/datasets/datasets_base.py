@@ -84,6 +84,14 @@ class DatasetsBase(MlFiles):
         '''
         raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
 
+    def clone(self, deep=False):
+        ''' Create a copy of this Datasets object
+        Arguments:
+            deep: If true, perform deep copy, otherwise, shallow copy
+        Returns: A copy if this Datasets object
+        '''
+        return copy.deepcopy(self) if deep else copy.copy(self)
+
     def create(self) -> bool:
         return self.invoke_create()
 

@@ -129,7 +129,7 @@ class HyperOpt(MlLog):
         if not self.is_create_dataset:
             return None
         self._debug(f"Creating new dataset")
-        datasets = copy.copy(self.logml.datasets)
+        datasets = self.logml.datasets.clone()
         datasets.config = config
         datasets.do_not_load_pickle = True
         datasets.do_not_save = True

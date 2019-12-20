@@ -13,6 +13,16 @@ from sklearn.ensemble import RandomForestRegressor
 from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
 
 
+def _copy_df(df):
+    ''' Copy a DataFrame '''
+    return df.copy() if df is not None else None
+
+
+def _copy_inout(inout):
+    ''' Copy an InOut object '''
+    return InOut(_copy_df(inout.x), _copy_df(inout.y)) if inout is not None else InOut(None, None)
+
+
 class DatasetsDf(Datasets):
     '''
     A dataset based on a Pandas DataFrame
@@ -47,6 +57,19 @@ class DatasetsDf(Datasets):
                 if cat_isna.sum() > 0:
                     cols_na.add(c)
         return cols_na
+
+    def clone(self, deep=False):
+        ds_clone = copy.copy(self)
+        if deep:
+            ds_clone.dataset = _copy_df(self.dataset)
+            ds_clone.dataset_test = _copy_df(self.dataset_test)
+            ds_clone.dataset_train = _copy_df(self.dataset_train)
+            ds_clone.dataset_validate = _copy_df(self.dataset_validate)
+            ds_clone.dataset_xy = _copy_inout(self.dataset_xy)
+            ds_clone.dataset_test_xy = _copy_inout(self.dataset_test_xy)
+            ds_clone.dataset_train_xy = _copy_inout(self.dataset_train_xy)
+            ds_clone.dataset_validate_xy = _copy_inout(self.dataset_validate_xy)
+        return ds_clone
 
     def create(self):
         ''' Create dataset '''
@@ -128,7 +151,7 @@ class DatasetsDf(Datasets):
             return None
         # Create a new datasets, with same parameters
         self._debug(f"Creating 'missing' dataset: Start")
-        dsna = copy.copy(self)
+        dsna = self.clone()
         dsna.reset()
         # Which columns should we keep?
         cols_na = self._columns_na(self.dataset)
@@ -191,13 +214,11 @@ class DatasetsDf(Datasets):
         if restore is not None:
             # Restore original data (un-shuffle)
             df[col_name] = restore
-            self._error(f"SHUFFLE RESTORE datasets.id={id(self)}, col_name={col_name}, df_name={df_name}:\n{df}")
             return restore
         else:
             # Shuffle column
             x_col = df[col_name].copy()
             df[col_name] = np.random.permutation(x_col)
-            self._error(f"SHUFFLE datasets.id={id(self)}, col_name={col_name}, df_name={df_name}:\n{df}\nX_COL:\n{x_col}")
             return x_col
 
     def zero_input(self, name, restore=None):

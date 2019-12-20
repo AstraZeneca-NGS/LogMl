@@ -80,7 +80,7 @@ functions:
 cross_validation:
     enable: true
     KFold:
-        n_splits: 3
+        n_splits: 10
 
 model_search:
   enable: false

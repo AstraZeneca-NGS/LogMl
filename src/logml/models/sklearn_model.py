@@ -1,4 +1,5 @@
 import inspect
+import pandas as pd
 import sklearn
 import sklearn.dummy
 import sklearn.naive_bayes
@@ -104,7 +105,10 @@ class SkLearnModel(ModelCv):
         if ret is not None:
             return ret
         # Use sklearn model's 'score'
-        return 1.0 - self.model.score(x, y)
+        score = self.model.score(x, y)
+        loss = 1.0 - score
+        self._debug(f"Loss: Using sklearn score function, score={score}, loss={loss}")
+        return loss
 
 
 class ModelSkExtraTreesRegressor(SkLearnModel):

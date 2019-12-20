@@ -43,7 +43,7 @@ class DatasetsCv(DatasetsBase):
 
     def __init__(self, config, datasets, set_config=True):
         super().__init__(config, set_config)
-        self.datasets = datasets
+        self.datasets = datasets    # Reference to original dataset
         self.cv_datasets = list()   # A list of datasets for each cross-validation
         self.cv_iterator_args = dict()
         self.cv_config = self.config.get_parameters(CONFIG_CROSS_VALIDATION)
@@ -61,6 +61,12 @@ class DatasetsCv(DatasetsBase):
             self._create_cv_datasets()
         return ok
 
+    def clone(self, deep=False):
+        ds_clone = copy.copy(self)
+        if deep:
+            ds_clone.cv_datasets = [d.clone(deep) for d in self]
+        return ds_clone
+
     def _create_cv_datasets(self):
         ''' Create cross-validation datasets '''
         cv_it = self._get_cv_iterator()
@@ -75,7 +81,7 @@ class DatasetsCv(DatasetsBase):
         # Get train and validate indeces for each split
         for idx_train, idx_validate in cv_it.split(x):
             self._debug(f"DatasetsCv: Create cross-validation indexes: idx_train length = {len(idx_train)}, idx_validate length = {len(idx_validate)}")
-            ds = copy.copy(self.datasets)
+            ds = self.datasets.clone(deep=True)
             ds.split_idx(idx_train, idx_validate)
             self.cv_datasets.append(ds)
             self._debug(f"DatasetsCv: Created datasets: {len(self.cv_datasets)}")
@@ -96,7 +102,7 @@ class DatasetsCv(DatasetsBase):
 
     def get_datasets_na(self):
         """ Create a dataset of 'missing value indicators' """
-        dsna = copy.copy(self)
+        dsna = self.clone()
         dsna.datasets = self.datasets.get_datasets_na()
         dsna.cv_datasets = [d.get_datasets_na() for d in self]
         if any([d is None for d in dsna.cv_datasets]):

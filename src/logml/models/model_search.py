@@ -76,7 +76,7 @@ class ModelSearch(MlFiles):
         conf = conf.update_section(None, params)
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
-        datasets = copy.copy(self.logml.datasets)
+        datasets = self.logml.datasets.clone()
         datasets.enable = False  # We don't want to build dataset again
         # Create LogMl
         self._debug(f"Creating new LogMl")
