@@ -308,6 +308,7 @@ class Model(MlFiles):
         if x is None:
             self._debug(f"Validation dataset not found, skipping")
             return False
+        self._error(f"VALIDATE datasets.id={id(self.datasets)}, X:\n{x}")
         ret = self.model_evaluate(x, y, 'validate')
         self.eval_validate = ret
         return ret is not None

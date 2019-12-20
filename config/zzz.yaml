@@ -11,12 +11,16 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
+  enable: true
 
   # Enable "Feature Importance using Permutations" (for different models)
-  is_fip_random_forest: false
+  is_fip_random_forest: true
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
+
+  is_dropcol_extra_trees: false
+  is_dropcol_gradient_boosting: false
+  is_dropcol_random_forest: false
 
   # Regularization methods
   # Enable regularization methods (for different models)
@@ -44,7 +48,7 @@ dataset_feature_importance:
   is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
-  is_wilks: true
+  is_wilks: false
   wilks_null_model_variables: ['x3']
 
 dataset_preprocess:
@@ -55,13 +59,11 @@ dataset_preprocess:
     mean: true
 
 dataset_transform:
-  enable: true
-  # Remove input variables that have the exact same values
-  remove_equal_inputs: true
+  enable: false
 
 model:
   enable: false
-  model_type: classification
+  model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'
@@ -69,16 +71,16 @@ model:
 functions:
     dataset_split:
         split_validate: 0.2
-        split_test: 0.1
+        split_test: 0.0
     model_create:
       n_estimators: 30
       min_samples_leaf: 3
       max_features: 0.7
 
 cross_validation:
-    enable: false
+    enable: true
     KFold:
-        n_splits: 5
+        n_splits: 3
 
 model_search:
   enable: false

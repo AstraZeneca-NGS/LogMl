@@ -164,30 +164,40 @@ class DatasetsDf(Datasets):
 
     def shuffle_input(self, name, restore=None):
         """
-        Shuffle input variable (in all datasets)
+        Shuffle input variable 'name' (in all datasets)
+        If 'restore' is assigned, use that data to restore the original values
         Return: the original column values
         """
         dfs = [self.dataset, self.dataset_train, self.dataset_validate, self.dataset_test, self.dataset_xy.x, self.dataset_train_xy.x, self.dataset_validate_xy.x, self.dataset_test_xy.x]
+        # Dataset names (used for debugging)
+        dfs_names = ['dataset', 'dataset_train', 'dataset_validate', 'dataset_test', 'dataset_xy.x', 'dataset_train_xy.x', 'dataset_validate_xy.x', 'dataset_test_xy.x']
         if restore is None:
             restore = [None] * len(dfs)
-        dfs = zip(dfs, restore)
-        return [self._shuffle_input(df, name, res) for df, res in dfs]
+        dfs = zip(dfs, restore, dfs_names)
+        return [self._shuffle_input(df, name, res, df_name) for df, res, df_name in dfs]
 
-    def _shuffle_input(self, df, name, restore):
+    def _shuffle_input(self, df, col_name, restore, df_name=None):
         """
         Shuffle column 'name' from dataframe df and return the original values
         If 'restore' is assigned, use that data to restore the original values
+        Arguments:
+            df: DataFrame to shuffle
+            name: Columna name to shuffle
+            restore: Use this values, instead of shuffling
+            df_name: DataFrame name (used for debugging)
         """
         if df is None:
             return None
         if restore is not None:
             # Restore original data (un-shuffle)
-            df[name] = restore
+            df[col_name] = restore
+            self._error(f"SHUFFLE RESTORE datasets.id={id(self)}, col_name={col_name}, df_name={df_name}:\n{df}")
             return restore
         else:
             # Shuffle column
-            x_col = df[name].copy()
-            df[name] = np.random.permutation(x_col)
+            x_col = df[col_name].copy()
+            df[col_name] = np.random.permutation(x_col)
+            self._error(f"SHUFFLE datasets.id={id(self)}, col_name={col_name}, df_name={df_name}:\n{df}\nX_COL:\n{x_col}")
             return x_col
 
     def zero_input(self, name, restore=None):

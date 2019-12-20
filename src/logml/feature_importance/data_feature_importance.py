@@ -134,7 +134,7 @@ class DataFeatureImportance(MlFiles):
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}'")
+        self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
         try:
             fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}")
             if not fi():
