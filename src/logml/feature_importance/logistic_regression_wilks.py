@@ -31,13 +31,16 @@ class LogisticRegressionWilks(MlFiles):
         self.model_null_results = None
         self.p_values = dict()  # Dictionary of 'raw' p-values
         self.p_values_corrected = None  # Array of FDR-corrected p-values (sorted by 'columns')
-        self.rejected = None # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
+        self.rejected = None  # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
 
     def __call__(self):
         # Base performance
         self._debug(f"Logistic regression Wilks ({self.tag}): Start, null model variables {self.null_model_variables}")
         # Fit 'null' model
         self.model_null, self.model_null_results = self.model_fit()
+        if self.model_null is None:
+            self._error(f"Logistic regression Wilks ({self.tag}): Could not fit null model, skipping")
+            return False
         # Create 'alt' models (one per column)
         null_vars = set(self.null_model_variables)
         cols_count = len(self.columns)
@@ -64,17 +67,24 @@ class LogisticRegressionWilks(MlFiles):
 
     def model_fit(self, alt_model_variables=None):
         """ Fit a model using 'null_model_variables' + 'alt_model_variables' """
-        cols = list(self.null_model_variables)
-        if alt_model_variables:
-            cols.append(alt_model_variables)
-        x = self.x[cols]
-        logit_model = Logit(self.y, x)
-        res = logit_model.fit(disp=0)
-        return logit_model, res
+        try:
+            cols = list(self.null_model_variables)
+            if alt_model_variables:
+                cols.append(alt_model_variables)
+            x = self.x[cols]
+            logit_model = Logit(self.y, x)
+            res = logit_model.fit(disp=0)
+            return logit_model, res
+        except np.linalg.LinAlgError as e:
+            self._error(f"Logistic regression (Wilks): Linear Algebra exception.\nException: {e}\n{traceback.format_exc()}")
+            return None, None
 
     def p_value(self, cols):
         """ Calculate the p-value using column 'cols' """
         model_alt, model_alt_res = self.model_fit(cols)
+        if model_alt is None:
+            self._error(f"Logistic regression Wilks ({self.tag}): Could not fit alt model for column/s {cols}, returning p-value=1.0")
+            return 1.0
         d = 2.0 * (model_alt_res.llf - self.model_null_results.llf)
         p_value = chi2.sf(d, 1)
         self._debug(f"Logistic regression Wilks ({self.tag}): Columns {cols}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")

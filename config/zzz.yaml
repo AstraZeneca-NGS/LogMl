@@ -14,7 +14,7 @@ dataset_feature_importance:
   enable: true
 
   # Enable "Feature Importance using Permutations" (for different models)
-  is_fip_random_forest: true
+  is_fip_random_forest: false
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
 
@@ -48,7 +48,7 @@ dataset_feature_importance:
   is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
-  is_wilks: false
+  is_wilks: true
   wilks_null_model_variables: ['x3']
 
 dataset_preprocess:
@@ -63,7 +63,7 @@ dataset_transform:
 
 model:
   enable: false
-  model_type: regression
+  model_type: classification
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'
