@@ -10,7 +10,7 @@ from ...core.log import MlLog
 from .methods_fields import MethodsFields
 
 # Method names
-NORMALIZATION_METHODS = ['log', 'log1p', 'maxabs', 'minmax', 'minmax_neg', 'quantile', 'skip', 'standard']
+NORMALIZATION_METHODS = ['log', 'log_standard', 'log1p', 'log1p_standard', 'maxabs', 'minmax', 'minmax_neg', 'quantile', 'skip', 'standard']
 
 
 class DfNormalize(MethodsFields):
@@ -86,9 +86,17 @@ class DfNormalize(MethodsFields):
         ''' Normalize using 'log' method '''
         return np.log(xi)
 
+    def _normalize_log_standard(self, xi):
+        ''' Normalize using 'log' method '''
+        return self._normalize_standard(np.log(xi))
+
     def _normalize_log1p(self, xi):
         ''' Normalize using 'log1p' method '''
         return np.log1p(xi)
+
+    def _normalize_log1p_standard(self, xi):
+        ''' Normalize standard normalization on log(x + 1) '''
+        return self._normalize_standard(np.log1p(xi))
 
     def _normalize_maxabs(self, xi):
         ''' Normalize using 'maxabs' method '''
@@ -119,7 +127,7 @@ class DfNormalize(MethodsFields):
         return xi
 
     def _normalize_standard(self, xi):
-        ''' Normalize using 'standard' method '''
+        ''' Normalize using 'standard' method (substract the mean and divide by std)'''
         me = np.nanmean(xi)
         std = np.nanstd(xi)
         if std <= 0.0:
