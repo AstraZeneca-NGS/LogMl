@@ -71,14 +71,14 @@ class DfNormalize(MethodsFields):
                 continue
             nm = self.find_method(c)
             xi = self.df[c]
-            self._debug(f"Before normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}")
+            self._debug(f"Before normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}, range=[{xi.min()}, {xi.max()}]")
             if nm is None:
                 self._debug(f"Normalize field '{c}': No method defined, skipping")
             else:
                 self._info(f"Normalizing field '{c}', method {nm.__name__}")
                 # Normalize and replace column
                 xi = nm(xi)
-                self._debug(f"After normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}")
+                self._debug(f"After normalization '{c}': mean={np.nanmean(xi)}, std={np.nanstd(xi)}, range=[{xi.min()}, {xi.max()}]")
                 self.df[c] = xi
         self._debug("Normalizing dataset (dataframe): End")
 
