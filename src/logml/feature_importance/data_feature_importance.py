@@ -20,7 +20,7 @@ from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
-from .logistic_regression_wilks import LogisticRegressionWilks
+from .pvalue_fdr import LogisticRegressionWilks, PvalueLinear
 from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
 from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
 from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkRidgeCV
@@ -53,6 +53,7 @@ class DataFeatureImportance(MlFiles):
         self.is_fip_extra_trees = True
         self.is_fip_gradient_boosting = True
         self.is_fip_random_forest = True
+        self.is_linear_pvalue = True
         self.is_model_extra_trees = True
         self.is_model_gradient_boosting = True
         self.is_model_random_forest = True
@@ -76,12 +77,13 @@ class DataFeatureImportance(MlFiles):
         self.is_select = True
         self.is_tree_graph = True
         self.is_wilks = True
-        self.weight_max = 10.0
-        self.weight_min = 1.0
+        self.linear_pvalue_null_model_variables = list()
         self.model_type = model_type
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
         self.tree_graph_max_depth = 4
+        self.weight_max = 10.0
+        self.weight_min = 1.0
         self.wilks_null_model_variables = list()
         if set_config:
             self._set_from_config()
@@ -119,6 +121,7 @@ class DataFeatureImportance(MlFiles):
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()
+        self.pvalue_linear()
         self.wilks()
         # Show a decition tree of the most important variables (first levels)
         self.tree_graph()
@@ -322,6 +325,25 @@ class DataFeatureImportance(MlFiles):
         plt.ylabel('Mean square error')
         plt.axis('tight')
         self._plot_show('Mean square error per fold: coordinate descent', 'dataset_feature_importance', fig)
+
+    def pvalue_linear(self):
+        """ Calculate p-values using linear regression """
+        if not self.is_linear_pvalue:
+            return True
+        # Only for regression models
+        if not self.is_regression():
+            self._debug("Linear regression (p-value): Not a regression model, skipping")
+            return True
+        self._info(f"Linear regression (p-value) {self.tag}: Start")
+        pvalue_linear = PvalueLinear(self.datasets, self.linear_pvalue_null_model_variables, self.tag)
+        ok = pvalue_linear()
+        if ok:
+            self.results.add_col(f"linear_p_values", pvalue_linear.get_pvalues())
+            self.results.add_col(f"linear_p_values_fdr", pvalue_linear.p_values_corrected)
+            self.results.add_col(f"linear_significant", pvalue_linear.rejected)
+            self.results.add_col_rank(f"linear_p_values_rank", pvalue_linear.get_pvalues(), reversed=False)
+        self._info(f"Linear regression (p-value) {self.tag}: End")
+        return ok
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''
@@ -527,4 +549,5 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col(f"wilks_p_values_fdr", wilks.p_values_corrected)
             self.results.add_col(f"wilks_significant", wilks.rejected)
             self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
+        self._info(f"Logistic regression, Wilks {self.tag}: End")
         return ok

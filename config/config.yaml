@@ -260,6 +260,11 @@ dataset_feature_importance:
   # Enable model selection methods (SelectFdr / SelectKBest)
   is_select: true
 
+  # Linear regression p-value
+  is_linear_pvalue: true
+  # Variables used for setting the null model (always add to linear regression model)
+  linear_pvalue_null_model_variables: ['x6']
+
   # Tree graph
   is_tree_graph: true
   tree_graph_max_depth: 4  # Number of layers to show in graph
