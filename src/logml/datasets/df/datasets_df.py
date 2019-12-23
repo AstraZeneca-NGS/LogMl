@@ -42,8 +42,8 @@ class DatasetsDf(Datasets):
 
     def _columns_na(self, df):
         """
-        Get a columns that should b used for a new dataframe having only
-        columns indicating missing data
+        Get a columns that should b used for a new 'NA' dataframe (i.e. a dataframe
+        of missing data indicators)
         """
         if df is None:
             return None

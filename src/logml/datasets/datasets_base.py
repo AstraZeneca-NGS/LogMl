@@ -74,7 +74,7 @@ class DatasetsBase(MlFiles):
         Invoke a user defined function, if none available, call `default_augment()` method.
         Returns: True if the augmentation was performed, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def __call__(self) -> bool:
         '''
@@ -82,7 +82,7 @@ class DatasetsBase(MlFiles):
         Save at each step for faster processing / consistency
         Returns: True on success, False otherwise
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def clone(self, deep=False):
         ''' Create a copy of this Datasets object
@@ -100,7 +100,7 @@ class DatasetsBase(MlFiles):
         Default method for getting inputs / outputs
         Returns: An InOut containing input and output data
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_load(self) -> bool:
         '''
@@ -114,18 +114,18 @@ class DatasetsBase(MlFiles):
             self.operations_done
         Returns: True on success, False otherwise
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_preprocess(self) -> bool:
         """
         Default implementation for '@dataset_preprocess'
         Returns: True on success, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_save(self):
         ''' Default implementation of '@dataset_save' '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_split(self):
         '''
@@ -138,13 +138,13 @@ class DatasetsBase(MlFiles):
                 2.c) split_test + split_validate < 1
         Returns: A tuple with three lists of 'samples' (train, validate, test)
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_transform(self) -> bool:
         """ Default implementation for '@dataset_transform'
         Returns: True on success, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_file_name(self, dataset_type=None, ext='pkl'):
         ''' Create a file name for dataset '''
@@ -156,7 +156,7 @@ class DatasetsBase(MlFiles):
         Key could be an int, a list or a slice.
         Returns: Selected elements, as a Numpy array
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get(self):
         """ Get the 'raw' dataset """
@@ -168,11 +168,11 @@ class DatasetsBase(MlFiles):
         The new datasets should have the same samples and inputs, but replacing
         'missing' by 1 and 'not missing' by 0
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_input_names(self):
         """ Returns: A list of dataset's input names """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_ori(self):
         """ Get the 'raw' dataset (original) """
@@ -231,7 +231,7 @@ class DatasetsBase(MlFiles):
         Returns:
             InOut with the inputs (InOut.x) and outputs (InOut.y)
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def in_outs(self, all=True) -> None:
         '''
@@ -239,7 +239,7 @@ class DatasetsBase(MlFiles):
         Args:
             all: A boolean indicating whether 'self.datasets' should also be split
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_augment(self):
         """ Invoke user defined function for '@dataset_augment'
@@ -249,7 +249,7 @@ class DatasetsBase(MlFiles):
         Returns:
             True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_create(self):
         """ Invoke user defined function for '@dataset_create' "
@@ -258,7 +258,7 @@ class DatasetsBase(MlFiles):
         Returns:
             True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_in_out(self, ds, name):
         """ Invoke user defined function for '@dataset_inout'
@@ -269,7 +269,7 @@ class DatasetsBase(MlFiles):
             InOut: A dataset split into (x, y). The values of x and y are `None`
             if the user defined function was not invoked.
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_load(self):
         """ Invoke user defined function fo '@dataset_load'
@@ -278,7 +278,7 @@ class DatasetsBase(MlFiles):
         Returns:
             True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_preprocess(self):
         """ Invoke user defined function for '@dataset_preprocess'
@@ -288,7 +288,7 @@ class DatasetsBase(MlFiles):
         Returns:
             True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_save(self):
         """ Invoke user defined function for '@dataset_save'
@@ -296,7 +296,7 @@ class DatasetsBase(MlFiles):
         Returns:
             True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_split(self):
         """ Invoke user defined function for '@dataset_split'
@@ -307,7 +307,7 @@ class DatasetsBase(MlFiles):
         Returns:
             bool: True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_transform(self):
         """ Invoke user defined function for '@dataset_transform'
@@ -317,7 +317,7 @@ class DatasetsBase(MlFiles):
         Returns:
             True if the user defined funciton was invoked, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def __len__(self):
         """ Length (number of samples) in the 'raw dataset' """
@@ -332,14 +332,14 @@ class DatasetsBase(MlFiles):
         same pickle file.
         Returns: True if the dataset is loaded, False otherwise
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def preprocess(self):
         """ Perform pre-processing step.
         Invoke a user defined function, if none available, call `default_preprocess()` method.
         Returns: True if the pre-processing was performed, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def reset(self, soft=False):
         ''' Reset fields '''
@@ -362,7 +362,7 @@ class DatasetsBase(MlFiles):
         First use user defined function otherwise save to pickle otherwise
         Returns: True if the dataset was saved, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def shuffle_input(self, name, restore=None):
         """
@@ -375,14 +375,14 @@ class DatasetsBase(MlFiles):
         Return:
             The original values om that column
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def split(self):
         """ Split dataset into train, test, validate
         First try to use user defined function otherwise call `default_split()` method
         Returns: True if the dataset was split, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def split_idx(self, idx_train, idx_validate, idx_test=None) -> bool:
         ''' Split datasets.
@@ -393,14 +393,14 @@ class DatasetsBase(MlFiles):
             idx_validate: Index (list or array) indicating samples in validate dataset
             idx_test: Index (list or array) indicating samples in test dataset
         '''
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def transform(self):
         """ Perform transform step.
         Invoke a user defined function, if none available, call `default_transform()` method.
         Returns: True if the transform was performed, False otherwise
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def zero_input(self, name, restore):
         """
@@ -413,4 +413,4 @@ class DatasetsBase(MlFiles):
         Return:
             The original values
         """
-        raise NotImplementedError("Unimplemented method, this methos should be overiden by a subclass!")
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")

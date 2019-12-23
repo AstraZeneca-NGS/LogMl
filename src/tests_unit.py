@@ -15,7 +15,7 @@ from logml.core.log import MlLog
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 from logml.datasets import Datasets, DatasetsDf
 from logml.feature_importance.data_feature_importance import DataFeatureImportance
-from logml.feature_importance.logistic_regression_wilks import LogisticRegressionWilks
+from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, PvalueLinear
 from logml.models import Model
 
 
@@ -387,6 +387,26 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
         self.assertTrue(fi_vars[1] == 'x2', f"Feature importance variables are: {fi_vars}")
         self.assertTrue(fi_vars[2] == 'x3', f"Feature importance variables are: {fi_vars}")
+
+    def test_dataset_feature_importance_004(self):
+        ''' Checking feature importance on dataset (dataframe): Reression test (linear regression model) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        lrw = PvalueLinear(ds, ['x6'], 'test_dataset_feature_importance_004')
+        ret = lrw()
+        self.assertTrue(ret)
+        self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")
+        self.assertTrue(lrw.p_values['x2'] < 0.05, f"p-value = {lrw.p_values['x2']}")
+        self.assertTrue(lrw.p_values['x3'] < 0.05, f"p-value = {lrw.p_values['x3']}")
+        self.assertTrue(lrw.p_values['x4'] > 0.1, f"p-value = {lrw.p_values['x4']}")
+        self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''

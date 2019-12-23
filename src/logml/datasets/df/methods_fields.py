@@ -97,7 +97,7 @@ class MethodsFields(MlLog):
         for n in self.method_names:
             if self.get_fields(n) is True:
                 self.method_default = self.get_method(n)
-                default_method.append('log')
+                default_method.append(n)
         if len(default_method) > 1:
             self._fatal_error(f"Dataset (DataFrame) preprocessing: More than one default method ({default_method}). Only one should be set to 'True'")
         self._debug(f"Default method set to {default_method}")
