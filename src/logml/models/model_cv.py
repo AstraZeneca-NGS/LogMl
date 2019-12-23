@@ -11,6 +11,15 @@ def _id(obj):
     return id(obj) if obj is not None else 'None'
 
 
+def mean_std(losses):
+    '''  Calculat the mean and stdev for a loist of values '''
+    losses = [l for l in losses if l is not None]
+    if not losses:
+        return np.nan, np.nan
+    losses = np.array([l for l in losses if l is not None])
+    return losses.mean(), losses.std()
+
+
 class ModelCv(Model):
     '''
     A Model with cross-validation capabilities
@@ -72,8 +81,7 @@ class ModelCv(Model):
         if not self.cv_enable:
             return super().model_eval_test()
         rets, losses = self._cross_validate_f(super().model_eval_test, 'eval_test')
-        losses = np.array(losses)
-        self.eval_test, self.eval_test_std = losses.mean(), losses.std()
+        self.eval_test, self.eval_test_std = mean_std(losses)
         losses_str = np.array2string(losses, max_line_width=np.inf)
         self._debug(f"Model eval test (cross-validation): losses={losses_str}, eval_test={self.eval_test}, eval_test_std={self.eval_test_std}")
         return all(rets)
@@ -84,7 +92,7 @@ class ModelCv(Model):
             return super().model_eval_train()
         rets, losses = self._cross_validate_f(super().model_eval_train, 'eval_train')
         losses = np.array(losses)
-        self.eval_train, self.eval_train_std = losses.mean(), losses.std()
+        self.eval_train, self.eval_train_std = mean_std(losses)
         losses_str = np.array2string(losses, max_line_width=np.inf)
         self._debug(f"Model eval train (cross-validation): losses={losses_str}, eval_train={self.eval_train}, eval_train_std={self.eval_train_std}")
         return all(rets)
@@ -95,7 +103,7 @@ class ModelCv(Model):
             return super().model_eval_validate()
         rets, losses = self._cross_validate_f(super().model_eval_validate, 'eval_validate')
         losses = np.array(losses)
-        self.eval_validate, self.eval_validate_std = losses.mean(), losses.std()
+        self.eval_validate, self.eval_validate_std = mean_std(losses)
         losses_str = np.array2string(losses, max_line_width=np.inf)
         self._debug(f"Model eval validate (cross-validation): losses={losses_str}, eval_validate={self.eval_validate}, eval_validate_std={self.eval_validate_std}")
         return all(rets)

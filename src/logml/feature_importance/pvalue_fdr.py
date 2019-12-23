@@ -66,7 +66,12 @@ class PvalueFdr(MlFiles):
         self.rejected, self.p_values_corrected = fdrcorrection(self.get_pvalues())
 
     def filter_null_variables(self):
-        ''' Filter null model variables, only keep the ones in the dataset '''
+        '''
+        Filter null model variables, only keep the ones in the dataset
+        Returns:
+            True if there are remaining variables or the initial list was empty
+            False if, after filtering, there are no remaining variables in the list
+        '''
         if len(self.null_model_variables) == 0:
             return True
         x_vars = set(self.x.columns)
