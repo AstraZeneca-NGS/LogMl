@@ -39,6 +39,8 @@ class PvalueFdr(MlFiles):
     def __call__(self):
         # Base performance
         self._debug(f"{self.algorithm} ({self.tag}): Start, null model variables {self.null_model_variables}")
+        if not self.filter_null_variables():
+            self._warning(f"{self.algorithm} ({self.tag}): No variables left for null model")
         # Create 'null' model
         if not self.fit_null_model():
             self._error(f"{self.algorithm} ({self.tag}): Could not fit null model, skipping")
@@ -62,6 +64,20 @@ class PvalueFdr(MlFiles):
     def fdr(self):
         """ Perform multiple testing correction using FDR """
         self.rejected, self.p_values_corrected = fdrcorrection(self.get_pvalues())
+
+    def filter_null_variables(self):
+        ''' Filter null model variables, only keep the ones in the dataset '''
+        if len(self.null_model_variables) == 0:
+            return True
+        x_vars = set(self.x.columns)
+        null_vars = list()
+        for c in self.null_model_variables:
+            if c in x_vars:
+                null_vars.append(c)
+            else:
+                self._info("Variable '{c}' does not exists in dataset, ommiting")
+        self.null_model_variables = null_vars
+        return len(null_vars) > 0
 
     def _drop_na_inf(self, cols):
         ''' Remove 'na' and 'inf' values from x '''
