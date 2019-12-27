@@ -71,7 +71,7 @@ class LogMl(MlFiles):
 
     def __call__(self):
         ''' Execute model trainig '''
-        self._debug(f"Start")
+        self._info(f"LogMl: Start")
         # Configure
         if self.config is None:
             self.config = Config()
@@ -105,7 +105,7 @@ class LogMl(MlFiles):
             m = self.model_ori if self.model is None else self.model
             file_csv = m.get_file_name('models', ext=f"csv")
             self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
-        self._debug("End")
+        self._info(f"LogMl: End")
         return True
 
     def _dataset_explore(self):
