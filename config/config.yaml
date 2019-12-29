@@ -105,6 +105,9 @@ dataset_transform:
   # Remove columns: List of columns to remove from dataFrame (after all transformations have been applied)
   remove_columns_after: []
 
+  # Shuffle samples (e.g. shuffle rows in dataframe)
+  shuffle: false
+
   # Drop columns having standard deviation below this limit
   std_threshold: 0.0001
 
@@ -122,6 +125,9 @@ dataset_augment:
 dataset_preprocess:
   # Set to 'false' to disable this step
   enable: true
+
+  # Balance an unbalanced datasets (classification models only, since outputs must be cathegorical)
+  balance: true
 
   # Impute values
   # Imputation method name, followed by list of variables, regex or 'true' (this last option means "use as default method")

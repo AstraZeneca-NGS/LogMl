@@ -1,0 +1,22 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_preprpocess_004'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    outputs: ['y']
+
+dataset_transform:
+  enable: true
+
+# Dataset prerpocessing
+dataset_preprocess:
+  enable: true
+  # Balance an unbalanced datasets (classification models only, since outputs must be cathegorical)
+  balance: true
+
+model:
+  enable: false
+  model_name: 'model_test_dataset_preprpocess_004'
+  model_path: 'tests/tmp/model_test_dataset_preprpocess_004'
+  model_type: classification
