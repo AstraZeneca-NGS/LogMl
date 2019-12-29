@@ -105,6 +105,9 @@ dataset_transform:
   # Remove columns: List of columns to remove from dataFrame (after all transformations have been applied)
   remove_columns_after: []
 
+  # Shuffle samples (e.g. shuffle rows in dataframe)
+  shuffle: false
+
   # Drop columns having standard deviation below this limit
   std_threshold: 0.0001
 

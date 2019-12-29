@@ -13,7 +13,7 @@ source ./bin/activate
 # If these variables are set, only perform one unit/integration test
 TEST_UNIT_NAME=""
 TEST_INTEGRATION_NAME=""
-# TEST_UNIT_NAME="TestLogMl.test_dataset_transform_006"
+TEST_UNIT_NAME="TestLogMl.test_dataset_transform_007"
 # TEST_INTEGRATION_NAME="TestLogMlIntegration.test_linear3"
 
 #---

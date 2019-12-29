@@ -114,7 +114,7 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        # MlLog().set_log_level(logging.DEBUG)
+        MlLog().set_log_level(logging.DEBUG)
         set_plots(disable=True, show=False, save=False)
         MlRegistry().reset()
 
