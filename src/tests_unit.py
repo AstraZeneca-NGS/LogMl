@@ -85,6 +85,11 @@ def create_dataset_transform_002():
     return df
 
 
+def is_sorted(x):
+    """ Is numpy array 'x' sorted? """
+    return np.all(x[:-1] <= x[1:])
+
+
 def rand_date():
     max_time = int(time.time())
     t = random.randint(0, max_time)
@@ -584,6 +589,21 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x1r' in cols)
         self.assertFalse('x2r' in cols)
         self.assertFalse('x3r' in cols)
+
+    def test_dataset_transform_006(self):
+        ''' Checking dataset transform: Remove duplicate inputs '''
+        # create_dataset_transform_003()
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_006.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        self.assertFalse(is_sorted(df.x1.to_numpy()), f"Data should not be sorted:\ndf.x1={df.x1}")
+        self.assertFalse(is_sorted(df.x2.to_numpy()), f"Data should not be sorted:\ndf.x2={df.x2}")
+        self.assertFalse(is_sorted(df.y.to_numpy()), f"Data should not be sorted:\ndf.y={df.y}")
 
     def test_files_001(self):
         mf = MlFiles()

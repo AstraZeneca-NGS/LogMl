@@ -38,6 +38,7 @@ class DfTransform(MlLog):
         self.remove_columns_after = list()
         self.remove_equal_inputs = True    # Remove columns having the exact same values
         self.skip_nas = set()  # Skip doing "missing data" transformation on this column (it has been covered somewhere else, e.g. one-hot)
+        self.shuffle = False    # Shuffle samples
         self.std_threshold = 0.0  # Drop columns of stddev is less or equal than this threshold
         if set_config:
             self._set_from_config()
@@ -79,6 +80,7 @@ class DfTransform(MlLog):
             self._debug(f"Dataset transform disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_TRANSFORM}', enable='{self.enable}'")
             return self.df
         self._sanitize_column_names()
+        self._shuffle()
         self._remove_rows_with_missing_outputs()
         self._remove_columns()
         self.convert_dates()
@@ -294,14 +296,14 @@ class DfTransform(MlLog):
         if not self.remove_missing_outputs:
             self._debug("Remove missing outputs disabled, skipping")
             return
-        self._debug(f"Remove missing outputs: Start, outputs: {self.outputs}")
+        self._debug(f"Remove samples with missing outputs: Start, outputs: {self.outputs}")
         if rows_to_remove is None:
             rows_to_remove = self.df[self.outputs].isna().any(axis=1)
         if rows_to_remove.sum() > 0:
             self.df_ori = self.df
             self.df = self.df.loc[~rows_to_remove].copy()
-            self._info(f"Remove missing outputs: Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {self.df_ori.shape}, new shape: {self.df.shape}")
-        self._debug(f"Remove missing outputs: End")
+            self._info(f"Remove samples with missing outputs: Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {self.df_ori.shape}, new shape: {self.df.shape}")
+        self._debug(f"Remove samples with missing outputs: End")
 
     def rename_category_cols(self, df, prepend):
         '''
@@ -336,3 +338,16 @@ class DfTransform(MlLog):
         count_cats = len(xi_cat.cat.categories)
         # Note: If there are only two categories, it already is "one-hot"
         return count_cats > 2 and count_cats <= self.one_hot_max_cardinality
+
+    def _shuffle(self):
+        """ Shuffle samples in dataset """
+        if not self.shuffle:
+            self._debug(f"Shuffle samples: Disabled, skipping")
+            return True
+        self._debug(f"Shuffle samples: Start")
+        # The following line samples 100 of the rows 'in place' without replacement
+        # Reference: https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
+        # Note: Resset with `drop=True` means not to create a new columns having the old index data
+        self.df = self.df.sample(frac=1).reset_index(drop=True)
+        self._debug(f"Shuffle samples: End")
+        return True
