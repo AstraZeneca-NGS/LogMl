@@ -126,6 +126,9 @@ dataset_preprocess:
   # Set to 'false' to disable this step
   enable: true
 
+  # Balance an unbalanced datasets (classification models only, since outputs must be cathegorical)
+  balance: true
+
   # Impute values
   # Imputation method name, followed by list of variables, regex or 'true' (this last option means "use as default method")
   # that all variables should be imputed using this method

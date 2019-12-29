@@ -114,7 +114,7 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        MlLog().set_log_level(logging.DEBUG)
+        # MlLog().set_log_level(logging.DEBUG)
         set_plots(disable=True, show=False, save=False)
         MlRegistry().reset()
 
@@ -516,6 +516,22 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
         var, idx, expected = 'oz2', 1, 1
         self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
+
+    def test_dataset_preprocess_004(self):
+        ''' Checking dataset preprocess for dataframe: Balance '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config, model_type='classification')
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Check results
+        uniq, counts = np.unique(df.y, return_counts=True)
+        perc = counts / counts.sum()
+        epsilon = 0.0001
+        expected = 1.0 / 3.0
+        self.assertTrue((np.abs(perc - expected) < epsilon).all(), f"Unbalanced percentage: {perc}, counts={counts}, cathegories={uniq}")
 
     def test_dataset_transform_001(self):
         ''' Checking dataset transform: Remove missing output rows '''

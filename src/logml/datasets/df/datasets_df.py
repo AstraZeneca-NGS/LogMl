@@ -40,6 +40,19 @@ class DatasetsDf(Datasets):
         if set_config:
             self._set_from_config()
 
+    def clone(self, deep=False):
+        ds_clone = copy.copy(self)
+        if deep:
+            ds_clone.dataset = _copy_df(self.dataset)
+            ds_clone.dataset_test = _copy_df(self.dataset_test)
+            ds_clone.dataset_train = _copy_df(self.dataset_train)
+            ds_clone.dataset_validate = _copy_df(self.dataset_validate)
+            ds_clone.dataset_xy = _copy_inout(self.dataset_xy)
+            ds_clone.dataset_test_xy = _copy_inout(self.dataset_test_xy)
+            ds_clone.dataset_train_xy = _copy_inout(self.dataset_train_xy)
+            ds_clone.dataset_validate_xy = _copy_inout(self.dataset_validate_xy)
+        return ds_clone
+
     def _columns_na(self, df):
         """
         Get a columns that should b used for a new 'NA' dataframe (i.e. a dataframe
@@ -57,19 +70,6 @@ class DatasetsDf(Datasets):
                 if cat_isna.sum() > 0:
                     cols_na.add(c)
         return cols_na
-
-    def clone(self, deep=False):
-        ds_clone = copy.copy(self)
-        if deep:
-            ds_clone.dataset = _copy_df(self.dataset)
-            ds_clone.dataset_test = _copy_df(self.dataset_test)
-            ds_clone.dataset_train = _copy_df(self.dataset_train)
-            ds_clone.dataset_validate = _copy_df(self.dataset_validate)
-            ds_clone.dataset_xy = _copy_inout(self.dataset_xy)
-            ds_clone.dataset_test_xy = _copy_inout(self.dataset_test_xy)
-            ds_clone.dataset_train_xy = _copy_inout(self.dataset_train_xy)
-            ds_clone.dataset_validate_xy = _copy_inout(self.dataset_validate_xy)
-        return ds_clone
 
     def create(self):
         ''' Create dataset '''

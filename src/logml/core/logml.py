@@ -52,23 +52,6 @@ class LogMl(MlFiles):
             self.initialize()
         self.model_results = ResultsDf()
 
-    def _config_sanity_check(self):
-        '''
-        Check parameters from config.
-        Return True on success, False if there are errors
-        '''
-        wf_enabled = list()
-        for wf_name in ['cross_validation', 'hyper_parameter_optimization', 'mode_search']:
-            wf = self.__dict__.get(wf_name)
-            if wf is None:
-                continue
-            if wf.enable:
-                wf_enabled.append(wf_name)
-        if len(wf_enabled) > 1:
-            self._error(f"More than one workflow enabled (only one can be enabled): {wf_enabled}, config file '{self.config.config_file}'")
-            return False
-        return True
-
     def __call__(self):
         ''' Execute model trainig '''
         self._info(f"LogMl: Start")
@@ -106,6 +89,23 @@ class LogMl(MlFiles):
             file_csv = m.get_file_name('models', ext=f"csv")
             self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
         self._info(f"LogMl: End")
+        return True
+
+    def _config_sanity_check(self):
+        '''
+        Check parameters from config.
+        Return True on success, False if there are errors
+        '''
+        wf_enabled = list()
+        for wf_name in ['cross_validation', 'hyper_parameter_optimization', 'mode_search']:
+            wf = self.__dict__.get(wf_name)
+            if wf is None:
+                continue
+            if wf.enable:
+                wf_enabled.append(wf_name)
+        if len(wf_enabled) > 1:
+            self._error(f"More than one workflow enabled (only one can be enabled): {wf_enabled}, config file '{self.config.config_file}'")
+            return False
         return True
 
     def _dataset_explore(self):
