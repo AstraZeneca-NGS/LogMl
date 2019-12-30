@@ -82,7 +82,7 @@ class ModelCv(Model):
             return super().model_eval_test()
         rets, losses = self._cross_validate_f(super().model_eval_test, 'eval_test')
         self.eval_test, self.eval_test_std = mean_std(losses)
-        self._debug(f"Model eval test (cross-validation): losses={losses}, eval_test={self.eval_test}, eval_test_std={self.eval_test_std}")
+        self._show_losses('test', losses)
         return all(rets)
 
     def model_eval_train(self):
@@ -92,7 +92,7 @@ class ModelCv(Model):
         rets, losses = self._cross_validate_f(super().model_eval_train, 'eval_train')
         losses = np.array(losses)
         self.eval_train, self.eval_train_std = mean_std(losses)
-        self._debug(f"Model eval train (cross-validation): losses={losses}, eval_train={self.eval_train}, eval_train_std={self.eval_train_std}")
+        self._show_losses('train', losses)
         return all(rets)
 
     def model_eval_validate(self):
@@ -102,7 +102,7 @@ class ModelCv(Model):
         rets, losses = self._cross_validate_f(super().model_eval_validate, 'eval_validate')
         losses = np.array(losses)
         self.eval_validate, self.eval_validate_std = mean_std(losses)
-        self._debug(f"Model eval validate (cross-validation): losses={losses}, eval_validate={self.eval_validate}, eval_validate_std={self.eval_validate_std}")
+        self._show_losses('validate', losses)
         return all(rets)
 
     def model_train(self):
@@ -111,3 +111,8 @@ class ModelCv(Model):
             return super().model_train()
         rets, _ = self._cross_validate_f(super().model_train, None)
         return all(rets)
+
+    def _show_losses(self, tag, losses):
+        mean, std = mean_std(losses)
+        losses_str = ' '.join([str(x) for x in losses])
+        self._debug(f"Model eval {tag} (cross-validation): n={len(losses)}, losses=[{losses_str}], eval_{tag}={mean}, eval_{tag}_std={std}")
