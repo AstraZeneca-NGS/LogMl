@@ -24,7 +24,11 @@ class Datasets(DatasetsBase):
         super().__init__(config, set_config)
 
     def augment(self):
-        return self.invoke_augment()
+        ret = self.invoke_augment()
+        if ret:
+            return ret
+        # We provide a default implementation
+        return self.default_augment()
 
     def __call__(self):
         '''
@@ -69,6 +73,9 @@ class Datasets(DatasetsBase):
 
     def create(self):
         return self.invoke_create()
+
+    def default_augment(self):
+        return False
 
     def default_in_out(self, ds, name):
         ''' Default method for getting inputs / outputs '''

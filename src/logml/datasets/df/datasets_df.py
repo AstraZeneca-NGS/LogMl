@@ -6,6 +6,7 @@ import numpy as np
 
 from ..datasets import Datasets
 from ..datasets_base import InOut
+from .df_augment import DfAugment
 from .df_preprocess import DfPreprocess
 from .df_transform import DfTransform
 
@@ -85,6 +86,14 @@ class DatasetsDf(Datasets):
         ret = self._load_from_csv()
         return ret
 
+    def default_augment(self):
+        " Default implementation for '@dataset_augment' "
+        self._debug(f"Dataset preprocess (default): Start")
+        self.dataset_augment = DfAugment(self.dataset, self.config, self.outputs, self.model_type)
+        self.dataset = self.dataset_augment()
+        self._debug(f"Dataset preprocess: End")
+        return True
+
     def default_in_out(self, df, name):
         ''' Get inputs and outputs '''
         self._debug(f"Default method, inputs & outputs from dataset '{name}'")
@@ -109,7 +118,6 @@ class DatasetsDf(Datasets):
         self.dataset = self.dataset_preprocess()
         self._debug(f"Dataset preprocess: End")
         return True
-        return False
 
     def default_transform(self):
         " Default implementation for '@dataset_transform' "

@@ -12,18 +12,41 @@ from ...core.log import MlLog
 # Method and fields to apply to
 MethodAndFields = namedtuple('MethodAndFields', ['method', 'fields'])
 
+# Number and fields
+NumFields = namedtuple('NumFields', ['name', 'number', 'fields'])
+
 METHOD_SKIP_NAME = 'skip'
 
 
-class MethodsFields(MlLog):
+class MatchFields(MlLog):
+    def __init__(self, config, section, field_names, outputs):
+        super().__init__(config, section)
+        self.field_names = field_names
+        self.outputs = set(outputs)
+
+    def match_fields(self, regex):
+        """
+        Find all fields matching a regex
+        Note: We use 'fullmatch' instead of 'match' because the regex 'x1' should
+        only match the field name 'x1' and not 'x10'
+        """
+        matched = [fname for fname in self.field_names if re.fullmatch(regex, fname) is not None]
+        self._debug(f"Regex '{regex}' matched field names: {matched}")
+        return matched
+
+    def match_input_fields(self, regex):
+        """ Match a regex only against input fields """
+        return [f for f in self.match_fields(regex) if f not in self.outputs]
+
+
+class MethodsFields(MatchFields):
     ''' A mapping from methods to fields (e.g. normalization methods applied to fields)'''
 
-    def __init__(self, config, section, subsection, method_names, field_names):
-        super().__init__(config, section)
+    def __init__(self, config, section, subsection, method_names, field_names, outputs):
+        super().__init__(config, section, field_names, outputs)
         self.section = section
         self.subsection = subsection
         self.method_names = method_names
-        self.field_names = field_names
         self.fields_by_method = dict()
         self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
 
@@ -65,16 +88,6 @@ class MethodsFields(MlLog):
         ''' Is 'name' in the list of fields to skip? '''
         return name in self.get_fields(METHOD_SKIP_NAME)
 
-    def _match_fields(self, regex):
-        """
-        Find all fields matching a regex
-        Note: We use 'fullmatch' instead of 'match' because the regex 'x1' should
-        only match the field name 'x1' and not 'x10'
-        """
-        matched = [fname for fname in self.field_names if re.fullmatch(regex, fname) is not None]
-        self._debug(f"Regex '{regex}' matched field names: {matched}")
-        return matched
-
     def _populate_fields_by_method(self):
         """ Set values in 'self.fields_by_method' from the data in config.
         The original values can include field names, 'True' or a regex, we need to match the fields
@@ -86,7 +99,7 @@ class MethodsFields(MlLog):
                 pass    # 'True' meand use as default method
             else:
                 # Resolve each item in 'fields', then flatten list
-                fields = [f for item in fields for f in self._match_fields(item)]
+                fields = [f for item in fields for f in self.match_fields(item)]
             self.fields_by_method[method_name] = fields
             self._debug(f"Method '{method_name}' for fields '{fields}'")
 
@@ -101,3 +114,57 @@ class MethodsFields(MlLog):
         if len(default_method) > 1:
             self._fatal_error(f"Dataset (DataFrame) preprocessing: More than one default method ({default_method}). Only one should be set to 'True'")
         self._debug(f"Default method set to {default_method}")
+
+
+class CountAndFields(MatchFields):
+    """A class to parse a list of configurations options in the form:
+    - count: [list_of_regex]
+    Example:
+    ```
+        pca:
+            - 2: ['x.*']
+            - 3: ['z.*']
+    ```
+    """
+
+    def __init__(self, df, config, section, subsection, field_names, outputs):
+        super().__init__(config, section, field_names, outputs)
+        self.df = df
+        self.section = section
+        self.subsection = subsection
+        self.__dict__[self.subsection] = list()     # List of fields indexed by method (this is populated from config file)
+        self.num_fields = list()
+        self._set_from_config()
+        self._initialize()
+
+    def calc(self, num, fields, x):
+        """Method to calculate
+        Arguments:
+            num: Number of componenets to calculate
+            fields: List of field names
+            x: Input variables
+        Returns:
+            A Numpy array with new values (or None on failure)
+        """
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
+    def __call__(self):
+        """ Perform PCA and return a dataFrame with PCA data """
+        df = pd.DataFrame()
+        for nf in self.num_fields:
+            ret = self.calc(nf.number, nf.fields, self.df[nf.fields])
+            if ret is not None:
+                # Column names: ''
+                cols = [f"{nf.name}_{i}" for i in range(ret.sahpe[1])]
+                self._error(f"COLS:{cols}")
+                dfret = pd.DataFrame(ret, columns=cols)
+                df = df.join([df, ret])
+        return df if len(df) > 0 else None
+
+    def _initialize(self):
+        for d in self.__dict__[self.subsection]:
+            num = list(d.keys())[0]
+            regex_list = d[num]
+            fields = [f for regex in regex_list for f in self.match_input_fields(regex)]
+            self._debug(f"CountAndFields: Number={num}, regex list={regex_list}, matched input fields={fields}")
+            self.num_fields.append(NumFields(num, fields))

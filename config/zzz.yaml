@@ -10,19 +10,23 @@ dataset:
 dataset_explore:
   enable: false
 
+dataset_preprocess:
+  enable: false
+
+dataset_transform:
+  enable: false
+
+dataset_augment:
+  enable: true
+  pca:
+    - 2: ['x.*']
+    - 3: ['z.*', 'y.*']
+
 dataset_feature_importance:
   enable: false
 
-dataset_preprocess:
-  enable: true
-  impute:
-    mean: true
-
-dataset_transform:
-  enable: true
-
 model:
-  enable: true
+  enable: false
   model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -37,11 +41,6 @@ functions:
       min_samples_leaf: 3
       max_features: 0.7
 
-cross_validation:
-    enable: true
-    KFold:
-        n_splits: 3
-
 model_search:
-  enable: true
+  enable: false
   models: !include models_search/*.yaml
