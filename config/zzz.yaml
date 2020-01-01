@@ -22,7 +22,8 @@ dataset_augment:
     pca_1:
       num: 2
       fields: ['x.*']
-    pca_2:
+  nmf:
+    nmf_1:
       num: 3
       fields: ['z.*', 'y.*']
 
