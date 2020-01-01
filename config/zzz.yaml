@@ -19,8 +19,12 @@ dataset_transform:
 dataset_augment:
   enable: true
   pca:
-    - 2: ['x.*']
-    - 3: ['z.*', 'y.*']
+    pca_1:
+      num: 2
+      fields: ['x.*']
+    pca_2:
+      num: 3
+      fields: ['z.*', 'y.*']
 
 dataset_feature_importance:
   enable: false

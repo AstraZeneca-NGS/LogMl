@@ -132,12 +132,12 @@ class CountAndFields(MatchFields):
         self.df = df
         self.section = section
         self.subsection = subsection
-        self.__dict__[self.subsection] = list()     # List of fields indexed by method (this is populated from config file)
-        self.num_fields = list()
+        self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
+        self.num_fields = dict()
         self._set_from_config()
         self._initialize()
 
-    def calc(self, num, fields, x):
+    def calc(self, numfields, x):
         """Method to calculate
         Arguments:
             num: Number of componenets to calculate
@@ -150,21 +150,26 @@ class CountAndFields(MatchFields):
 
     def __call__(self):
         """ Perform PCA and return a dataFrame with PCA data """
-        df = pd.DataFrame()
-        for nf in self.num_fields:
-            ret = self.calc(nf.number, nf.fields, self.df[nf.fields])
+        df = None
+        for nf in self.num_fields.values():
+            ret = self.calc(nf, self.df[nf.fields])
             if ret is not None:
                 # Column names: ''
-                cols = [f"{nf.name}_{i}" for i in range(ret.sahpe[1])]
-                self._error(f"COLS:{cols}")
-                dfret = pd.DataFrame(ret, columns=cols)
-                df = df.join([df, ret])
+                cols = [f"{nf.name}_{i}" for i in range(ret.shape[1])]
+                dfret = pd.DataFrame(ret, columns=cols, index=self.df.index)
+                df = df.join(dfret) if df is not None else dfret
         return df if len(df) > 0 else None
 
     def _initialize(self):
-        for d in self.__dict__[self.subsection]:
-            num = list(d.keys())[0]
-            regex_list = d[num]
+        for name, vals in self.__dict__[self.subsection].items():
+            num = vals.get('num')
+            if num is None:
+                self._warning(f"Number is not set, ignoring entry '{name}' in sub section '{self.subsection}'")
+                continue
+            regex_list = vals.get('fields')
+            if regex_list is None:
+                self._warning(f"Fields not set, ignoring entry '{name}' in sub section '{self.subsection}'")
+                continue
             fields = [f for regex in regex_list for f in self.match_input_fields(regex)]
-            self._debug(f"CountAndFields: Number={num}, regex list={regex_list}, matched input fields={fields}")
-            self.num_fields.append(NumFields(num, fields))
+            self._debug(f"CountAndFields: Name='{name}', number={num}, regex list={regex_list}, matched input fields={fields}")
+            self.num_fields[name] = NumFields(name, num, fields)

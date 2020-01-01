@@ -25,6 +25,7 @@ class DfAugment(MlLog):
         self.outputs = outputs
         self.model_type = model_type
         self.pca = dict()
+        self.pca_augment = None
         if set_config:
             self._set_from_config()
 
@@ -36,19 +37,21 @@ class DfAugment(MlLog):
         if not self.enable:
             self._debug(f"Augment dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_AUGMENT}', enable='{self.enable}'")
             return self.df
-        self._debug("Augment dataframe: Start")
+        cols = "', '".join([c for c in self.df.columns])
+        self._debug(f"Augment dataframe: Start. Fields ({len(self.df.columns)}): ['{cols}']")
         self._pca()
-        self._debug("Augment dataframe: End")
+        cols = "', '".join([c for c in self.df.columns])
+        self._debug(f"Augment dataframe: End. Fields ({len(self.df.columns)}): ['{cols}']")
         return self.df
 
     def _pca(self):
-        pca = DfAugmentPca(self.df, self.config, self.outputs, self.model_type)
-        ret, self.pca_transform = pca()
+        self.pca_augment = DfAugmentPca(self.df, self.config, self.outputs, self.model_type)
+        ret = self.pca_augment()
         if ret is None:
             self._debug("Augment dataframe: Could not do PCA")
             return False
         else:
-            self.df = pd.join([self.df, ret])
+            self.df = self.df.join(ret)
             return True
 
 
@@ -57,16 +60,16 @@ class DfAugmentPca(CountAndFields):
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, 'pca', df.columns, outputs)
-        self.sk_pcas = list()
+        self.sk_pca_by_name = dict()
 
-    def calc(self, num, fields, x):
+    def calc(self, nf, x):
         """Calculate 'num' PCAs using 'fields' from dataframe
         Returns: A dataframe of PCAs (None on failure)
         """
-        self._debug(f"Calculating PCA: Start, num={num}, fields:{fields}")
-        pca = PCA(n_components=num)
+        self._debug(f"Calculating PCA: Start, name={nf.name}, num={nf.number}, fields:{nf.fields}")
+        pca = PCA(n_components=nf.number)
         pca.fit(x)
-        self.sk_pcas.append(pca)
-        dout = pca.transform(x)
+        self.sk_pca_by_name[nf.name] = pca
+        xpca = pca.transform(x)
         self._debug(f"Calculating PCA: End")
-        return dout
+        return xpca
