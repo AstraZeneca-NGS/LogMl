@@ -119,6 +119,31 @@ dataset_augment:
   enable: true
   # TODO: add_interactions: ['*', '-', '+', '/']
 
+  # Add principal componenets
+  # After the 'pca', you can add several "sub-sections":
+  #   name:                 # Unique name, used to add PCA fields on each sample (name_1, name_2, ... name_num)
+  #     num: 2              # Number of PCA componenets to add
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  pca:
+    pca_dna:
+      num: 2
+      fields: ['DNA_.*']
+    pca_log2:
+      num: 3
+      fields: ['log2ratio_.*', '.*_LOG2F']
+  # Add NMF (non-negative matrix factorization)
+  # After the 'nmf', you can add several "sub-sections":
+  #   name:                 # Unique name, used to add NMF fields on each sample (name_1, name_2, ... name_num)
+  #     num: 2              # Number of NMF componenets to add
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  nmf:
+    nmf_dna:
+      num: 2
+      fields: ['DNA_.*']
+    nmf_expr:
+      num: 3
+      fields: ['expr_.*', '.*_EXPR']
+
 #---
 # Dataset prerpocessing
 #---
