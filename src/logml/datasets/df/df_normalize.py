@@ -19,7 +19,7 @@ class DfNormalize(MethodsFields):
     '''
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'normalize', NORMALIZATION_METHODS, df.columns)
+        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'normalize', NORMALIZATION_METHODS, df.columns, outputs)
         self.df = df
         self.model_type = model_type
         self.outputs = set(outputs)

@@ -19,7 +19,7 @@ class DfImpute(MethodsFields):
     '''
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'impute', IMPUTATION_METHODS, df.columns)
+        super().__init__(config, CONFIG_DATASET_PREPROCESS, 'impute', IMPUTATION_METHODS, df.columns, outputs)
         self.df = df
         self.model_type = model_type
         self.outputs = set(outputs)
@@ -82,7 +82,7 @@ class DfImpute(MethodsFields):
         # Select the most frequent values
         count = dict()
         for n in xi[~np.isnan(xi)]:
-            count[n] = 1 + count.get(n,0)
+            count[n] = 1 + count.get(n, 0)
         count_max = max(count.values())
         # If there is more than one 'most frequent value', use the median of them
         most_freqs = [k for k, c in count.items() if c == count_max]
