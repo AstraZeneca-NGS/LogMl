@@ -158,7 +158,7 @@ class CountAndFields(MatchFields):
                 cols = [f"{nf.name}_{i}" for i in range(ret.shape[1])]
                 dfret = pd.DataFrame(ret, columns=cols, index=self.df.index)
                 df = df.join(dfret) if df is not None else dfret
-        return df if len(df) > 0 else None
+        return df if df is not None and len(df) > 0 else None
 
     def _initialize(self):
         for name, vals in self.__dict__[self.subsection].items():

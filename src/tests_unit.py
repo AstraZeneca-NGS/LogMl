@@ -18,6 +18,8 @@ from logml.feature_importance.data_feature_importance import DataFeatureImportan
 from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, PvalueLinear
 from logml.models import Model
 
+DEBUG = False
+# DEBUG = True
 
 # Create dataset
 def create_dataset_preprocess_001():
@@ -84,6 +86,38 @@ def create_dataset_transform_002():
     df.to_csv(file, index=False)
     return df
 
+# Create dataset for PCA test
+def create_dataset_pca(num=1000, prob_na=0.05):
+    """
+    Create a dataset of two input variables (independent random) and transform them using
+        W = [[1,   0.5],
+             [0.3, 0.5]]
+    This should result in a covaraince matrix:
+        W.T @ W = [[1.09, 0.65],
+                   [0.65, 0.5 ]]
+    And PCA components:
+        np.linalg.eig(C) =
+                [1.5088102, 0.0811898]          # Eigenvalues
+                [[ 0.84061737, -0.54162943],    # Eigenvectors
+                 [ 0.54162943,  0.84061737]]
+    """
+    dfdict = dict()
+    # Inputs
+    for i in range(2):
+        dfdict[f"x{i}"] = rand_norm(num, 0, 1, prob_na)
+    # Output
+    dfdict['y'] = rand_norm(num, 0, 1, -1)
+    # Create dataFrame
+    df = pd.DataFrame(dfdict)
+    # Covariates
+    X = df[['x0', 'x1']].values
+    W = np.array([[1, 0.5], [0.3, 0.5]])
+    Xa = X @ W
+    df[['x0', 'x1']] = Xa
+    # Save to csv file
+    df.to_csv('zzz.csv', index=False)
+    return df
+
 
 def is_sorted(x):
     """ Is numpy array 'x' sorted? """
@@ -94,6 +128,27 @@ def rand_date():
     max_time = int(time.time())
     t = random.randint(0, max_time)
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
+
+
+def rand_unif(num, mean, std, na_prob):
+    xi = np.random.rand(num)
+    xi_na = (np.random.rand(num) <= na_prob)
+    xi[xi_na] = np.nan
+    return xi
+
+
+def rand_norm(num, mean, std, na_prob):
+    xi = np.random.normal(mean, std, num)
+    xi_na = (np.random.rand(num) <= na_prob)
+    xi[xi_na] = np.nan
+    return xi
+
+
+def rand_choice(num, val_max, na_prob):
+    xi = 1.0 * np.random.choice(val_max, size=num)
+    xi_na = (np.random.rand(num) < 0.1)
+    xi[xi_na] = np.nan
+    return xi
 
 
 def rm(file):
@@ -114,7 +169,8 @@ class TestLogMl(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        # MlLog().set_log_level(logging.DEBUG)
+        if DEBUG:
+            MlLog().set_log_level(logging.DEBUG)
         set_plots(disable=True, show=False, save=False)
         MlRegistry().reset()
 
@@ -334,6 +390,36 @@ class TestLogMl(unittest.TestCase):
         # Check that columns having zero std are dropped
         self.assertFalse('datasource' in ds.dataset.columns)
         self.assertFalse('auctioneerID' in ds.dataset.columns)
+
+    def test_dataset_augment_001(self):
+        ''' Checking dataset augment: PCA '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_augment_001.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        self.assertTrue('pca_x_0' in df.columns)
+        self.assertTrue('pca_x_1' in df.columns)
+        dfpca = df[['pca_x_0', 'pca_x_1']]
+        # Sample 0 PCA
+        s0 = dfpca.iloc[0,:].values
+        s0_exp = np.array([-0.54432562, -0.20570426])
+        self.assertTrue(np.linalg.norm(s0_exp - s0) < 0.05, f"Sample 0 PCA:\n\tExpected:{s0_exp}\n\tValue   :{s0}")
+        # Sample 1 PCA
+        s1 = dfpca.iloc[1,:].values
+        s1_exp = np.array([ 0.60071371, -0.24420421])
+        self.assertTrue(np.linalg.norm(s1_exp - s1) < 0.05, f"Sample 1 PCA:\n\tExpected:{s1_exp}\n\tValue   :{s1}")
+        # Check PCA covariance
+        pca = ds.dataset_augment.pca_augment.sk_pca_by_name['pca_x']
+        Cov_expected = np.array([[1.09, 0.65], [0.65, 0.5 ]])  # Covariance matrix expected
+        Cov = pca.get_covariance()
+        cov_diff = np.linalg.norm(Cov - Cov_expected)
+        self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{Cov}\nExpected:\n{Cov_expected}")
 
     def test_dataset_feature_importance_001(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''

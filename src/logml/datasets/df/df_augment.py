@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 import pandas as pd
 
@@ -25,7 +23,7 @@ class DfAugment(MlLog):
         self.outputs = outputs
         self.model_type = model_type
         self.pca = dict()
-        self.pca_augment = None
+        self.pca_augment = None  # DfAugmentPca object
         if set_config:
             self._set_from_config()
 
