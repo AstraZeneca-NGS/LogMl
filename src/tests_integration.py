@@ -17,7 +17,7 @@ from logml.models import Model
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
 
 
-DEBUG = os.get_env('TEST_INTEGRATION_DEBUG', False)
+DEBUG = os.getenv('TEST_INTEGRATION_DEBUG', False)
 
 
 class TestLogMlIntegration(unittest.TestCase):
