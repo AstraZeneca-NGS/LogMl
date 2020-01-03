@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="None">
+  
+  <link rel="shortcut icon" href="./img/favicon.ico">
+  <title>`Log(ML)` - LogMl - AI/ML automation framwork</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="./css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "`Log(ML)`";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/";
+  </script>
+  
+  <script src="./js/jquery-2.1.1.min.js"></script>
+  <script src="./js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="./js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> LogMl - AI/ML automation framwork</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href=".">`Log(ML)`</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#logml">Log(ML)</a></li>
+    
+
+    <li class="toctree-l2"><a href="#install">Install</a></li>
+    
+
+    <li class="toctree-l2"><a href="#nomenclature">Nomenclature</a></li>
+    
+
+    <li class="toctree-l2"><a href="#workflow">Workflow</a></li>
+    
+
+    <li class="toctree-l2"><a href="#learning-by-examples">Learning by examples</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#basic-setup">Basic setup</a></li>
+        
+            <li><a class="toctree-l3" href="#example-1-a-neural-network-for-xor">Example 1: A neural network for "XOR"</a></li>
+        
+            <li><a class="toctree-l3" href="#example-2-hyper-parameter-optimization">Example 2: Hyper-parameter optimization</a></li>
+        
+            <li><a class="toctree-l3" href="#example-3-neural-network-architecture-optimization">Example 3: Neural network architecture optimization</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l2"><a href="#main-workflow-overview">Main workflow: Overview</a></li>
+    
+
+    <li class="toctree-l2"><a href="#main-workflow-dataset">Main workflow: Dataset</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#yaml-config-dataset-section">YAML config: Dataset section</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-load">Dataset: Load</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-create">Dataset: Create</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-transform">Dataset: Transform</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-augment">Dataset: Augment</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-preprocess">Dataset: Preprocess</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-split">Dataset: Split</a></li>
+        
+            <li><a class="toctree-l3" href="#dataset-save">Dataset: Save</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l2"><a href="#main-workflow-model">Main workflow: Model</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#yaml-config-model-section">YAML config: Model section</a></li>
+        
+            <li><a class="toctree-l3" href="#model-create">Model: Create</a></li>
+        
+            <li><a class="toctree-l3" href="#model-train">Model: Train</a></li>
+        
+            <li><a class="toctree-l3" href="#model-save">Model: Save</a></li>
+        
+            <li><a class="toctree-l3" href="#model-save-train-results">Model: Save train Results</a></li>
+        
+            <li><a class="toctree-l3" href="#model-test">Model: Test</a></li>
+        
+            <li><a class="toctree-l3" href="#model-save-test-results">Model: Save test results</a></li>
+        
+            <li><a class="toctree-l3" href="#model-validate">Model: Validate</a></li>
+        
+            <li><a class="toctree-l3" href="#model-save-validate-results">Model: Save validate results</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l2"><a href="#alternative-workflows">Alternative workflows</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#alternative-workflow-hyper-parameter-optimization">Alternative workflow: Hyper-parameter optimization</a></li>
+        
+            <li><a class="toctree-l3" href="#alternative-workflow-cross-validation">Alternative workflow: Cross-validation</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l2"><a href="#alternative-workflow-data-exploration">Alternative workflow: Data exploration</a></li>
+    
+
+    <li class="toctree-l2"><a href="#command-line-argument">Command line argument</a></li>
+    
+
+    <li class="toctree-l2"><a href="#model-search">Model Search</a></li>
+    
+
+    <li class="toctree-l2"><a href="#model-search-with-hyper-parameter-optimization">Model Search with Hyper-parameter optimization:</a></li>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="about/">About</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">LogMl - AI/ML automation framwork</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>`Log(ML)`</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="logml"><code>Log(ML)</code></h1>
+<p>Log(ML) is a framework that helps automate many steps in machine learning projects and let you quickly generate baseline results.</p>
+<p><strong>Why?</strong>
+There is a considerable amount is setup, boiler-plate code, analysis in every ML/AI project.
+<code>Log(ML)</code> performs most of these boring tasks, so you can focus on what's important and adds value.</p>
+<p><code>Log(ML)</code> performs a consistent data science pipeline, keeping track every action and saving all results and models automatically.</p>
+<p><strong>Log(ML) Goals: What does Log(ML) do for me?</strong>
+Log(ML) is designed to:
+- Enforce best practices
+- Perform a set of common, well defined, well tested analyses
+- Quickly turn around the first analysis results
+- Facilitates logging in ML projects: No more writing down results in a notepad, <code>Log(ML)</code> creates log file in a systematic manner
+- Save models and results: <code>Log(ML)</code> saves all your models, so you can always retrieve the best ones.</p>
+<p><strong>Architecture: How does Log(ML) work?</strong>
+<code>Log(ML)</code> has a standard "data science workflow" (a.k.a. pipeline).
+The workflow include several steps, such as data preprocessing, data augmentation, data exploration, feature importance, model training, hyper-parameter search, cross-validation, etc.
+Each step in the workflow can be customized either in a configuration YAML file or adding custom Python code.</p>
+<h1 id="install">Install</h1>
+<p>Requirements:
+- Python 3.7
+- Virtual environment</p>
+<pre><code>git clone https://github.com/AstraZeneca-NGS/LogMl.git
+
+cd LogMl
+./scripts/install.sh
+</code></pre>
+
+<p>The <code>scripts/install.sh</code> script should take care of installing in a default directory (<code>$HOME/logml</code>).
+If you want another directory, just edit the script and change the <code>INSTALL_DIR</code> variable</p>
+<h1 id="nomenclature">Nomenclature</h1>
+<p>Parameters from YAML: We refer to parameters defined in YAML file as between curly brackets, e.g. <code>{parameter_name}</code></p>
+<p>User defined functions: This are functions defined by the user and marked with the <code>Log(ML)</code> annotations. For instance, the "user function decorated with <code>@dataset_load</code>" is sometimes referred as the "<code>@dataset_load</code> function", for short</p>
+<h1 id="workflow">Workflow</h1>
+<p><code>Log(ML)</code> performs the following series of steps (all of them customizable using Python functions and YAML configuration). <code>Log(ML)</code> allows you to define your own custom functions by adding annotations.</p>
+<p>Here is a summary of the workflow steps (details are covered in the next sub-sections):</p>
+<ol>
+<li>Dataset: Load or Create, Transform, Preprocess, Augment, Explore, Split, Inputs/Outputs</li>
+<li>Feature importance</li>
+<li>Model Training<ol>
+<li>Cross-validation</li>
+<li>Hyper-parameter optimization</li>
+</ol>
+</li>
+<li>Model Search</li>
+</ol>
+<p>Each section can be enabled / disabled and customized in the YAML configuration file.</p>
+<h1 id="learning-by-examples">Learning by examples</h1>
+<p>This is Machine Learning, so let's learn by showing some examples...(hopefully you can generalize as well as your ML algorithms)</p>
+<p>In this section we introduce some examples on how to use <code>Log(ML)</code> and show how the framework simplifies some aspect fo machine learning projects.</p>
+<h3 id="basic-setup">Basic setup</h3>
+<p><code>Log(ML)</code> can provide some default implementations for some steps of the workflow, but others you need to provide yourself (e.g. code to create your machine learning model). These steps are provided in the Python code you write.</p>
+<p>Both your Python code and the default <code>Log(ML)</code> implementations require parameters, these parameters are configured in a YAML file.</p>
+<p>So, a <code>Log(ML)</code> project consist of (at least) two parts:
+1. A Python program
+1. A YAML configuration file</p>
+<h3 id="example-1-a-neural-network-for-xor">Example 1: A neural network for "XOR"</h3>
+<p>In the code shown in <code>example_01.py</code> (see below)
+we train a neural network model to learn the "XOR" problem. We create three functions:
+- <code>my_dataset_create</code>: Create a dataset (a NumPy matrix) having the inputs and outputs for our problem. We create two columns (the inputs) of <code>num_samples</code> row or random numbers in the interval <code>[-1, 1]</code>. The third column (the output) is the "XOR" of the first two columns
+- <code>my_model_create</code>: Create a neural network using Tenforflow and Keras sequential mode. The network one hidden layer with <code>num_neurons</code> neurons
+- <code>my_model_train</code>: Train the neural network using a learning rate of <code>learning_rate</code> and <code>epochs</code> number of epochs.
+- <code>my_model_eval</code>: Evaluate the neural network.</p>
+<p>Note that the functions are decorated using <code>Log(ML)</code> decorators <code>@dataset_create</code>, <code>@@model_create</code>, <code>@model_train</code> , <code>@model_evaluate</code></p>
+<p>Python code <code>example_01.py</code>:</p>
+<pre><code>#!/usr/bin/env python3
+
+import numpy as np
+import tensorflow as tf
+from logml import *
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adagrad
+
+@dataset_create
+def my_dataset_create(num_samples):
+    x = 2 * np.random.rand(num_samples, 2) - 1
+    y = ((x[:, 0] &gt; 0) ^ (x[:, 1] &gt; 0)).astype('float').reshape(num_samples, 1)
+    return np.concatenate((x, y), axis=1)
+
+@model_create
+def my_model_create(dataset, num_neurons):
+    model = Sequential()
+    model.add(Dense(num_neurons, activation='tanh', input_shape=(2,)))
+    model.add(Dense(1, activation='tanh'))
+    return model
+
+@model_train
+def my_model_train(model, dataset, learning_rate, epochs):
+    model.compile(optimizer=Adagrad(lr=learning_rate), loss='mean_squared_error')
+    return model.fit(dataset[:, 0:2], dataset[:, 2], epochs=epochs)
+
+@model_evaluate
+def my_model_eval(model, dataset):
+    return model.evaluate(dataset[:, 0:2], dataset[:, 2])
+
+ml = LogMl()
+ml()
+</code></pre>
+
+<p>We also need to create a configuration YAML file (see below). This YAML file defines three sections:
+- <code>dataset</code>: Defines the name of the dataset and path to save dataset files.
+- <code>train</code>: Defines the name of the model and path to save model, model parameters and training results files.
+- <code>functions</code>: These define the values to pass to the functions defined in our python program (or <code>Log(ML)</code> default implementations).</p>
+<p>Configuration YAML file <code>example_01.yaml</code></p>
+<pre><code>dataset:
+  dataset_name: 'example_01'
+  dataset_path: 'data/example_01'
+
+model:
+  model_name: 'example_01'
+  model_path: 'data/example_01/model'
+
+functions:
+  dataset_create:
+    num_samples: 1000
+  dataset_split:
+    split_test: 0.2
+    split_validate: 0.0
+  model_create:
+      num_neurons: 3
+  model_train:
+    epochs: 20
+    learning_rate: 0.3
+</code></pre>
+
+<p>A few remarks about the <code>functions</code> section:
+1. The name of the parameters in the YAML must match exactly the name of the respective Python functions parameters
+1. Python annotation matches the subsection in the YAML file (e.g. parameters defined YAML subsection <code>dataset_create</code> is called <code>num_samples</code>, which matches the parameter of the Python function annotated with <code>@dataset_create</code>)
+1. Since our <code>@model_evaluate</code> function doesn't take any additional arguments than the ones provided by <code>Log(ML)</code> (i.e. <code>model</code> and <code>dataset</code>), we don't need to specify the sub-sections in our YAML file
+1. The <code>@dataset_split</code> function was not implemented in our program, so <code>Log(ML)</code> will provide a default implementation. This default implementation uses the parameters <code>split_test</code> and <code>split_validate</code> (the dataset is split according to these numbers)</p>
+<p>Now we can run the program:</p>
+<pre><code># By default the expected config file name is &quot;ml.yaml&quot; so we provide an alternative name name with command line option &quot;-c&quot;
+
+$ ./example_01.py -c example_01.yaml
+Epoch 1/20
+1000/1000 [==============================] - 0s 178us/sample - loss: 0.2416
+Epoch 2/20
+1000/1000 [==============================] - 0s 30us/sample - loss: 0.1588
+...
+Epoch 20/20
+1000/1000 [==============================] - 0s 30us/sample - loss: 0.0949
+</code></pre>
+
+<p>So, <code>Log(ML)</code> performed a workflow that:
+1. Invoked the function to create a dataset using the arguments from the YAML file (i.e. <code>my_dataset_create(num_samples=20)</code>)
+1. Invoked the function to create a model using as arguments the <code>dataset</code> plus the parameters from the YAML file (i.e. <code>my_model_create(dataset, num_neurons=3)</code>)
+1. Invoked the function to train the model using as arguments the <code>model</code>, the <code>dataset</code> plus the parameters from the YAML file (i.e. <code>my_model_train(model, dataset, learning_rate=0.3, epochs=20)</code>)
+1. Invoked the function to validate the model (evaluate on the validation dataset split) using only as arguments <code>model</code>, and <code>dataset_validate</code> (since there are no additional parameters from the YAML file)</p>
+<p>But <code>Log(ML)</code> it also did log a lot of information that is useful for future references. In this case, it saved the dataset to a pickle file (<code>example_01.pkl</code>), the all parameters used to create and train this model (<code>data/example_01/train/example_01.parameters.20190823.212609.830649.1.yaml</code>) and the full STDOUT/STDERR (<code>data/example_01/train/example_01.20190823.212609.830649.1.stdout</code> and <code>data/example_01/train/example_01.20190823.212609.830649.1.stderr</code>)</p>
+<pre><code>$ ls data/example_01/* data/example_01/train/*
+data/example_01/example_01.pkl
+data/example_01/train/example_01.20190823.212609.830649.1.stdout
+data/example_01/train/example_01.20190823.212609.830649.1.stderr
+data/example_01/train/example_01.parameters.20190823.212609.830649.1.yaml
+</code></pre>
+
+<p>Now we can change the parameters in the YAML file (for instance set <code>learning_rate: 0.1</code>) and run the program again.</p>
+<pre><code>$ ./example_01.py -c example_01.yaml
+Epoch 1/20
+1000/1000 [==============================] - 0s 184us/sample - loss: 0.2561
+...
+Epoch 20/20
+1000/1000 [==============================] - 0s 23us/sample - loss: 0.1112
+</code></pre>
+
+<p>All the new log files will be created and we can keep track of our project and the parameters we used.
+OK, this model is not as good as the previous one, but fortunately we have all the logging information, so we don't have to remember the parameters we used for the best model.</p>
+<pre><code>$ ls data/example_01/* data/example_01/train/*
+data/example_01/example_01.pkl
+data/example_01/train/example_01.20190823.213803.075040.1.stdout
+data/example_01/train/example_01.20190823.212609.830649.1.stderr
+data/example_01/train/example_01.parameters.20190823.212609.830649.1.yaml
+data/example_01/train/example_01.20190823.212609.830649.1.stdout
+data/example_01/train/example_01.parameters.20190823.213803.075040.1.yaml
+data/example_01/train/example_01.20190823.213803.075040.1.stderr
+</code></pre>
+
+<h3 id="example-2-hyper-parameter-optimization">Example 2: Hyper-parameter optimization</h3>
+<p>Building on the previous example (<code>example_01.py</code> and <code>example_01.yaml</code>), let's assume that instead of trying to tune the <code>learning_rate</code> manually, we'd prefer to perform hyper-parameter optimization.</p>
+<p>In this example (<code>example_02</code>), we'll set up hyper-parameter optimization on <code>learning_rate</code>. The python program remains exactly the same as in the previous example, we'll be adding a hyper-parameter optimization section to the YAML file.</p>
+<p>For the config YAML file (see <code>example_02.yaml</code>), we jut add the following section:</p>
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        model_train:
+          learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<p>We added a <code>hyper_parameter_optimization</code> section where we:
+- Define the hyper parameter algorithm (<code>tpe</code>) which is a Bayesian apprach
+- Set the number of evaluations to <code>100</code>
+- Define that we want to optimize the parameter <code>learning_rate</code> in the function <code>@model_train</code> using a uniform prior in the interval <code>[0.0, 0.5]</code>.</p>
+<p>We run the program:</p>
+<pre><code>$ ./example_02.py -c example_02.yaml
+
+100%|██████████| 10/10 [00:06&lt;00:00,  1.44it/s, best loss: 0.07341234689950943]
+</code></pre>
+
+<p>Here the hyper-parameter optimization is saying that the best loss found (with ten iterations) is <code>0.0734</code>.</p>
+<p>We also have all the parameter details, models, and STDOUT/STDERR for every single model created and trained:</p>
+<pre><code>$ ls data/example_02/* data/example_02/train/* | cat
+data/example_02/example_02.pkl
+data/example_02/train/example_02.20190823.215947.132156.1.stderr
+data/example_02/train/example_02.20190823.215947.132156.1.stdout
+...
+data/example_02/train/example_02.20190823.215953.151580.10.stderr
+data/example_02/train/example_02.20190823.215953.151580.10.stdout
+data/example_02/train/example_02.hyper_param_search.20190823.215953.151580.10.pkl
+data/example_02/train/example_02.parameters.20190823.215947.132156.1.yaml
+...
+data/example_02/train/example_02.parameters.20190823.215953.151580.10.yaml
+</code></pre>
+
+<h3 id="example-3-neural-network-architecture-optimization">Example 3: Neural network architecture optimization</h3>
+<p>Now we build on the previous example (Example 2) by trying to optimize the neural network architecture. For this we just need to add a hyper parameter optimization when building the neural network (i.e. the <code>@model_create</code> step in the workflow). Simply add a line in the <code>space</code> definition within <code>hyper_parameter_optimization</code> section:</p>
+<p>The YAML is changed like this (see <code>example_03.yaml</code>):</p>
+<pre><code>hyper_parameter_optimization:
+    ...
+    space:
+        model_create:
+          num_neurons: ['randint', 5]
+        ...
+</code></pre>
+
+<p>Also we need a minor change in the python program is to ensure that we at least have one neuron in the hidden layer (otherwise the model doesn't make sense) So we add a single line to <code>@model_create</code> (see line <code>num_neurons = max(num_neurons, 1)</code> below):</p>
+<pre><code>@model_create
+def my_model_create(dataset, num_neurons):
+    model = Sequential()
+    num_neurons = max(num_neurons, 1)                                  # &lt;-- Added this line
+    model.add(Dense(num_neurons, activation='tanh', input_shape=(2,)))
+    model.add(Dense(1, activation='tanh'))
+    return model
+</code></pre>
+
+<p>That's is, we have network architecture optimization (<code>num_neurons</code>) and hyper-parameter optimization (<code>learning_rate</code>). Let's run the program (output edited for readability):</p>
+<pre><code>$ ./example_03.py -v -c example_03.yaml
+...
+2019-08-23 21:29:51,924 INFO Hyper parameter optimization:  iteration: 10   ...
+    best fit: 0.06886020198464393
+    best parameters: {'model_create': {'num_neurons': 3}, 'model_train': {'learning_rate': 0.22890998206259194}}
+...
+</code></pre>
+
+<p>The best parameters, for a 10 iteration hyper-optimization, are <code>num_neurons=3</code> and <code>learning_rate=0.2289</code>.</p>
+<h1 id="main-workflow-overview">Main workflow: Overview</h1>
+<p>The main workflow in <code>Log(ML)</code> has the following steps (and their respective annotations):</p>
+<ol>
+<li>Dataset<ol>
+<li>Load: <code>@dataset_load</code></li>
+<li>Create (if not loaded): <code>@dataset_create</code></li>
+<li>Transform: <code>@dataset_transform</code></li>
+<li>Augment: <code>@dataset_augment</code></li>
+<li>Preprocess: <code>@dataset_preprocess</code></li>
+<li>Split: <code>@dataset_split</code></li>
+<li>Save: <code>@dataset_save</code></li>
+</ol>
+</li>
+<li>Dataset<ol>
+<li>Basic feature statistics</li>
+<li>Feature co-linearity analysis</li>
+<li>Feature importance</li>
+</ol>
+</li>
+<li>Model<ol>
+<li>Create: <code>@model_create</code></li>
+<li>Train: <code>@model_train</code></li>
+<li>Save: <code>@model_save</code></li>
+<li>Save train results</li>
+<li>Test: <code>@model_evaluate</code></li>
+<li>Validate: <code>@model_evaluate</code></li>
+</ol>
+</li>
+</ol>
+<h1 id="main-workflow-dataset">Main workflow: Dataset</h1>
+<p>This step takes care of loading or creating a dataset. There are several sub-steps taking care of different aspects of dataset processing to make sure is suitable for training a model</p>
+<p>Here is an overview of "dataset" workflow is organized. Each sub-section below shows details for specific steps:</p>
+<ol>
+<li>Load: <code>@dataset_load</code></li>
+<li>Create (if not loaded): <code>@dataset_create</code></li>
+<li>Transform: <code>@dataset_transform</code></li>
+<li>Augment: <code>@dataset_augment</code></li>
+<li>Preprocess: <code>@dataset_preprocess</code></li>
+<li>Split: <code>@dataset_split</code></li>
+<li>Save: <code>@dataset_save</code></li>
+</ol>
+<h3 id="yaml-config-dataset-section">YAML config: Dataset section</h3>
+<p>The config YAML file section for dataset part of the workflow is:</p>
+<pre><code>dataset:
+  dataset_name: 'my_dataset'       # Dataset name
+  dataset_path: 'data/my_dataset'  # Path to use when loading and saving datasets
+  dataset_type: None               # Dataset type: 'df' means dataFrame (if this option is commented out then a custom object is assumed)
+  is_use_default_split: False      # Use (internal) 'split' function if none is provided by the user?
+</code></pre>
+
+<p>Other options specific to DataFrames (i.e. <code>dataset_type: 'df'</code>):</p>
+<pre><code>dataset:
+  dataset_type: 'df'
+  ...
+  categories:                                      # Define categorical data columns
+    category_name_1: ['Small', 'Medium', 'Large']  # Force this column to be converted to a catergory, set categories as ['Small', 'Medium', 'Large'] and make sure the category is ordered in the same order
+    category_name_2:                               # Force this column to be converted to a category (no particular order)
+  dates: ['record_date']                           # Force these columns to be treated as a date_time, expand all date sub-fields into different columns (e.g. 'yyyy', 'mm', 'dd', 'day_of_week'... etc.)
+  ont_hot: ['Enclosure_Type']                      # All columns listed here are converted to one hot encoding
+  one_hot_max_cardinality: 7                       # All columns having less then this number of categories are converted to one hot encoding
+  std_threshold: 0.0                               # Drop columns of having standard deviation less or equal than this threshold
+</code></pre>
+
+<h3 id="dataset-load">Dataset: Load</h3>
+<p>This step typical attempts to load data from files (e.g. load a "data frame" or a set of images).</p>
+<ol>
+<li>Attempt to load from pickle file (<code>{dataset_path}/{dataset_name}.pkl</code>). If the files exists, load the dataset.</li>
+<li>Invoke a user defined function decorated with <code>@dataset_load</code>.<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, so <code>Log(ML)</code> will attempt to create a dataset (next step)</li>
+<li>Parameters to the user defined function are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_load</code></li>
+<li>The dataset is marked to be saved</li>
+</ul>
+</li>
+</ol>
+<h3 id="dataset-create">Dataset: Create</h3>
+<p>This part creates a dataset by invoking the user defined function decorated by <code>@dataset_create</code>
+1. If the dataset has been loaded (i.e. "Load dataset" step was successful), skip this step
+1. Invoke a user defined function decorated with <code>@dataset_create</code>:
+    - If there is no user defined function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step fails. Since <code>Log(ML)</code> doesn't have a dataset to work with (load and create steps both failed) it will exit with an error.
+    - Parameters to the user defined function are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_create</code>
+    - The return value from the user defined function is used as a dataset
+    - The dataset is marked to be saved</p>
+<p><strong>DataFrames:</strong> Dataset load default implementation for <code>dataset_type='df'</code> (i.e. DataFrame) reads a dataFrame from a CSV file using <code>pandas.read_csv</code></p>
+<h3 id="dataset-transform">Dataset: Transform</h3>
+<p>This step is used to make changes to dataset to make is usable, for instance converting string values into numerical categories.
+1. If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been transformed), the step is skipped
+1. Invoke a user defined function decorated with <code>@dataset_transform</code>:
+    - If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, no error is produced.
+    - Parameters: The first parameter is the dataset. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_transform</code>
+    - The return value replaces the original dataset
+    - The dataset is marked to be saved</p>
+<p><strong>DataFrames:</strong> Dataset transform default implementation for <code>dataset_type='df'</code> (i.e. DataFrame)</p>
+<!-- 1. Sanitize variables names
+1. Convert categorical variables
+1. Expand date/time variables
+1. perform one-hot encoding
+1. Remove missing remove missing output
+1. Remove columns (predefined, low standard deviation)
+1. Augment: Dataset augmentation
+1. Data Explore:
+1. Summaries, normality, missing values, histograms, etc.
+1. Correlation heatmap, top / bottom rank correlated, dendograms, etc.
+1. Nullity analysis -->
+
+<!-- 1. Summaries, normality, missing values, histograms, etc.
+1. Correlation heatmap, top / bottom rank correlated, dendograms, etc.
+1. Nullity analysis
+1. Feature importance:
+1. Model-based column permutation: Random Forest, ExtraTrees, GradientBoosting
+1. Boruta algorithm
+1. Model-based drop-column: Random Forest, ExtraTrees, GradientBoosting
+1. Chi^2
+1. Mutual information
+1. SkLearn importance: Random Forest, ExtraTrees, GradientBoosting
+1. Regularization methods: Lasso, Ridge, Lars (AIC), Lars (BIC)
+1. Recursive Feature Elimination
+1. Tree graph -->
+
+<ol>
+<li>Expand date/time features</li>
+<li>Convert to categorical</li>
+<li>Convert to one-hot</li>
+<li>Missing data</li>
+<li>Drop low standard deviation fields</li>
+</ol>
+<p><strong>Expand date/time features</strong>:</p>
+<p>Fields defined in the config YAML file, section <code>dataset</code>, sub-section <code>dates</code> are treated as date/time when the dataFrame CSV is loaded and then expanded into several columns: <code>[Year, Month, Day, DayOfWeek, Hour, Minute, Second, etc.]</code>.</p>
+<p><strong>Convert to categorical</strong>:</p>
+<p>Fields defined in the config YAML file, section <code>dataset</code>, sub-section <code>categories</code> are converted into categorical data and converted to a numerical (integer) representation. Category <code>-1</code> represents missing values.</p>
+<p><strong>Convert to one-hot</strong>:</p>
+<p>Fields defined in the config YAML file, section <code>dataset</code>, sub-section <code>ont_hot</code> are converted into one-hot encoding.
+Also, any categorical field that has a cardinality (i.e. number of categories) equal or less then <code>one_hot_max_cardinality</code> is converted to one-hot encoding.</p>
+<p>If there are missing values, a column <code>*_isna</code> is added to the one-hot encoding.</p>
+<p><strong>Missing data</strong>:</p>
+<p>In any column having missing values that was not converted to date, categorical or one-hot; a new column <code>*_na</code> is created (where the value is '1' if the field has missing a value) and the missing values are replaced by the median of the non-missing values.</p>
+<p><strong>Drop low standard deviation fields</strong></p>
+<p>All fields having standard deviation equal or lower than <code>std_threshold</code> (by default <code>0.0</code>) are dropped. Using the default value (<code>std_threshold=0.0</code>) this means dropping all fields having the exact same value for all samples.</p>
+<h3 id="dataset-augment">Dataset: Augment</h3>
+<p>This step invokes the user defined function <code>@augment</code> to perform dataset augmentation
+1. If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been augmented), the step is skipped
+1. Invoke a user defined function decorated with <code>@dataset_augment</code>:
+    - If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, no error is produced.
+    - Parameters: The first parameter is the dataset. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_augment</code>
+    - The return value replaces the original dataset
+    - The dataset is marked to be saved</p>
+<h3 id="dataset-preprocess">Dataset: Preprocess</h3>
+<p>This step is used to pre-process data in order to make the dataset compatible with the inputs required by the model (e.g. normalize values)
+1. If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been pre-processed), the step is skipped
+1. Invoke a user defined function decorated with <code>@dataset_preprocess</code>:
+    - If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, no error is produced.
+    - Parameters: The first parameter is the dataset. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_preprocess</code>
+    - The return value replaces the original dataset
+    - The dataset is marked to be saved</p>
+<h3 id="dataset-split">Dataset: Split</h3>
+<p>This step us used to split the dataset into "train", "test" and "validation" datasets.
+1. If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been transformed), the step is skipped
+1. Invoke a user defined function decorated with <code>@dataset_split</code>:
+    1. If there is no user defined function <code>@dataset_split</code> or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed (no error is produced) attempt to use a default implementation of "dataset split".
+    - Parameters: The first parameter is the dataset. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_split</code>
+    - If the function is invoked, the return value must be a tuple of three datasets: <code>(dataset_train, dataset_test, dataset_validate)</code>
+    - The return value from the function replaces the original dataset (specifically, each value replaces the train/test/validate datasets)
+    - The dataset is marked to be saved
+1. Attempt to use a default implementation of "dataset split"
+    - If config YAML parameter <code>is_use_default_split</code> is set to <code>False</code>, the split step failed (no error is produced)
+    - The default split implementation attempts to split the dataset in three parts, defined by config YAML file parameters <code>split_test</code> and <code>split_validate</code> in section <code>dataset_split</code>. If these parameters are not defined in the config YAML file, the split section failed (no error is produced)</p>
+<h3 id="dataset-save">Dataset: Save</h3>
+<p>If the dataset is marked to be saved in any of the previous steps, attempt to save the dataset.</p>
+<ol>
+<li>If the the YAML config variable <code>do_not_save</code> is set to <code>True</code>, this step is skipped</li>
+<li>If a user defined function decorated with <code>@dataset_save</code> exists, it is invoked<ul>
+<li>Parameters: The first four parameters are <code>dataset, dataset_train, dataset_test, dataset_validate</code>. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>dataset_save</code></li>
+</ul>
+</li>
+<li>Otherwise the dataset is saved to the pickle file <code>{dataset_path}/{dataset_name}.pkl</code></li>
+</ol>
+<h1 id="main-workflow-model">Main workflow: Model</h1>
+<p>In these steps we create and train models. This also takes care of common tasks, such as hyper-parameter optimization, cross-validation and model analysis.</p>
+<p>The main steps are:</p>
+<ol>
+<li>Model Create: <code>@model_create</code></li>
+<li>Model Train: <code>@model_train</code></li>
+<li>Model Save: <code>@model_save</code></li>
+<li>Model Save train results</li>
+<li>Model Test: <code>@model_evaluate</code></li>
+<li>Model Validate: <code>@model_evaluate</code></li>
+</ol>
+<p>A new <code>model_id</code> is created each time a new model is created/trained. This is used to make sure that files created during a run do not collision with other files names from previous runs. The <code>model_id</code> has the format <code>yyyymmdd_hhmmss.counter</code> where:
+    - <code>yyyy</code>, <code>mm</code>, <code>dd</code>, <code>hh</code>, <code>mm</code>, <code>ss</code>: Current year, month, day, hour, minute, second (UTC time)
+    - <code>counter</code>: Number of models created in this <code>Log(ML)</code> run (increasing counter starting with <code>1</code>).</p>
+<p><strong>Logging</strong>: All results from STDOUT and STDERR are saved to <code>{model_path}/{model_name}.parameters.{model_id}.stdout</code> and <code>{model_path}/{model_name}.parameters.{model_id}.stderr</code> respectively. Note that <code>model_id</code> is included in the path, so creating several models in the same <code>Log(ML)</code> run would save each output set to different <code>stdout/stderr</code> files (see details below).</p>
+<h3 id="yaml-config-model-section">YAML config: Model section</h3>
+<pre><code>model:
+  model_name: 'MyModel'              # Model name: A simple string to use for file names related to this model
+  model_path: 'path/to/dir'          # Train path: A path where to store logs and data from training
+  is_save_model_pickle: False        # Try to save model using a pickle file?
+  is_save_model_method: True         # Try to save model using a pickle file?
+  is_save_model_method_ext: 'model'  # Model file extension
+  is_save_test_pickle: True          # Save model test results to a pickle file?
+  is_save_train_pickle: False        # Save model train results to pickle file?
+  is_save_validate_pickle: False     # Save model validation results to pickle file?
+</code></pre>
+
+<h3 id="model-create">Model: Create</h3>
+<p>Create a new model, to be trained. It also saves the parameters used to create the model to a YAML file.</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_create</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameter is <code>dataset_train</code> if the dataset was split, otherwise is the full dataset. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>model_create</code></li>
+<li>The return value from the user defined function is stored as the <code>model</code></li>
+</ul>
+</li>
+<li>Current parameters are saved to a YAML file <code>{model_path}/{model_name}.parameters.{model_id}.yaml</code>. Note that <code>model_id</code> is included in the path, so creating several models in the same <code>Log(ML)</code> run would save each parameter set to different YAML files.</li>
+</ol>
+<h3 id="model-train">Model: Train</h3>
+<p>Train the model.</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_train</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameters are <code>model</code> and <code>dataset_train</code> (if the dataset was split, otherwise is the full dataset). Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>model_train</code></li>
+<li>The return value from the user defined function is stored as the <code>train_results</code> (these result will be saved, see later steps)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save">Model: Save</h3>
+<p>Save the (trained) model.</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_save</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program tries to save using a pickle file (see next step).</li>
+<li>Parameters: The first parameters is the <code>model</code>. Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>model_save</code></li>
+<li>Return successful</li>
+</ul>
+</li>
+<li>Attempt to save model to pickle file if previous step (<code>@model_save</code> function) failed.<ul>
+<li>If parameter <code>is_save_model_pickle</code> from config YAML file is set to <code>False</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.model.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so training several models in the same <code>Log(ML)</code> run would save each model to different pickle files.</li>
+</ul>
+</li>
+<li>Attempt to save model to using <code>model.save()</code> if previous step failed.<ul>
+<li>If parameter <code>is_save_model_method</code> from config YAML file is set to <code>False</code>, this step is skipped</li>
+<li>Invoke model's method <code>model.save({file_name})</code>, where <code>file_name</code> is set to <code>{model_path}/{model_name}.model.{model_id}.{is_save_model_method_ext}</code> (parameter <code>is_save_model_method_ext</code> is defined in config YAML file)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save-train-results">Model: Save train Results</h3>
+<p>Save results from training to a pickle file</p>
+<ol>
+<li>Attempt to save model training results (i.e. the return value from <code>@model_train</code> function) to pickle.<ul>
+<li>If parameter <code>is_save_train_pickle</code> from config YAML file is set to <code>False</code>, this step is skipped</li>
+<li>If the results are <code>None</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.train_results.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so training several models in the same <code>Log(ML)</code> run would save train results to different pickle files.</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-test">Model: Test</h3>
+<p>Evaluate the model on the <code>dataset_test</code> dataset_test</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_evaluate</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameters are <code>model</code> and <code>dataset_test</code> (if the dataset was split, otherwise use full dataset). Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>model_evaluate</code></li>
+<li>The return value from the user defined function is stored as the <code>test_results</code> (these result will be saved, see later steps)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save-test-results">Model: Save test results</h3>
+<ol>
+<li>Attempt to save model test results (i.e. the return value from <code>@model_evaluate</code> function invoked with <code>dataset_test</code> parameter) to pickle.<ul>
+<li>If parameter <code>is_save_test_pickle</code> from config YAML file is set to <code>False</code>, this step is skipped</li>
+<li>If the results are <code>None</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.test_results.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so testing several models in the same <code>Log(ML)</code> run would save train results to different pickle files.</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-validate">Model: Validate</h3>
+<p>Evaluate the model on the <code>dataset_validate</code> dataset_test</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_evaluate</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameters are <code>model</code> and <code>dataset_validate</code> (if the dataset was split, otherwise this step fails). Other parameters are defined in config YAML file section <code>functions</code>, sub-section <code>model_evaluate</code></li>
+<li>The return value from the user defined function is stored as the <code>validate_results</code> (these result will be saved, see later steps)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save-validate-results">Model: Save validate results</h3>
+<ol>
+<li>Attempt to save model test results (i.e. the return value from <code>@model_evaluate</code> function invoked with <code>dataset_validate</code> parameter) to pickle.<ul>
+<li>If parameter <code>is_save_validate_pickle</code> from config YAML file is set to <code>False</code>, this step is skipped</li>
+<li>If the results are <code>None</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.validate_results.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so validating several models in the same <code>Log(ML)</code> run would save train results to different pickle files.</li>
+</ul>
+</li>
+</ol>
+<h1 id="alternative-workflows">Alternative workflows</h1>
+<p>There are some <code>Log(ML)</code> workflows that run "dataset" and "model" workflows several times:
+1. Hyper-parameter optimization
+1. Cross-validation</p>
+<h2 id="alternative-workflow-hyper-parameter-optimization">Alternative workflow: Hyper-parameter optimization</h2>
+<p>This workflow allows to perform hyper-parameter optimization using a Bayesian framework (<code>hyper-opt</code>). The hyper parameters can be optimized in several stages of the "dataset" and "model".</p>
+<p>The hyper-parameter optimization workflow adds a bayesian optimization on top of the main workflow. This means that, conceptually, it's executing the main workflow several times using a bayesian optimizer.</p>
+<p>The hyper-parameter optimizaition method used is HyperOpt, for details see <a href="http://hyperopt.github.io/hyperopt/">Hyperopt documentation</a></p>
+<p>Typically, hyper-parameter optimization is used to tune model training parameters. <code>Log(ML)</code> also allows to tune model creation parameters, as well as data augmentation and preprocessing parameters.</p>
+<h3 id="yaml-config">YAML config</h3>
+<p>YAML configuration of hyper parameter optimization: All parameter are defined in the <code>hyper_parameter_optimization</code> section.</p>
+<pre><code>hyper_parameter_optimization:
+    enable: False                   # Set this to 'True' or comment out to enable hyper-parameter optimization
+    show_progressbar: True          # Show progress bar
+    algorithm: 'tpe'                # Algorithm: 'tpe' (Bayesian Tree of Parzen Estimators), 'random' (random search)
+    max_evals: 100                  # Max number of hyper-parameter evaluations. Keep in mnd that each evaluation is a full model training    # Parameter space to explore
+    space:                          # Parameters search space specification, add one section for each user defined function you want to optimize
+        dataset_augment:                    # Add parameter space specification for each part you want to optimize (see examples below)
+        dataset_create:
+        dataset_preprocess:
+        model_create:
+        model_train:
+</code></pre>
+
+<p><strong>Search space</strong>: We define parameters for each part we want to optimize (e.g. <code>preprocess</code>, <code>model_create</code>, etc.).
+The format for each parameter space is:</p>
+<pre><code>parameter_name: ['distribution', distribution)parameters...]
+</code></pre>
+
+<p>For distribution names and parameters, see: <a href="https://github.com/hyperopt/hyperopt/wiki/FMin">section 'Parameter Expressions'</a></p>
+<p>Important: The parameters space definition should be a subset of the parameters in each <code>function</code> section.</p>
+<p>Example: Perform hyper-parameter optimization of the learning rate using a uniform distribution as a p</p>
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        model_train:
+            learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        dataset_preprocess:
+          num_x: ['choice', [100, 200, 300, 400, 500]]
+          num_y: ['choice', [20, 50, 100, 200]]
+        model_create:
+            layer_1: ['randint', 10]
+        model_train:
+            learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        dataset_preprocess:
+          num_x: ['choice', [100, 200, 300, 400, 500]]
+          num_y: ['choice', [20, 50, 100, 200]]
+        model_create:
+            layer_1: ['randint', 20]
+            layer_2: ['randint', 10]
+        model_train:
+            learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<h2 id="alternative-workflow-cross-validation">Alternative workflow: Cross-validation</h2>
+<p>This workflow is a Cross-Validation method built on top of the Train part of <code>Log(ML)</code> main workflow.</p>
+<p>The YAML configuration is quite simple, you need to enable cross-validation and then specify the cross-validation type and the parameters:
+The cross-validation workflow is implemented using SciKit learn's cross validation, on the methods and parameters see <a href="https://scikit-learn.org/stable/modules/cross_validation.html">SciKit's documentation</a></p>
+<pre><code>cross_validation:
+    enable: True    # Set this to 'True' to enable cross validation
+    # Select one of the following algorithms and set the parameters
+    KFold:
+        n_splits: 5
+    # RepeatedKFold:
+    #     n_splits: 5
+    #     n_repeats: 2
+    # LeaveOneOut:
+    # LeavePOut:
+    #     p: 2
+    # ShuffleSplit:
+    #     n_splits: 5
+    #     test_size: 0.25
+</code></pre>
+
+<h1 id="alternative-workflow-data-exploration">Alternative workflow: Data exploration</h1>
+<p>These steps implement feature exploration and importance analysis.</p>
+<ol>
+<li>Feature statistics</li>
+<li>Co-linearity analysis</li>
+<li>Feature importance</li>
+</ol>
+<h1 id="command-line-argument">Command line argument</h1>
+<p>Command line options when invoking a <code>Log(ML)</code> program:</p>
+<pre><code>-c &lt;config.yaml&gt; : Specify a YAML config file
+-d               : Debug mode, show lots of internal messages
+-v               : Verbose
+</code></pre>
+
+<h1 id="model-search">Model Search</h1>
+<ol>
+<li>ada_boost_classifier</li>
+<li>ada_boost_regressor</li>
+<li>ard_regression</li>
+<li>bagging_classifier</li>
+<li>bagging_regressor</li>
+<li>bayesian_ridge</li>
+<li>bernoulli_nb</li>
+<li>complement_nb</li>
+<li>decision_tree_classifier</li>
+<li>decision_tree_regressor</li>
+<li>dummy_classifier_most_frequent</li>
+<li>dummy_classifier_prior</li>
+<li>dummy_classifier_stratified</li>
+<li>dummy_classifier_uniform</li>
+<li>dummy_regressor_mean</li>
+<li>dummy_regressor_median</li>
+<li>elastic_net_cv</li>
+<li>extra_trees_classifier</li>
+<li>extra_trees_regressor</li>
+<li>gaussian_nb</li>
+<li>gradient_boosting_classifier</li>
+<li>gradient_boosting_regressor</li>
+<li>hist_gradient_boosting_classifier</li>
+<li>hist_gradient_boosting_regressor</li>
+<li>huber_regressor</li>
+<li>k_neighbors_classifier</li>
+<li>k_neighbors_regressor</li>
+<li>lars_regression</li>
+<li>lasso_cv_regression</li>
+<li>lasso_regression</li>
+<li>linear_regression</li>
+<li>linear_svc</li>
+<li>linear_svr</li>
+<li>logistic_regression_cv</li>
+<li>multinomial_nb</li>
+<li>nearest_centroid</li>
+<li>nu_svc</li>
+<li>nu_svr</li>
+<li>orthogonal_matching_pursuit_regression</li>
+<li>passive_aggressive_classifier</li>
+<li>perceptron</li>
+<li>radius_neighbors_classifier</li>
+<li>radius_neighbors_regressor</li>
+<li>random_forest_classifier</li>
+<li>random_forest_regressor</li>
+<li>ransac_regressor</li>
+<li>ridge_cv_regression</li>
+<li>ridge_regression</li>
+<li>svc</li>
+<li>svr</li>
+<li>theil_sen_regressor</li>
+</ol>
+<h1 id="model-search-with-hyper-parameter-optimization">Model Search with Hyper-parameter optimization:</h1>
+<ol>
+<li>extra_trees_classifier</li>
+<li>extra_trees_regressor</li>
+<li>gradient_boosting_classifier</li>
+<li>gradient_boosting_regressor</li>
+<li>k_neighbors_classifier</li>
+<li>k_neighbors_regressor</li>
+<li>random_forest_classifier</li>
+<li>random_forest_regressor</li>
+</ol>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="about/" class="btn btn-neutral float-right" title="About">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+        <span style="margin-left: 15px"><a href="about/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="./js/theme.js"></script>
+      <script src="./search/require.js"></script>
+      <script src="./search/search.js"></script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 0.17.5
+Build Date UTC : 2020-01-03 18:39:52
+-->
