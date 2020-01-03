@@ -13,7 +13,7 @@ source ./bin/activate
 # If these variables are set, only perform one unit/integration test
 TEST_UNIT_NAME=""
 TEST_INTEGRATION_NAME=""
-# TEST_UNIT_NAME="TestLogMl.test_dataset_augment_001"
+# TEST_UNIT_NAME="TestLogMl.test_dataset_feature_importance_005"
 # TEST_INTEGRATION_NAME="TestLogMlIntegration.test_linear3"
 
 #---
@@ -26,6 +26,7 @@ if [ -z "$TEST_UNIT_NAME" ]; then
     time coverage run src/tests_unit.py -v --failfast 2>&1 | tee tests.unit.out
 else
     echo "Unit test: '$TEST_UNIT_NAME' "
+    export TEST_UNIT_DEBUG="True"
     time coverage run src/tests_unit.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
 fi
 
@@ -49,6 +50,7 @@ if [ -z "$TEST_INTEGRATION_NAME" ]; then
     time coverage run src/tests_integration.py -v --failfast 2>&1 | tee tests.integration.out
 else
     echo "Integration test: '$TEST_INTEGRATION_NAME' "
+    export TEST_INTEGRATION_DEBUG="True"
     time coverage run src/tests_integration.py -v --failfast "$TEST_INTEGRATION_NAME" 2>&1 | tee tests.integration.out
 fi
 

@@ -1,23 +1,19 @@
 logger:
-  plots_path: 'logml_plots/zzz'
 
 dataset:
-  dataset_type: 'df'
-  dataset_name: 'zzz'
-  dataset_path: 'data/zzz'
-  outputs: ['y']
+    dataset_name: 'test_dataset_feature_importance_005'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    is_use_default_split: true
+    outputs: ['y']
 
-dataset_explore:
+dataset_transform:
   enable: false
 
 dataset_preprocess:
   enable: false
-
-dataset_transform:
-  enable: true
-
-dataset_augment:
-  enable: false
+  normalize:
+    standard: true
 
 dataset_feature_importance:
   enable: true
@@ -37,29 +33,16 @@ dataset_feature_importance:
   is_rfe_model_extra_trees: false
   is_rfe_model_gradient_boosting: false
   is_select: false
-  is_linear_pvalue: false
   is_tree_graph: false
-  #
   is_wilks: true
   wilks_null_model_variables: ['x4', 'x5']
 
-
 model:
   enable: false
-  model_type: classification
-  model_name: 'zzz'
-  model_class: sklearn.ensemble.RandomForestRegressor
-  model_path: 'data/zzz/model'
+  model_name: 'test_model_dataset_feature_importance_005'
+  model_path: 'tests/tmp/test_model_dataset_feature_importance_005'
 
 functions:
-    dataset_split:
-        split_validate: 0.2
-        split_test: 0.0
-    model_create:
-      n_estimators: 30
-      min_samples_leaf: 3
-      max_features: 0.7
-
-model_search:
-  enable: false
-  models: !include models_search/*.yaml
+  dataset_split:
+    split_test: 0.0
+    split_validate: 0.5

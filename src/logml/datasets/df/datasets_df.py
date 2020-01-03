@@ -99,6 +99,8 @@ class DatasetsDf(Datasets):
         if outs:
             # Split input and output variables
             self._debug(f"Default method, inputs & outputs from dataframe '{name}': Outputs {outs}")
+            if len(outs) == 1:
+                outs = outs[0]
             x, y = df.drop(outs, axis=1), df.loc[:, outs]
         else:
             self._debug(f"Default method, inputs & outputs from dataframe '{name}': No outputs defined")

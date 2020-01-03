@@ -95,19 +95,20 @@ class DfTransform(MlLog):
 
     def create(self):
         """ Create a new dataFrame based on the previously calculated conversions """
-        self._debug(f"Creating transformed dataset: Start'")
+        self._debug(f"Creating transformed dataset: Start")
         # Create new dataFrame
         df_new = self.df.copy()
         # Drop old columns categorical columns
         df_new.drop(list(self.columns_to_remove), axis=1, inplace=True)
         # Join new columns
         for c in self.columns_to_add:
+            self._debug(f"Creating transformed dataset: Adding columns '{c}'")
             df_new = df_new.join(self.columns_to_add[c])
         self.df_new = df_new
         # Reset columns
         self.columns_to_add = dict()
         self.columns_to_remove = set()
-        self._debug(f"Creating transformed dataset: End'")
+        self._debug(f"Creating transformed dataset: End")
         return df_new
 
     def create_categories(self):
