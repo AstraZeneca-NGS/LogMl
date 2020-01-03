@@ -108,7 +108,7 @@ dataset_transform:
   # Shuffle samples (e.g. shuffle rows in dataframe)
   shuffle: false
 
-  # Drop columns having standard deviation below this limit
+  # Drop inputs having standard deviation below this limit
   std_threshold: 0.0001
 
 #---

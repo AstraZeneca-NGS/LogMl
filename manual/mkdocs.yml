@@ -3,7 +3,9 @@ nav:
   - Home: index.md
   - About: about.md
   - Manual:
-    - 'Overview': zzz.md
-    - 'Custom Functions': custom_functions.md
-    - 'Examples': examples_custom_fucntions.md
-theme: readthedocs
+    - 'Overview': overview.md
+    - 'Install': install.md
+    - 'Introduction': introduction.md
+    # - 'Custom Functions': custom_functions.md
+    # - 'Examples': examples_custom_fucntions.md
+# theme: readthedocs
