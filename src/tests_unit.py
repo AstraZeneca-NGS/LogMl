@@ -15,108 +15,11 @@ from logml.core.log import MlLog
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 from logml.datasets import Datasets, DatasetsDf
 from logml.feature_importance.data_feature_importance import DataFeatureImportance
-from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, PvalueLinear
+from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
 from logml.models import Model
 
-DEBUG = False
+DEBUG = os.getenv('TEST_UNIT_DEBUG', False)
 # DEBUG = True
-
-# Create dataset
-def create_dataset_preprocess_001():
-    # Number of samples
-    num = 1000
-    # Inputs: x1, .. ., xn
-    x1 = np.exp(np.random.rand(num))
-    x2 = np.maximum(np.random.rand(num) - 0.1, 0)
-    x3 = np.random.normal(0, 1, num)
-    x4 = np.random.rand(num) * 5 + 7
-    x5 = np.random.rand(num) * 5 + 7
-    x6 = np.random.normal(2, 3, num)
-    x7 = np.random.normal(3, 4, num)
-    x8 = np.random.rand(num) * 2 + 3
-    # Noise
-    n = np.random.normal(0, 1, num)
-    # Output
-    y = 3. * x1 - 1. * x2 + 0.5 * x3 + 0.1 * n
-    # Categorical output
-    y_str = np.array([to_class(c) for c in y])
-    # Create dataFrame
-    df = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4, 'x5': x5, 'x6': x6, 'x7': x7, 'y': y_str})
-    file = 'test_dataset_preprpocess_001.csv'
-    print(f"Saving dataset to file '{file}'")
-    df.to_csv(file, index=False)
-    return df
-
-
-# Create dataset
-def create_dataset_transform_001():
-    # Number of samples
-    num = 1000
-    # Inputs: x1, .. ., xn
-    x1 = np.random.normal(0, 1, num)
-    x2 = np.random.rand(num) * 5 + 7
-    n = np.random.normal(0, 1, num)
-    y = 3. * x1 - 1. * x2 + 0.1 * n
-    y_na = (np.random.rand(num) < 0.1)
-    y[y_na] = np.nan
-    # Create dataFrame
-    df = pd.DataFrame({'x1': x1, 'x2': x2, 'y': y})
-    file = 'test_dataset_transform_001.csv'
-    print(f"Saving dataset to file '{file}'")
-    df.to_csv(file, index=False)
-    return df
-
-
-def create_dataset_transform_002():
-    num = 1000
-    # Inputs: x1, .. ., xn
-    x1 = np.random.normal(0, 1, num)
-    x2 = np.random.rand(num) * 5 + 7
-    d1 = np.array([rand_date() for _ in range(num)], dtype="datetime64[s]")
-    n = np.random.normal(0, 1, num)
-    y = 3. * x1 - 1. * x2 + 0.1 * n
-    # Set some 'na'
-    d1_na = (np.random.rand(num) < 0.1)
-    d1[d1_na] = np.datetime64("NaT")
-    # Create dataFrame
-    df = pd.DataFrame({'x1': x1, 'x2': x2, 'd1': d1, 'y': y})
-    print(df.head())
-    file = 'test_dataset_transform_002.csv'
-    print(f"Saving dataset to file '{file}'")
-    df.to_csv(file, index=False)
-    return df
-
-# Create dataset for PCA test
-def create_dataset_pca(num=1000, prob_na=0.05):
-    """
-    Create a dataset of two input variables (independent random) and transform them using
-        W = [[1,   0.5],
-             [0.3, 0.5]]
-    This should result in a covaraince matrix:
-        W.T @ W = [[1.09, 0.65],
-                   [0.65, 0.5 ]]
-    And PCA components:
-        np.linalg.eig(C) =
-                [1.5088102, 0.0811898]          # Eigenvalues
-                [[ 0.84061737, -0.54162943],    # Eigenvectors
-                 [ 0.54162943,  0.84061737]]
-    """
-    dfdict = dict()
-    # Inputs
-    for i in range(2):
-        dfdict[f"x{i}"] = rand_norm(num, 0, 1, prob_na)
-    # Output
-    dfdict['y'] = rand_norm(num, 0, 1, -1)
-    # Create dataFrame
-    df = pd.DataFrame(dfdict)
-    # Covariates
-    X = df[['x0', 'x1']].values
-    W = np.array([[1, 0.5], [0.3, 0.5]])
-    Xa = X @ W
-    df[['x0', 'x1']] = Xa
-    # Save to csv file
-    df.to_csv('zzz.csv', index=False)
-    return df
 
 
 def is_sorted(x):
@@ -124,45 +27,10 @@ def is_sorted(x):
     return np.all(x[:-1] <= x[1:])
 
 
-def rand_date():
-    max_time = int(time.time())
-    t = random.randint(0, max_time)
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
-
-
-def rand_unif(num, mean, std, na_prob):
-    xi = np.random.rand(num)
-    xi_na = (np.random.rand(num) <= na_prob)
-    xi[xi_na] = np.nan
-    return xi
-
-
-def rand_norm(num, mean, std, na_prob):
-    xi = np.random.normal(mean, std, num)
-    xi_na = (np.random.rand(num) <= na_prob)
-    xi[xi_na] = np.nan
-    return xi
-
-
-def rand_choice(num, val_max, na_prob):
-    xi = 1.0 * np.random.choice(val_max, size=num)
-    xi_na = (np.random.rand(num) < 0.1)
-    xi[xi_na] = np.nan
-    return xi
-
-
 def rm(file):
     ''' Delete file, if it exists '''
     if os.path.exists(file):
         os.remove(file)
-
-
-def to_class(c):
-    if c < -3:
-        return 'low'
-    if c < 3:
-        return 'mid'
-    return 'high'
 
 
 class TestLogMl(unittest.TestCase):
@@ -407,16 +275,16 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue('pca_x_1' in df.columns)
         dfpca = df[['pca_x_0', 'pca_x_1']]
         # Sample 0 PCA
-        s0 = dfpca.iloc[0,:].values
+        s0 = dfpca.iloc[0, :].values
         s0_exp = np.array([-0.54432562, -0.20570426])
         self.assertTrue(np.linalg.norm(s0_exp - s0) < 0.05, f"Sample 0 PCA:\n\tExpected:{s0_exp}\n\tValue   :{s0}")
         # Sample 1 PCA
-        s1 = dfpca.iloc[1,:].values
-        s1_exp = np.array([ 0.60071371, -0.24420421])
+        s1 = dfpca.iloc[1, :].values
+        s1_exp = np.array([0.60071371, -0.24420421])
         self.assertTrue(np.linalg.norm(s1_exp - s1) < 0.05, f"Sample 1 PCA:\n\tExpected:{s1_exp}\n\tValue   :{s1}")
         # Check PCA covariance
         pca = ds.dataset_augment.pca_augment.sk_pca_by_name['pca_x']
-        Cov_expected = np.array([[1.09, 0.65], [0.65, 0.5 ]])  # Covariance matrix expected
+        Cov_expected = np.array([[1.09, 0.65], [0.65, 0.5]])  # Covariance matrix expected
         Cov = pca.get_covariance()
         cov_diff = np.linalg.norm(Cov - Cov_expected)
         self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{Cov}\nExpected:\n{Cov_expected}")
@@ -491,6 +359,26 @@ class TestLogMl(unittest.TestCase):
         df = ds.dataset
         # Do feature importance using logistic regression p-values
         lrw = PvalueLinear(ds, ['x6'], 'test_dataset_feature_importance_004')
+        ret = lrw()
+        self.assertTrue(ret)
+        self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")
+        self.assertTrue(lrw.p_values['x2'] < 0.05, f"p-value = {lrw.p_values['x2']}")
+        self.assertTrue(lrw.p_values['x3'] < 0.05, f"p-value = {lrw.p_values['x3']}")
+        self.assertTrue(lrw.p_values['x4'] > 0.1, f"p-value = {lrw.p_values['x4']}")
+        self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
+
+    def test_dataset_feature_importance_005(self):
+        ''' Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_005.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        lrw = MultipleLogisticRegressionWilks(ds, ['x4', 'x5'], 'test_dataset_feature_importance_005')
         ret = lrw()
         self.assertTrue(ret)
         self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")

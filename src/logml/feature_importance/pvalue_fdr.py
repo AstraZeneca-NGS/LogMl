@@ -80,7 +80,7 @@ class PvalueFdr(MlFiles):
             if c in x_vars:
                 null_vars.append(c)
             else:
-                self._info("Variable '{c}' does not exists in dataset, ommiting")
+                self._info(f"{self.algorithm} ({self.tag}): Variable '{c}' does not exists in dataset, ommiting")
         self.null_model_variables = null_vars
         return len(null_vars) > 0
 
@@ -109,9 +109,16 @@ class LogisticRegressionWilks(PvalueFdr):
     Estimate p-value from logistic regression (Wilks)
     '''
 
-    def __init__(self, datasets, null_model_variables, tag):
+    def __init__(self, datasets, null_model_variables, tag, class_to_analyze=None):
         super().__init__(datasets, null_model_variables, tag)
         self.algorithm = 'Logistic regression Wilks'
+        self.class_to_analyze = class_to_analyze
+
+    def binarize(self, y):
+        """ Make sure 'y' has values in range [0, 1] """
+        if self.class_to_analyze is None:
+            return (y - y.min()) / (y.max() - y.min())
+        return (y == self.class_to_analyze).astype('float')
 
     def fit_null_model(self):
         ''' Fit 'null' model '''
@@ -128,6 +135,7 @@ class LogisticRegressionWilks(PvalueFdr):
             if alt_model_variables:
                 cols.append(alt_model_variables)
             x, y = self._drop_na_inf(cols)
+            y = self.binarize(y)
             logit_model = Logit(y, x)
             res = logit_model.fit(disp=0)
             return logit_model, res
@@ -143,8 +151,53 @@ class LogisticRegressionWilks(PvalueFdr):
             return 1.0
         d = 2.0 * (model_alt_res.llf - self.model_null_results.llf)
         p_value = chi2.sf(d, 1)
-        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")
+        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")
         return p_value
+
+
+class MultipleLogisticRegressionWilks(PvalueFdr):
+    """ Logistic regression for multiple classes
+    This just performs multiple instances of logistic regression. Each "comparisson"
+    is testing a class agains the all the others. For instance if the classes
+    are: {'low', 'mid', 'high'}, run logstic regression is run three times (one
+    for each "comparisson"):
+        - 'low' vs ('mid' or 'high')
+        - 'mid' vs ('low' or 'high')
+        - 'high' vs ('low' or 'mid')
+    P-values are be corrected for multiple testing, the lowest p-value for
+    each "comparisson" is reported
+    """
+    def __init__(self, datasets, null_model_variables, tag):
+        super().__init__(datasets, null_model_variables, tag)
+        self.algorithm = 'Multiple Logistic regression Wilks'
+        # Find classes
+        self.classes = self.y.replace([np.inf, -np.inf], np.nan).unique()
+        # Create a logistic regression for each class
+        self.logistic_regressions_by_class = {cn: LogisticRegressionWilks(datasets, null_model_variables, tag, cn) for cn in self.classes}
+
+    def __call__(self):
+        oks = [self.logistic_regressions_by_class[cn]() for cn in self.classes]
+        self.fdr()
+        return len(self.p_values) > 0
+
+    def fdr(self):
+        """ Perform multiple testing correction using FDR
+        In this case, each 'p_value' calculation returned a list of p-values (one
+        for each 'comparisson')
+        """
+        # FDR Correction using all comparissons
+        pvals = [pval for cn in self.classes for pval in self.logistic_regressions_by_class[cn].get_pvalues()]
+        pvals = np.array(pvals)
+        rejected, pvals_corr = fdrcorrection(pvals)
+        # Assign 'raw' p_values: Use across comparissons
+        pvals = pvals.reshape((len(self.classes), -1))
+        self.p_values = {self.columns[i]: pvals[:, i].min() for i in range(len(self.columns))}
+        # Assign FDR corected values: Use minimum across comparissons
+        pvals_corr = pvals_corr.reshape((len(self.classes), -1))
+        self.p_values_corrected = np.array([pvals_corr[:, i].min() for i in range(len(self.columns))])
+        # Assign 'rejected': Use 'or' across comparissons (i.e. 'any')
+        rejected = rejected.reshape((len(self.classes), -1))
+        self.rejected = np.array([rejected[:, i].any() for i in range(len(self.columns))])
 
 
 class PvalueLinear(PvalueFdr):

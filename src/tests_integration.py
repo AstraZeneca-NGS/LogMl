@@ -17,11 +17,15 @@ from logml.models import Model
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_TRAIN
 
 
+DEBUG = os.get_env('TEST_INTEGRATION_DEBUG', False)
+
+
 class TestLogMlIntegration(unittest.TestCase):
 
     def setUp(self):
         MlLog().set_log_level(logging.CRITICAL)
-        # MlLog().set_log_level(logging.DEBUG)
+        if DEBUG:
+            MlLog().set_log_level(logging.DEBUG)
         MlRegistry().reset()
 
     def test_linear3(self):
