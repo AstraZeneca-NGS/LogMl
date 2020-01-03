@@ -63,7 +63,7 @@ class DatasetsBase(MlFiles):
         self.is_use_default_split = True
         self.is_use_default_transform = True
         self.operations_done = set()
-        self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
+        self.operations = [DATASET_TRANSFORM, DATASET_PREPROCESS, DATASET_AUGMENT, DATASET_SPLIT]
         self.outputs = list()
         self.should_save = False
         if set_config:

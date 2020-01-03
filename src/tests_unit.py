@@ -133,7 +133,7 @@ class TestLogMl(unittest.TestCase):
         # Check values
         self.assertTrue(ret)
         self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]))
-        self.assertEqual(ds.dataset, [8, 9, 10, 11, 12, 13])
+        self.assertEqual(ds.dataset, [8, 9, 10, 11, 5, 6])
         self.assertEqual(ds.get_train(), [1, 2, 3])
         self.assertEqual(ds.get_validate(), [4, 5])
         self.assertEqual(ds.get_test(), [6])
@@ -141,7 +141,7 @@ class TestLogMl(unittest.TestCase):
         ds2 = Datasets(config)
         ret = ds2.load()
         self.assertTrue(ret)
-        self.assertEqual(ds.dataset, [8, 9, 10, 11, 12, 13])
+        self.assertEqual(ds.dataset, [8, 9, 10, 11, 5, 6])
         self.assertEqual(ds.dataset_train, [1, 2, 3])
         self.assertEqual(ds.dataset_validate, [4, 5])
         self.assertEqual(ds.dataset_test, [6])
