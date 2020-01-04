@@ -8,9 +8,9 @@ Here is a summary of what `LogMl` does:
 	1. Load: Load a dataset from a file
 	1. Transform: sanitize input names, encode cathegorical inputs, one-hot encoding, expand date/time fieds, remove duplicated inputs, remove samples with missing outputs, shuffle samples, remove inputs with low variance, impute missing values, add missing value indicator variables, normalize inputs, etc.
 	1. Augment: add pricipal components (PCA), NMF, interaction variables, etc.
-	1. Explore: show dataset, correlation analysis, dendogram, missingness analysis, normality/log-normality analysis, inputs distributions, pair-plots, heatmaps, etc.
 	1. Split: Split data into train / validate / test datasets
 	1. Inputs/Outputs: Obtain inputs and output for each (train / validate / test) dataset.
+1. Explore: show dataset, correlation analysis, dendogram, missingness analysis, normality/log-normality analysis, inputs distributions, pair-plots, heatmaps, etc.
 1. Feature importance:
 	1. Model-based (Random Forest, Extra trees, Gradient Boosting) by input shuffle / drop column algorithms
 	1. Boruta
