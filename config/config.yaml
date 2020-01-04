@@ -242,7 +242,7 @@ dataset_explore:
   is_use_ori: false
 
   # Consider variables 'highly correlated' if over this threshold
-  corr_thresdold: 0.7
+  corr_thresdld: 0.7
 
   # Do not plot pairs if there are more than 'correlation_analysis_max' variables
   correlation_analysis_max: 100
