@@ -8,8 +8,8 @@ nav:
     - 'Introduction': introduction.md
     - 'Introduction command line': introduction_cmd.md
     - 'Introduction Jupyter Notebooks': introduction_juppyter.md
+    - 'Logging': logging.md
     - 'Workflow': workflow.md
-    - 'Datasets': datasets.md
-    # - 'Custom Functions': custom_functions.md
-    # - 'Examples': examples_custom_fucntions.md
+    - 'Workflow: Datasets': datasets.md
+    - 'Workflow: Explore': explore.md
 # theme: readthedocs

@@ -57,7 +57,7 @@ dataset:
   is_use_default_transform: true
 
   # Output variables, a.k.a. dependent variables (i.e. what we want to predict)
-  outputs: ['SalePrice']
+  outputs: []
 
 #---
 # Dataset transformations: Conver to categorical variable, dates, one hot, etc.

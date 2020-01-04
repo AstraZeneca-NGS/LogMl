@@ -6,6 +6,8 @@ Here is a summary of what LogMl does:
 
 ![LogMl pipeline diagram](img/LogMl.png)
 
+Example of LogMl workflow:
+
 1. Dataset:
 	1. Load: Load a dataset from a file
 	1. Transform: sanitize input names, encode cathegorical inputs, one-hot encoding, expand date/time fieds, remove duplicated inputs, remove samples with missing outputs, shuffle samples, remove inputs with low variance, impute missing values, add missing value indicator variables, normalize inputs, etc.

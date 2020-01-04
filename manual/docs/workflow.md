@@ -10,21 +10,13 @@ Note that some steps have a `name` to identify them, these steps can be customiz
 1. Dataset:
   	1. `dataset_load`: Load a dataset from a file
     1. `dataset_create`: Create a dataset using a user_defined_function
-  	1. `dataset_preprocess`: sanitize input names, encode cathegorical inputs, one-hot encoding, expand date/time fieds, remove duplicated inputs, remove samples with missing outputs, shuffle samples, remove inputs with low variance, impute missing values, add missing value indicator variables, normalize inputs, etc.
-  	1. `dataset_augment`: add pricipal components (PCA), NMF, interaction variables, etc.
+  	1. `dataset_preprocess`: Pre-process data, e.g. to make it suitable for model training.
+  	1. `dataset_augment`: Data augmentation
   	1. `dataset_split`: Split data into train / validate / test datasets
   	1. `dataset_inout`: Obtain inputs and output for each (train / validate / test) dataset.
     1. `dataset_save`: Save datasets to a file
-1. Explore: show dataset, correlation analysis, dendogram, missingness analysis, normality/log-normality analysis, inputs distributions, pair-plots, heatmaps, etc.
+1. Explore: E.g. show dataset, correlation analysis, dendogram, missingness analysis, etc.
 1. Feature importance:
-  	1. Model-based (Random Forest, Extra trees, Gradient Boosting) by input shuffle / drop column algorithms
-  	1. Boruta
-  	1. Regularization methods (Lasso, Ridge, Lars)
-  	1. Recursive Feature elimination (Lasso, Ridge, Lars AIC, Lars BIC, Random Forest, Extra trees, Gradient Boosting)
-  	1. Linear model p-value
-  	1. Logistic model p-value (Wilks)
-  	1. Multi-class Logistic model p-value (Wilks)
-  	1. Summary by weighted consensus of all the previous method using model's validation score.
 1. Model:
     1. `model_create`: Create a new model
   	1. `model_train`: Train a model
@@ -74,8 +66,7 @@ How each LogMl *named_workflow_step* works:
 1. If there is no user_defined_function, a *LogMl_default_function* is used. E.g. For the `dataset_load` workflow step, LogMl tries to load a dataset from a CSV file
 1. If there is neither a *user_defined_function*, nor a *LogMl_default_function*, the step fails (can be *soft_fail* or *hard_fail*, depending on the step)
 
-
-## User_defined_function
+### User_defined_function
 
 A *user_defined_function* is just Python code that has been annotated with a LogMl name (from a *named_workflow_step*).
 The *user_defined_functions* are often referred by the names with an `@` prefix, for instance `@dataset_load` refers to the *user_defined_function* annotated with `dataset_load` *workflow_step_name*
@@ -100,7 +91,11 @@ lm = LogMl()  # Create LogMl object
 lm()          # Invoke it to execute the LogMl workflow (LogMl objects are callable)
 ```
 
-As you can see, this *user_defined_function* has a parameter `num_samples`, we can define the parameter in the config YAML file:
+### Config_YAML
+
+The *user_defined_function* we saw in the previous section (`my_dataset_create`) has a parameter `num_samples`.
+We can define the parameter in the *config_YAML* file:
+
 ```
 dataset:
   dataset_name: 'example_01'
@@ -116,36 +111,12 @@ functions:
       num_samples: 1000       # to @dataset_create user_defined_function
 ```
 
-Note that the `functions` section in the YAML file, has a `dataset_create` sub-section. All parameters defined in that sub-section are passed (in the same order) as named parameters to the Python `my_dataset_create` function (i.e the *user_defined_function* annotated with `dataset_create`).
+Note that the `functions` section in the *config_YAML* file, has a `dataset_create` sub-section.
+All parameters defined in that sub-section are passed as named parameters to the Python `my_dataset_create` function (i.e the *user_defined_function* annotated with `dataset_create`).
 
-Given the code and YAML shown above, when LogMl executes the wokflow and reaches the `dataset_create` *workflow_step*, it will invoke `my_dataset_create(1000)` and store the return value as the dataset. The dataset will then be used in all the next *workflow_steps*: it will be pre-processed, split into train/validation/test, used for model training, etc.
+Given the code and YAML shown above, when LogMl executes the wokflow and reaches the `dataset_create` *workflow_step*, it will invoke `my_dataset_create(1000)` and store the return value as the dataset.
+The dataset will then be used in all the next *workflow_steps*: it will be pre-processed, split into train/validation/test, used for model training, etc.
 
-
-## LogMl_default_functions
-
-Creating custom functions is very flexible, but many times LogMl already has good default functions you can use.
+**LogMl_default_functions**: Creating custom functions is very flexible, but many times LogMl already has good default functions you can use.
 Particularly, when using a DataFrame (e.g. a dataset provided as CSV file), there are many functionalities that LogMl provides by default.
-
-### 
-
-# Config_YAML
-
-!!!!!!!!!!!!!!!!!! ENABLE/DISABLE EACH SECTION !!!!!!!!!!!!
-E.G. DISABLE EXPLORE / MODEL SEARCH
-!!!!!!!!!!!!!!!!! GLOBAL CONFIG (PLOTS, ETC)
-
-# Logging
-
-LogMl automatically logs a lot of information so you can retrieve, debug, and reproduce your experiments.
-
-**Datasets**: Datasets are saved to (pickle) files after pre-processing and augmentation. The next time you run LogMl on the same dataset, LogMl checks if there is a *Processed_dataset_file* and loads it, this can save significant processing, particularly if you re-run LogMl many times (e.g. when fine-tuning a model). This can be customized by a *user_defined_function*.
-
-**Parameters**: Parameters from *config_YAML* are stored for future references. Even if you change the original *config_YAML*, the original parameters are saved to a YAML log file.Note that  *user_defined_functions* can have parameters defined in a YAML file, this makes it convenient for repeatability, since YAML file is logged for each model.
-
-**Models**: All models are saved to a (pickle) file. This can be customized by a *user_defined_function*.
-
-**Model training output**: All output (STDOUT and STDERR) from model training is redirected to log files. This can be very useful to debug models.
-
-**Plots and charts**: Plots are by default saved to the `logml_plots` directory as PNG images
-
-**Summary data**: Summary tables and outputs are stored as CSV files for further analysis and references (e.g. feature importance tables, model training tables, correlation rankings, feature importance weights, dot graphs, etc.)
+These *LogMl_default_functions* have many parameters that are defined in the *config_YAML*
