@@ -12,4 +12,5 @@ nav:
     - 'Workflow': workflow.md
     - 'Workflow: Datasets': datasets.md
     - 'Workflow: Explore': explore.md
+    - 'Workflow: Feature importance': feature_importance.md
 # theme: readthedocs
