@@ -5,7 +5,8 @@ nav:
   - Manual:
     - 'Overview': overview.md
     - 'Install': install.md
-    - 'Introduction': introduction.md
+    - 'Introduction command line': introduction_cmd.md
+    - 'Introduction Jupyter Notebooks': introduction_juppyter.md
     # - 'Custom Functions': custom_functions.md
     # - 'Examples': examples_custom_fucntions.md
 # theme: readthedocs
