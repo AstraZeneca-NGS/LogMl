@@ -1,12 +1,14 @@
-site_name: LogMl - AI/ML automation framwork
+site_name: LogMl
 nav:
   - Home: index.md
   - About: about.md
   - Manual:
     - 'Overview': overview.md
     - 'Install': install.md
+    - 'Introduction': introduction.md
     - 'Introduction command line': introduction_cmd.md
     - 'Introduction Jupyter Notebooks': introduction_juppyter.md
+    - 'Datasets': datasets.md
     # - 'Custom Functions': custom_functions.md
     # - 'Examples': examples_custom_fucntions.md
 # theme: readthedocs

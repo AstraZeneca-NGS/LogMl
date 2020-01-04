@@ -1,30 +1,11 @@
 
-# Running from Jupyter Notebooks
+# Introduction
 
 In this introduction, we show an example on how to run `LogMl` from a Jupyter Notebook
 
 The source notebook can be found in `notebooks/intro_bare.ipynb` (source code from GitHub)
 
-### Results
-
-[Click here](intro_bare.html) to see LogMl's output. The results include:
-
-- Dataset exploration
-    - Show dataset (head & tail)
-    - Variables statistics (including normally analysis)
-    - Variables distributions
-    - Pairs plots
-    - Correlation analysis
-    - Correlation dendogram
-- Feature importance
-    - Model based:  RandomForest, ExtraTrees, GradientBoosting. Using drop column and permutation analysis
-    - Regression models
-    - Tree decition graph
-    - Weighted rank sum of all methods
-- Model search with hyper-parameter tunning
-    - Summary of all models, ranked by validation performance
-
-# Running the example
+## Running from Jupyter Notebooks
 
 In order to run this example, you'll need to
 
@@ -47,7 +28,7 @@ LOGML_SRC="$HOME/workspace/LogMl"
 LOGML_INSTALL="$HOME/logml"
 ```
 
-### Set up your Jupyter Notebooks environment
+### Set up Jupyter Notebooks environment
 
 The first step is to make sure the `LogMl` virtual environment is available when you run Jupyter Notebooks
 You can do it by running these commands:
@@ -116,6 +97,23 @@ ml = LogMl('config/intro.yaml')
 ml()
 ```
 
+## Results
+
 [Click here to see LogMl's output](intro_bare.html)
 
 [Or here](intro.html) to see the full notebook that creates the dataset and explains more details
+
+- Dataset exploration
+    - Show dataset (head & tail)
+    - Variables statistics (including normally analysis)
+    - Variables distributions
+    - Pairs plots
+    - Correlation analysis
+    - Correlation dendogram
+- Feature importance
+    - Model based:  RandomForest, ExtraTrees, GradientBoosting. Using drop column and permutation analysis
+    - Regression models
+    - Tree decition graph
+    - Weighted rank sum of all methods
+- Model search with hyper-parameter tunning
+    - Summary of all models, ranked by validation performance

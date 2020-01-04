@@ -9,7 +9,7 @@ from .files import MlFiles
 from .registry import MlRegistry
 
 
-DEFAULT_YAML = "ml.yaml"
+DEFAULT_YAML = "config.yaml"
 
 CONFIG_CONFIG = ''
 CONFIG_CROSS_VALIDATION = 'cross_validation'

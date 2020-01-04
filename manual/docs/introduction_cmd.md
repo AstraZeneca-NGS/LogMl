@@ -1,9 +1,9 @@
 
-# Running from command line
+# Introduction
 
 In this introduction, we show an example on how to run `LogMl` from the command line
 
-# Running the example
+## Running from command line
 
 In order to run this example, you'll need to
 
