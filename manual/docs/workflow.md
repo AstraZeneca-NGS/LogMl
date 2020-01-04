@@ -33,7 +33,13 @@ IN EACH STEP:
 
 !!!!!!!!!!!!! EXAMPLE: DATAFRAMES !!!!!!!!!!!!!!!!!
 
+# Results
+
+!!!!!!!!!!!!!!!!! WHERE ARE THEY STORED
+!!!!!!!!!!!!!!!!! PLOTS
+
 # Config YAML
 
 !!!!!!!!!!!!!!!!!! ENABLE/DISABLE EACH SECTION !!!!!!!!!!!!
 E.G. DISABLE EXPLORE / MODEL SEARCH
+!!!!!!!!!!!!!!!!! GLOBAL CONFIG (PLOTS, ETC) 
