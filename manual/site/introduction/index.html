@@ -1,25 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Introduction - LogMl - AI/ML automation framwork</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
 
-# Introduction
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
 
-To show `LogMl`'s capabilities, we'll create a (fake) dataset and then let `LogMl` analyze.
-The steps are:
+    <body>
 
-- Initialize Jupyter notebook
-- Create a dataset
-- Create a configuration file `config.yaml`
-- Run `LogMl`
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
 
-###
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl - AI/ML automation framwork</a>
+                </div>
 
-# Introduction to LogMl
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Introduction</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
 
-**Important**: This assumes that you installed LogMl in the default directory, according to the documentation and are running this notebook from that directory (i.e. $HOME/logml)
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../install/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="disabled">
+                                <a rel="prev" >
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-### Initialize Jupyter Notebook
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#introduction">Introduction</a></li>
+        <li class="main "><a href="#introduction-to-logml">Introduction to LogMl</a></li>
+            <li><a href="#initialize-jupyter-notebook">Initialize Jupyter Notebook</a></li>
+        <li class="main "><a href="#create-dataset">Create Dataset</a></li>
+        <li class="main "><a href="#run-logml">Run LogMl</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
 
-
-```python
-%load_ext autoreload
+<h1 id="introduction">Introduction</h1>
+<p>To show <code>LogMl</code>'s capabilities, we'll create a (fake) dataset and then let <code>LogMl</code> analyze.
+The steps are:</p>
+<ul>
+<li>Initialize Jupyter notebook</li>
+<li>Create a dataset</li>
+<li>Create a configuration file <code>config.yaml</code></li>
+<li>Run <code>LogMl</code></li>
+</ul>
+<h3 id="_1"></h3>
+<h1 id="introduction-to-logml">Introduction to LogMl</h1>
+<p><strong>Important</strong>: This assumes that you installed LogMl in the default directory, according to the documentation and are running this notebook from that directory (i.e. $HOME/logml)</p>
+<h3 id="initialize-jupyter-notebook">Initialize Jupyter Notebook</h3>
+<pre><code class="python">%load_ext autoreload
 %autoreload 2
 %matplotlib inline
 
@@ -30,32 +123,23 @@ import sys
 import os
 
 from pathlib import Path
-```
+</code></pre>
 
-Set path to use 'src' subdir
-
-
-```python
-logml_src = str(Path(os.getcwd())/'src')
-print(f"Adding Python path '{logml_src}'")
+<p>Set path to use 'src' subdir</p>
+<pre><code class="python">logml_src = str(Path(os.getcwd())/'src')
+print(f&quot;Adding Python path '{logml_src}'&quot;)
 sys.path.append(logml_src)
-```
+</code></pre>
 
-    Adding Python path '/home/pcingola/logml/src'
+<pre><code>Adding Python path '/home/pcingola/logml/src'
+</code></pre>
+<h1 id="create-dataset">Create Dataset</h1>
+<pre><code class="python">dataset_name = 'intro'
+</code></pre>
 
-
-# Create Dataset
-
-
-```python
-dataset_name = 'intro'
-```
-
-
-```python
-def rand_norm(num, mean, std, na_prob):
+<pre><code class="python">def rand_norm(num, mean, std, na_prob):
     xi = np.random.normal(mean, std, num)
-    xi_na = (np.random.rand(num) <= na_prob)
+    xi_na = (np.random.rand(num) &lt;= na_prob)
     xi[xi_na] = np.nan
     return xi
 
@@ -72,41 +156,30 @@ def create_dataset(num=1000, prob_na=0.05):
     # Create dataFrame
     df = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'y': y})
     return df
-```
+</code></pre>
 
-Make sure dataset directory exists
-
-
-```python
-data_dir = Path('data')/dataset_name
-print(f"Creating dir {data_dir}")
+<p>Make sure dataset directory exists</p>
+<pre><code class="python">data_dir = Path('data')/dataset_name
+print(f&quot;Creating dir {data_dir}&quot;)
 ! mkdir -p {data_dir}
-```
+</code></pre>
 
-    Creating dir data/intro
-
-
-Run function to create, then save it
-
-
-```python
-df = create_dataset()
+<pre><code>Creating dir data/intro
+</code></pre>
+<p>Run function to create, then save it</p>
+<pre><code class="python">df = create_dataset()
 
 # Save to csv file
-csv_file = Path('data')/dataset_name/f"{dataset_name}.csv"
-print(f"Saving to {csv_file}")
+csv_file = Path('data')/dataset_name/f&quot;{dataset_name}.csv&quot;
+print(f&quot;Saving to {csv_file}&quot;)
 df.to_csv(csv_file, index=False)
 
 # Show first lines
 df.head()
-```
+</code></pre>
 
-    Saving to data/intro/intro.csv
-
-
-
-
-
+<pre><code>Saving to data/intro/intro.csv
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -171,34 +244,23 @@ df.head()
 </table>
 </div>
 
+<h1 id="run-logml">Run LogMl</h1>
+<p>Remove old files from previous runs</p>
+<pre><code class="python">!rm -vf data/{dataset_name}/*pkl
+</code></pre>
 
-
-# Run LogMl
-
-Remove old files from previous runs
-
-
-```python
-!rm -vf data/{dataset_name}/*pkl
-```
-
-    removed 'data/intro/intro.dataset_explore.transformed.data_explore.pkl'
-    removed 'data/intro/intro.pkl'
-
-
-
-```python
-from logml import *
-config_file = Path('config')/f"{dataset_name}.yaml"
+<pre><code>removed 'data/intro/intro.dataset_explore.transformed.data_explore.pkl'
+removed 'data/intro/intro.pkl'
+</code></pre>
+<pre><code class="python">from logml import *
+config_file = Path('config')/f&quot;{dataset_name}.yaml&quot;
 ml = LogMl(config_file)
 ml()
-```
+</code></pre>
 
-    Summary: transformed
-    Head transformed
-
-
-
+<pre><code>Summary: transformed
+Head transformed
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -263,11 +325,8 @@ ml()
 </table>
 </div>
 
-
-    Tail transformed
-
-
-
+<pre><code>Tail transformed
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -332,11 +391,8 @@ ml()
 </table>
 </div>
 
-
-    Summary statistics transformed
-
-
-
+<pre><code>Summary statistics transformed
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -422,16 +478,13 @@ ml()
 </table>
 </div>
 
-
-    Numeric columns transformed: ['x1', 'x2', 'x3', 'y']
-    Non-numerical (e.g. categorical) columns transformed: []
-    Missing data: transformed
-    Describe fields: transformed
-    Plotting histograms for columns transformed: ['x1', 'x2', 'x3', 'y']
-    Summary transformed: x1
-
-
-
+<pre><code>Numeric columns transformed: ['x1', 'x2', 'x3', 'y']
+Non-numerical (e.g. categorical) columns transformed: []
+Missing data: transformed
+Describe fields: transformed
+Plotting histograms for columns transformed: ['x1', 'x2', 'x3', 'y']
+Summary transformed: x1
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -518,15 +571,9 @@ ml()
 </table>
 </div>
 
-
-
-![png](output_16_8.png)
-
-
-    Summary transformed: x2
-
-
-
+<p><img alt="png" src="output_16_8.png" /></p>
+<pre><code>Summary transformed: x2
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -613,15 +660,9 @@ ml()
 </table>
 </div>
 
-
-
-![png](output_16_11.png)
-
-
-    Summary transformed: x3
-
-
-
+<p><img alt="png" src="output_16_11.png" /></p>
+<pre><code>Summary transformed: x3
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -708,15 +749,9 @@ ml()
 </table>
 </div>
 
-
-
-![png](output_16_14.png)
-
-
-    Summary transformed: y
-
-
-
+<p><img alt="png" src="output_16_14.png" /></p>
+<pre><code>Summary transformed: y
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -803,15 +838,9 @@ ml()
 </table>
 </div>
 
-
-
-![png](output_16_17.png)
-
-
-    Describe variables transformed
-
-
-
+<p><img alt="png" src="output_16_17.png" /></p>
+<pre><code>Describe variables transformed
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -946,20 +975,13 @@ ml()
 </table>
 </div>
 
-
-    Show pair-plot: transformed
-    Plotting pairs for columns transformed: Index(['x1', 'x2', 'x3', 'y'], dtype='object')
-
-
-
-![png](output_16_21.png)
-
-
-    Correlation analysis: transformed
-    Top correlations transformed: (1, 5)  1
-
-
-
+<pre><code>Show pair-plot: transformed
+Plotting pairs for columns transformed: Index(['x1', 'x2', 'x3', 'y'], dtype='object')
+</code></pre>
+<p><img alt="png" src="output_16_21.png" /></p>
+<pre><code>Correlation analysis: transformed
+Top correlations transformed: (1, 5)  1
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -998,85 +1020,29 @@ ml()
 </table>
 </div>
 
-
-
-![png](output_16_24.png)
-
-
-    Dendogram: transformed
-
-
-
-![png](output_16_26.png)
-
-
-    Dendogram of missing values: transformed
-
-
-
-![png](output_16_28.png)
-
-
-
-![png](output_16_29.png)
-
-
-
-![png](output_16_30.png)
-
-
-
-![png](output_16_31.png)
-
-
-
-![png](output_16_32.png)
-
-
-
-![png](output_16_33.png)
-
-
-
-![png](output_16_34.png)
-
-
-
-![png](output_16_35.png)
-
-
-
-![png](output_16_36.png)
-
-
-
-![png](output_16_37.png)
-
-
-
-![png](output_16_38.png)
-
-
-
-![png](output_16_39.png)
-
-
-
-![png](output_16_40.png)
-
-
-
-![png](output_16_41.png)
-
-
-
-![png](output_16_42.png)
-
-
-    Feature importance all
-
-
-
+<p><img alt="png" src="output_16_24.png" /></p>
+<pre><code>Dendogram: transformed
+</code></pre>
+<p><img alt="png" src="output_16_26.png" /></p>
+<pre><code>Dendogram of missing values: transformed
+</code></pre>
+<p><img alt="png" src="output_16_28.png" /></p>
+<p><img alt="png" src="output_16_29.png" /></p>
+<p><img alt="png" src="output_16_30.png" /></p>
+<p><img alt="png" src="output_16_31.png" /></p>
+<p><img alt="png" src="output_16_32.png" /></p>
+<p><img alt="png" src="output_16_33.png" /></p>
+<p><img alt="png" src="output_16_34.png" /></p>
+<p><img alt="png" src="output_16_35.png" /></p>
+<p><img alt="png" src="output_16_36.png" /></p>
+<p><img alt="png" src="output_16_37.png" /></p>
+<p><img alt="png" src="output_16_38.png" /></p>
+<p><img alt="png" src="output_16_39.png" /></p>
+<p><img alt="png" src="output_16_40.png" /></p>
+<p><img alt="png" src="output_16_41.png" /></p>
+<p><img alt="png" src="output_16_42.png" /></p>
+<pre><code>Feature importance all
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1291,11 +1257,8 @@ ml()
 </table>
 </div>
 
-
-    Feature importance all weights
-
-
-
+<pre><code>Feature importance all weights
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1438,20 +1401,17 @@ ml()
 </table>
 </div>
 
+<pre><code>/home/pcingola/logml/lib/python3.7/site-packages/sklearn/linear_model/omp.py:673: RuntimeWarning:  Orthogonal matching pursuit ended prematurely due to linear
+dependence in the dictionary. The requested precision might not have been met.
 
-    /home/pcingola/logml/lib/python3.7/site-packages/sklearn/linear_model/omp.py:673: RuntimeWarning:  Orthogonal matching pursuit ended prematurely due to linear
-    dependence in the dictionary. The requested precision might not have been met.
-    
-      return_n_iter=True)
-
-
-    100%|██████████| 100/100 [02:18<00:00,  1.38s/it, best loss: 0.04321152253939531]
-    100%|██████████| 100/100 [01:14<00:00,  1.35it/s, best loss: 0.034735876557109746]
-    100%|██████████| 100/100 [03:43<00:00,  2.24s/it, best loss: 0.024598192556565146]
-    100%|██████████| 100/100 [02:10<00:00,  1.31s/it, best loss: 0.035462465331310034]
+  return_n_iter=True)
 
 
-
+100%|██████████| 100/100 [02:18&lt;00:00,  1.38s/it, best loss: 0.04321152253939531]
+100%|██████████| 100/100 [01:14&lt;00:00,  1.35it/s, best loss: 0.034735876557109746]
+100%|██████████| 100/100 [03:43&lt;00:00,  2.24s/it, best loss: 0.024598192556565146]
+100%|██████████| 100/100 [02:10&lt;00:00,  1.31s/it, best loss: 0.035462465331310034]
+</code></pre>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -33124,15 +33084,86 @@ ml()
 </table>
 </div>
 
+<pre><code>True
+</code></pre>
+<pre><code class="python">
+</code></pre></div>
+        </div>
 
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
 
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
 
-
-    True
-
-
-
-
-```python
-
-```
+    </body>
+</html>

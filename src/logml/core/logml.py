@@ -24,10 +24,12 @@ class LogMl(MlFiles):
             config = Config(config_file=config_file)
             config()
         if config is not None:
-            if verbose:
-                config.set_log_level(logging.INFO)
             if debug:
                 config.set_log_level(logging.DEBUG)
+            elif verbose:
+                config.set_log_level(logging.INFO)
+            else:
+                config.set_log_level(logging.WARNING)
         super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
