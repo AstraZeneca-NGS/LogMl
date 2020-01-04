@@ -1,7 +1,7 @@
 
 # Introduction
 
-To run `LogMl` you only need:
+To run LogMl you only need:
 
 1. A dataset
 1. A configuration (YAML) file
@@ -46,9 +46,9 @@ functions:                                             # Section: User defined f
       max_features: 0.7                                #    Max number of features
 ```
 
-### Running `LogMl`
+### Running LogMl
 
-Once the dataset and configuration files are ready, you can simply run `LogMl` like this:
+Once the dataset and configuration files are ready, you can simply run LogMl like this:
 
 ```
 # Go to LogMl install dir, activate virtual environment

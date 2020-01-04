@@ -2,7 +2,9 @@
 # Overview
 
 `Log(ML)` is a Machine Learning / AI automation framework.
-Here is a summary of what `LogMl` does:
+Here is a summary of what LogMl does:
+
+![LogMl pipeline diagram](img/LogMl.png)
 
 1. Dataset:
 	1. Load: Load a dataset from a file
@@ -23,7 +25,7 @@ Here is a summary of what `LogMl` does:
 1. Model Training:
 	1. Single model: Train a model, calculate validation and test dataset performance
 	1. Hyper-parameter optimization: Train models using hyper-parameter optimization using Bayesian or Random algorithms
-1. Model Search: Search over 50 different model families (i.e. machine learning algorithms). This search can be done using hyper-parameter optimizations on the model's hyper-parameters.
+	1. Model Search: Search over 50 different model families (i.e. machine learning algorithms). This search can be done using hyper-parameter optimizations on each model's hyper-parameters.
 1. Cross-validation: Perform cross-validation (KFold, RepeatedKFold, LeaveOneOut, LeavePOut, ShuffleSplit). Cross-validation can be used in all model search and Feature importance steps.
 1. Logging: All outputs are directed to log files
 1. Save models & datasets: Automatically save models and datasets for easier retrieval later

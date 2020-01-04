@@ -1,14 +1,14 @@
 
 # Introduction
 
-In this introduction, we show an example on how to run `LogMl` from the command line
+In this introduction, we show an example on how to run LogMl from the command line
 
 ## Running from command line
 
 In order to run this example, you'll need to
 
-1. Copy the dataset to your `LogMl` install directory
-1. Copy the configuration file to your `LogMl` install directory
+1. Copy the dataset to your LogMl install directory
+1. Copy the configuration file to your LogMl install directory
 1. Run LogMl
 
 ### Set up environment variables
@@ -53,9 +53,9 @@ mkdir -p config
 cp $LOGML_SRC/config/intro.yaml config/
 ```
 
-### Running `LogMl`
+### Running LogMl
 
-To run LogMl, you just need to invoke `LogMl` with the propper configuration file
+To run LogMl, you just need to invoke LogMl with the propper configuration file
 
 ```
 # Activate virtual environment

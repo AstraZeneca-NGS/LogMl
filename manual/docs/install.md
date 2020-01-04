@@ -1,13 +1,13 @@
 
 # Install
 
-The best way to install `LogMl` is to create a virtual environment and pull the code from GitHub:
+The best way to install LogMl is to create a virtual environment and pull the code from GitHub:
 - Development version: `master` branch
 - Latest Release version: `release-YYYYMMDDHHmmSS` (release versions are identified by a timestamp: year, month, day, hour, minute, second)
 
 ### Requirements
 
-- Operating system: `LogMl` was developed and tested on Linux and Mac (OS.X).
+- Operating system: LogMl was developed and tested on Linux and Mac (OS.X).
 - Python 3.7
 - Virtual environment
 - `pip`

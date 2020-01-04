@@ -1,7 +1,7 @@
 
 # Introduction
 
-In this introduction, we show an example on how to run `LogMl` from a Jupyter Notebook
+In this introduction, we show an example on how to run LogMl from a Jupyter Notebook
 
 The source notebook can be found in `notebooks/intro_bare.ipynb` (source code from GitHub)
 
@@ -9,9 +9,9 @@ The source notebook can be found in `notebooks/intro_bare.ipynb` (source code fr
 
 In order to run this example, you'll need to
 
-1. Set up your Jupyter Notebook's `LogMl` environment (if you never did it before)
-1. Copy the dataset to your `LogMl` install directory
-1. Copy the configuration file to your `LogMl` install directory
+1. Set up your Jupyter Notebook's LogMl environment (if you never did it before)
+1. Copy the dataset to your LogMl install directory
+1. Copy the configuration file to your LogMl install directory
 1. Run LogMl from a new Jupyter Notebook
 
 ### Set up environment variables
@@ -30,7 +30,7 @@ LOGML_INSTALL="$HOME/logml"
 
 ### Set up Jupyter Notebooks environment
 
-The first step is to make sure the `LogMl` virtual environment is available when you run Jupyter Notebooks
+The first step is to make sure the LogMl virtual environment is available when you run Jupyter Notebooks
 You can do it by running these commands:
 
 ```
@@ -73,7 +73,7 @@ $ mkdir -p config
 $ cp $LOGML_SRC/config/intro.yaml config/
 ```
 
-### Running `LogMl`
+### Running LogMl
 
 To run LogMl, create a new Jupyter notebook, making sure to select `logml` environment.
 
@@ -90,7 +90,7 @@ logml_src = str(Path(os.getcwd())/'src')
 sys.path.append(logml_src)
 ```
 
-After that, all you need to do is to create a `LogMl` object and run it
+After that, all you need to do is to create a LogMl object and run it
 ```
 from logml import *
 ml = LogMl('config/intro.yaml')
