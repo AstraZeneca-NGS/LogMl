@@ -14,6 +14,10 @@ The first steps in a `LogMl` workflow perform dataset operations:
 Here, `LogMl` takes care of loading or creating a dataset.
 There are several steps taking care of different aspects of dataset processing to make sure is suitable for training a model
 
+## User defined Functions
+
+
+
 ### Dataset: Load
 This step typical attempts to load data from files (e.g. load a "data frame" or a set of images).
 
