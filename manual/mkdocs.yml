@@ -13,4 +13,8 @@ nav:
     - 'Workflow: Datasets': datasets.md
     - 'Workflow: Explore': explore.md
     - 'Workflow: Feature importance': feature_importance.md
+    - 'Workflow: Model': model.md
+    - 'Workflow: Hyper-parameter tunnig': model_hyperopt.md
+    - 'Workflow: Model Search': model_search.md
+    - 'Cross validation': cross_validation.md
 # theme: readthedocs
