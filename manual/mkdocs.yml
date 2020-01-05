@@ -17,4 +17,5 @@ nav:
     - 'Workflow: Hyper-parameter tunnig': model_hyperopt.md
     - 'Workflow: Model Search': model_search.md
     - 'Cross validation': cross_validation.md
+    - 'Examples: Custom functions': examples_custom_fucntions.md
 # theme: readthedocs

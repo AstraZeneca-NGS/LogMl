@@ -1,7 +1,7 @@
 
 # Learning by examples
 
-This is Machine Learning, so let's learn by showing some examples...(hopefully you can generalize as well as your ML algorithms)
+This is Machine Learning, so let's learn by showing some examples...(hopefully you can generalize)
 
 In this section we introduce some examples on how to use `Log(ML)` and show how the framework simplifies some aspect fo machine learning projects.
 
