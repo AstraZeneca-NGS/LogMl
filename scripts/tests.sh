@@ -13,26 +13,31 @@ source ./bin/activate
 # If these variables are set, only perform one unit/integration test
 TEST_UNIT_NAME=""
 TEST_INTEGRATION_NAME=""
+# TEST_UNIT_NAME="-"  # Disable Unit testing
 # TEST_UNIT_NAME="TestLogMl.test_dataset_feature_importance_005"
-# TEST_INTEGRATION_NAME="TestLogMlIntegration.test_linear3"
+# TEST_INTEGRATION_NAME="TestLogMlIntegration.test_class3"
 
 #---
 # Unit testing
 #---
 echo
 echo
-if [ -z "$TEST_UNIT_NAME" ]; then
-    echo "Unit tests: All "
-    time coverage run src/tests_unit.py -v --failfast 2>&1 | tee tests.unit.out
+if [ "$TEST_UNIT_NAME" == "-" ]; then
+  echo "Unit test cases disabled, skipping. "
 else
-    echo "Unit test: '$TEST_UNIT_NAME' "
-    export TEST_UNIT_DEBUG="True"
-    time coverage run src/tests_unit.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
+  if [ -z "$TEST_UNIT_NAME" ]; then
+      echo "Unit tests: All "
+      time coverage run src/tests_unit.py -v --failfast 2>&1 | tee tests.unit.out
+  else
+      echo "Unit test: '$TEST_UNIT_NAME' "
+      export TEST_UNIT_DEBUG="True"
+      time coverage run src/tests_unit.py -v --failfast "$TEST_UNIT_NAME" 2>&1 | tee tests.unit.out
+  fi
+
+  coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
+
+  echo "Test cases (unit): OK"
 fi
-
-coverage report -m --fail-under=60 --omit='*lib/*' 2>&1 | tee -a tests.unit.out
-
-echo "Test cases (unit): OK"
 
 # Should we do integration testing?
 if [ "$test_integration" == 'false' ]; then
