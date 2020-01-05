@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import hashlib
 import numpy as np
 import pandas as pd
 import re
@@ -9,6 +10,7 @@ from ...core.config import CONFIG_DATASET_PREPROCESS
 from ...core.log import MlLog
 from .df_normalize import DfNormalize
 from .df_impute import DfImpute
+from ...util.sanitize import sanitize_name
 
 
 class DfPreprocess(MlLog):
