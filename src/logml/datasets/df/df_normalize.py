@@ -30,7 +30,7 @@ class DfNormalize(MethodsFields):
     def __call__(self):
         """
         Normalize inputs
-        Returns a new (transformed) dataset
+        Returns a new (normalized) dataset
         """
         if not self.enable:
             self._debug(f"Normalizing dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', sub-section 'normalize', enable='{self.enable}'")

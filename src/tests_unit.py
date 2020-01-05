@@ -44,7 +44,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_config_001(self):
         ''' Test objects parameters from config and file names '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_config_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_config_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
         mldataset = Datasets(config)
@@ -62,7 +62,7 @@ class TestLogMl(unittest.TestCase):
         pass
 
     def test_config_003(self):
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_config_003.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_config_003.yaml'), argv=list())
         ret = config()
         logml = LogMl(config=config)
         hopt = logml.hyper_parameter_optimization
@@ -81,7 +81,7 @@ class TestLogMl(unittest.TestCase):
 
         MlRegistry().register(DATASET_CREATE, test_dataset_001_create)
         MlRegistry().register(DATASET_AUGMENT, test_dataset_001_augment)
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_001.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_001.yaml'), argv=list())
         config()
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
         self.assertEqual(config.get_parameters_functions('dataset_create'), {'num_create': 42})
@@ -123,7 +123,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(DATASET_PREPROCESS, test_dataset_002_preprocess)
         MlRegistry().register(DATASET_SPLIT, test_dataset_002_split)
         # Read config
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_002.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_002.yaml'), argv=list())
         config()
         # Create dataset
         ds = Datasets(config)
@@ -173,7 +173,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(DATASET_AUGMENT, test_dataset_003_augment)
         MlRegistry().register(DATASET_SPLIT, test_dataset_003_split)
         # Read config
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_003.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_003.yaml'), argv=list())
         config()
         # Create dataset
         ds = Datasets(config)
@@ -194,7 +194,7 @@ class TestLogMl(unittest.TestCase):
         # Register functions
         MlRegistry().register(DATASET_CREATE, test_dataset_004_create)
         # Read config
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_004.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_004.yaml'), argv=list())
         config()
         # Create dataset
         ds = Datasets(config)
@@ -217,7 +217,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_005(self):
         " Test split_idx method "
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_005.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_005.yaml'), argv=list())
         config()
         ds = Datasets(config)
         ds.dataset = np.array([i + 100 for i in range(10)])
@@ -231,7 +231,7 @@ class TestLogMl(unittest.TestCase):
     def test_dataset_006(self):
         ''' DatasetsDf test (load dataframe) and expand date/time columns and '_na' columns '''
         # Create dataset
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_006.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_006.yaml'), argv=list())
         config()
         ds = DatasetsDf(config)
         rm(ds.get_file_name())
@@ -247,9 +247,9 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue('MachineHoursCurrentMeter_na' in ds.dataset.columns)
 
     def test_dataset_007(self):
-        ''' Test DfTransform 'drop_zero_std' feature '''
+        ''' Test preprocess 'drop_zero_std' feature '''
         # Create dataset
-        config = Config(os.path.join('tests', 'unit', 'config', 'ml.test_dataset_007.yaml'), argv=list())
+        config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_007.yaml'), argv=list())
         config()
         ds = DatasetsDf(config)
         rm(ds.get_file_name())
@@ -261,7 +261,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_augment_001(self):
         ''' Checking dataset augment: PCA '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_augment_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
@@ -291,7 +291,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_feature_importance_001(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
@@ -311,7 +311,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_feature_importance_002(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (random forest) '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_002.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
@@ -329,7 +329,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_feature_importance_003(self):
         ''' Checking feature importance on dataset (dataframe): Regression test (linear) '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_003.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
@@ -349,7 +349,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_feature_importance_004(self):
         ''' Checking feature importance on dataset (dataframe): Reression test (linear regression model) '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_004.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_004.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
@@ -369,7 +369,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_feature_importance_005(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_feature_importance_005.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_005.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
@@ -389,7 +389,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -428,7 +428,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_preprocess_002(self):
         ''' Checking dataset preprocess for dataframe: Imputation '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_002.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -463,7 +463,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_preprocess_003(self):
         ''' Checking dataset preprocess for dataframe: Imputation '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_003.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -493,7 +493,7 @@ class TestLogMl(unittest.TestCase):
 
     def test_dataset_preprocess_004(self):
         ''' Checking dataset preprocess for dataframe: Balance '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_preprocess_004.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_004.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config, model_type='classification')
@@ -507,9 +507,9 @@ class TestLogMl(unittest.TestCase):
         expected = 1.0 / 3.0
         self.assertTrue((np.abs(perc - expected) < epsilon).all(), f"Unbalanced percentage: {perc}, counts={counts}, cathegories={uniq}")
 
-    def test_dataset_transform_001(self):
-        ''' Checking dataset transform: Remove missing output rows '''
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_001.yaml')
+    def test_dataset_preprocess_005(self):
+        ''' Checking dataset preprocess: Remove missing output rows '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_005.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -519,10 +519,9 @@ class TestLogMl(unittest.TestCase):
         # Check that rows in 'y' have been removed
         self.assertTrue(df.shape[0] < 990)
 
-    def test_dataset_transform_002(self):
-        ''' Checking dataset transform: Remove missing output rows '''
-        # create_dataset_transform_002()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_002.yaml')
+    def test_dataset_preprocess_006(self):
+        ''' Checking dataset preprocess: Remove missing output rows '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_006.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -533,10 +532,9 @@ class TestLogMl(unittest.TestCase):
             x = df[c]
             self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
 
-    def test_dataset_transform_003(self):
-        ''' Checking dataset transform: Remove missing column '''
-        # create_dataset_transform_003()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_003.yaml')
+    def test_dataset_preprocess_007(self):
+        ''' Checking dataset preprocess: Remove missing column '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_007.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -548,10 +546,9 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x1' in cols)
         self.assertFalse('d1' in cols)
 
-    def test_dataset_transform_004(self):
-        ''' Checking dataset transform: Convert fields to categories (matching regex on field names) '''
-        # create_dataset_transform_003()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_004.yaml')
+    def test_dataset_preprocess_008(self):
+        ''' Checking dataset preprocess: Convert fields to categories (matching regex on field names) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_008.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -563,10 +560,9 @@ class TestLogMl(unittest.TestCase):
         for field in ['zzz_0', 'zzz_2', 'zzz_4', 'zzz_6', 'zzz_8', 'zxz_1:high', 'xzz_3:high', 'azzz_5:high', '_zzz_7:high', 'zzzz_9']:
             self.assertTrue(field in cols, f"Field {field} not found")
 
-    def test_dataset_transform_005(self):
-        ''' Checking dataset transform: Remove duplicate inputs '''
-        # create_dataset_transform_003()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_005.yaml')
+    def test_dataset_preprocess_009(self):
+        ''' Checking dataset preprocess: Remove duplicate inputs '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_009.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -580,10 +576,9 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x2r' in cols)
         self.assertFalse('x3r' in cols)
 
-    def test_dataset_transform_006(self):
-        ''' Checking dataset transform: Remove duplicate inputs '''
-        # create_dataset_transform_003()
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_dataset_transform_006.yaml')
+    def test_dataset_preprocess_010(self):
+        ''' Checking dataset preprocess: Remove duplicate inputs '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_010.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
@@ -680,7 +675,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_001_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_001_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_001.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_train_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -734,7 +729,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_002_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_002_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_002_cross_validate.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_train_002_cross_validate.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -784,7 +779,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_003_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_003_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_003_hyper_opt.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_train_003_hyper_opt.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -826,7 +821,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_TRAIN, test_train_004_model_train)
         MlRegistry().register(MODEL_EVALUATE, test_train_004_model_evaluate)
         # Read config
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_004_hyper_opt_create.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_train_004_hyper_opt_create.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files
@@ -872,7 +867,7 @@ class TestLogMl(unittest.TestCase):
         MlRegistry().register(MODEL_PREDICT, test_train_005_model_predict)
         MlRegistry().register(MODEL_TRAIN, test_train_005_model_train)
         # Read config
-        config_file = os.path.join('tests', 'unit', 'config', 'ml.test_train_005_metrics.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_train_005_metrics.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Cleanup old files

@@ -11,16 +11,16 @@ import warnings
 from IPython.display import display
 from scipy.cluster import hierarchy as hc
 
-from ..core.config import CONFIG_DATASET_EXPLORE
-from ..core.files import MlFiles
-from ..util.results_df import ResultsDf
+from ...core.config import CONFIG_DATASET_EXPLORE
+from ...core.files import MlFiles
+from ...util.results_df import ResultsDf
 
 
 # Remove some scikit warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class DataExplore(MlFiles):
+class DfExplore(MlFiles):
     '''
     Perform data exploratory analysis.
     There are two types of analysis being performed here:

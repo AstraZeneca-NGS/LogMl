@@ -5,10 +5,11 @@ import random
 from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
-from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
+from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT # InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
 
-# InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
+
 InOut = namedtuple('InOut', ['x', 'y'])
+DATASET_OPS = [DATASET_PREPROCESS, DATASET_AUGMENT, DATASET_SPLIT, DATASET_INOUT]
 
 
 class DatasetsBase(MlFiles):
@@ -28,17 +29,16 @@ class DatasetsBase(MlFiles):
     the steps in creating a dataset:
         1) Load or create the 'raw dataset'
         2) Save to a pickle file (for later , faster access)
-        3) Transform dataset (e.g. convert input variables to numeric or one-hot)
+        5) Preprocess dataset (e.g. convert input variables to numeric or one-hot, normalize inputs)
         4) Augment dataset
-        5) Preprocess dataset (e.g. normalize inputs)
         6) Split into train, validation and testing
         7) Split inputs and outputs
 
     For each of these steps, we first try to call a 'user defined function'. This
     is done in methods `invoke_*()`, for instance `invoke_preprocess()`,
-    `invoke_split()`, ``invoke_transform()`, etc. If there is no user defined
+    `invoke_split()`, ``invoke_preprocess()`, etc. If there is no user defined
     function defeined then a default implementation is used, for example methods
-    `default_preprocess()`, `default_split()`, `default_transform()`, etc.
+    `default_preprocess()`, `default_split()`, `default_preprocess()`, etc.
 
     """
     def __init__(self, config, set_config=True):
@@ -61,9 +61,8 @@ class DatasetsBase(MlFiles):
         self.is_use_default_in_out = True
         self.is_use_default_preprocess = True
         self.is_use_default_split = True
-        self.is_use_default_transform = True
         self.operations_done = set()
-        self.operations = [DATASET_TRANSFORM, DATASET_PREPROCESS, DATASET_AUGMENT, DATASET_SPLIT]
+        self.operations = DATASET_OPS
         self.outputs = list()
         self.should_save = False
         if set_config:
@@ -138,12 +137,6 @@ class DatasetsBase(MlFiles):
                 2.c) split_test + split_validate < 1
         Returns: A tuple with three lists of 'samples' (train, validate, test)
         '''
-        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
-
-    def default_transform(self) -> bool:
-        """ Default implementation for '@dataset_transform'
-        Returns: True on success, False otherwise
-        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_file_name(self, dataset_type=None, ext='pkl'):
@@ -309,16 +302,6 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
-    def invoke_transform(self):
-        """ Invoke user defined function for '@dataset_transform'
-        The user defined function takes a 'raw dataset' as an argument and
-        returns a (transformed) 'raw dataset'. So the user's defined
-        function return value should be stored in self.dataset
-        Returns:
-            True if the user defined funciton was invoked, False otherwise
-        """
-        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
-
     def __len__(self):
         """ Length (number of samples) in the 'raw dataset' """
         return 0 if self.dataset is None else len(self.dataset)
@@ -353,7 +336,7 @@ class DatasetsBase(MlFiles):
             self.dataset_test_xy = InOut(None, None)
             self.dataset_train_xy = InOut(None, None)
             self.dataset_validate_xy = InOut(None, None)
-            self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
+            self.operations = DATASET_OPS
             self.outputs = list()
             self.should_save = False
 
@@ -393,13 +376,6 @@ class DatasetsBase(MlFiles):
             idx_validate: Index (list or array) indicating samples in validate dataset
             idx_test: Index (list or array) indicating samples in test dataset
         '''
-        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
-
-    def transform(self):
-        """ Perform transform step.
-        Invoke a user defined function, if none available, call `default_transform()` method.
-        Returns: True if the transform was performed, False otherwise
-        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def zero_input(self, name, restore):

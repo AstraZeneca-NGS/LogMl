@@ -4,7 +4,6 @@ from .config import CONFIG_DATASET
 from .config import CONFIG_DATASET_EXPLORE
 from .config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from .config import CONFIG_DATASET_PREPROCESS
-from .config import CONFIG_DATASET_TRANSFORM
 from .config import CONFIG_FUNCTIONS
 from .config import CONFIG_HYPER_PARAMETER_OPTMIMIZATION
 from .config import CONFIG_LOGGER
@@ -20,7 +19,6 @@ from .registry import dataset_load
 from .registry import dataset_preprocess
 from .registry import dataset_save
 from .registry import dataset_split
-from .registry import dataset_transform
 from .registry import model_create
 from .registry import model_evaluate
 from .registry import model_predict
@@ -33,7 +31,6 @@ __all__ = ['Config',
            'CONFIG_DATASET_EXPLORE',
            'CONFIG_DATASET_FEATURE_IMPORTANCE',
            'CONFIG_DATASET_PREPROCESS',
-           'CONFIG_DATASET_TRANSFORM',
            'CONFIG_FUNCTIONS',
            'CONFIG_HYPER_PARAMETER_OPTMIMIZATION',
            'CONFIG_LOGGER',
@@ -49,7 +46,6 @@ __all__ = ['Config',
            'dataset_preprocess',
            'dataset_save',
            'dataset_split',
-           'dataset_transform',
            'model_create',
            'model_evaluate',
            'model_predict',

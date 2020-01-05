@@ -6,7 +6,7 @@ from .datasets_base import DatasetsBase, InOut
 from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
-from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT, DATASET_TRANSFORM
+from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT
 
 
 class Datasets(DatasetsBase):
@@ -146,11 +146,6 @@ class Datasets(DatasetsBase):
         idx_train, idx_validate, idx_test = np.array(idx_train), np.array(idx_validate), np.array(idx_test)
         return self.split_idx(idx_train, idx_validate, idx_test)
 
-    def default_transform(self):
-        " Default implementation for '@dataset_transform' "
-        self._debug(f"Default dataset transform not defined, skipping")
-        return False
-
     def do(self, op):
         ''' Perform an abstract operation on a dataset '''
         self._debug(f"Dataset operation '{op}': Start")
@@ -165,8 +160,8 @@ class Datasets(DatasetsBase):
             ok = self.preprocess()
         elif op == DATASET_SPLIT:
             ok = self.split()
-        elif op == DATASET_TRANSFORM:
-            ok = self.transform()
+        elif op == DATASET_INOUT:
+            ok = self.in_outs()
         else:
             raise ValueError(f"Unknown dataset operation '{op}'")
         if ok:
@@ -258,14 +253,6 @@ class Datasets(DatasetsBase):
             self.dataset_train, self.dataset_validate, self.dataset_test = ret
         return invoked
 
-    def invoke_transform(self):
-        " Invoke user defined function for '@dataset_transform' "
-        args = [self.dataset]
-        (invoked, ret) = self.config.invoke(DATASET_TRANSFORM, 'Transform dataset', args)
-        if invoked:
-            self.dataset = ret
-        return invoked
-
     def __len__(self):
         return 0 if self.dataset is None else len(self.dataset)
 
@@ -300,7 +287,7 @@ class Datasets(DatasetsBase):
             self.dataset_test_xy = InOut(None, None)
             self.dataset_train_xy = InOut(None, None)
             self.dataset_validate_xy = InOut(None, None)
-            self.operations = [DATASET_TRANSFORM, DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]
+            self.operations = DATASET_OPS
             self.outputs = list()
             self.should_save = False
 
@@ -332,13 +319,3 @@ class Datasets(DatasetsBase):
             self.dataset_test = self[idx_test]
         self.in_outs()
         return True
-
-    def transform(self):
-        ''' Transform dataset '''
-        ret = self.invoke_transform()
-        if ret:
-            return ret
-        # We provide a default implementation
-        if self.is_use_default_transform:
-            return self.default_transform()
-        return False
