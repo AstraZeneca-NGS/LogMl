@@ -24,10 +24,12 @@ class LogMl(MlFiles):
             config = Config(config_file=config_file)
             config()
         if config is not None:
-            if verbose:
-                config.set_log_level(logging.INFO)
             if debug:
                 config.set_log_level(logging.DEBUG)
+            elif verbose:
+                config.set_log_level(logging.INFO)
+            else:
+                config.set_log_level(logging.WARNING)
         super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
@@ -111,15 +113,22 @@ class LogMl(MlFiles):
     def _dataset_explore(self):
         " Explore dataset "
         if not self.is_dataset_df():
-            self._debug("Dataset exploration only available for dataset type 'df'")
+            self._debug("Dataset Explore: Only available for dataset type 'df', skipping")
             return True
-        files_base = self.datasets.get_file_name(f"dataset_explore.transformed", ext='')
-        self.dataset_explore_transformed = DataExplore(self.datasets.get(), 'transformed', self.config, files_base)
-        ok = self.dataset_explore_transformed()
-        if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori'):
+        self._debug("Dataset Explore: Start")
+        ok = True
+        # Explore original dataset
+        if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori', True):
             files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
             self.dataset_explore_original = DataExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
+        else:
+            self._debug("Dataset Explore: Exploring 'original' datasets disables ('is_use_ori'=False), skipping")
+        # Explore pre-processed dataset
+        files_base = self.datasets.get_file_name(f"dataset_explore.preprocessed", ext='')
+        self.dataset_explore_preprocessed = DataExplore(self.datasets.get(), 'preprocessed', self.config, files_base)
+        ok = self.dataset_explore_preprocessed() and ok
+        self._debug("Dataset Explore: End")
         return ok
 
     def _feature_importance(self):

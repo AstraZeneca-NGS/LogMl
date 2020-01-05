@@ -1,0 +1,61 @@
+
+# LogMl model config file for documentation: 'Introduction'
+
+logger:
+
+dataset:
+  dataset_type: 'df'
+  dataset_name: 'intro'
+  dataset_path: 'data/intro'
+  outputs: ['y']
+
+dataset_transform:
+  enable: true
+
+dataset_augment:
+  enable: true
+
+dataset_preprocess:
+  enable: true
+  impute:
+    median: true
+  normalize:
+    standard: true
+
+dataset_explore:
+  enable: true
+
+dataset_feature_importance:
+  enable: true
+
+model:
+  enable: true
+  model_type: regression
+  model_name: 'model_intro'
+  model_class: sklearn.ensemble.RandomForestRegressor
+  model_path: 'data/intro/model'
+
+hyper_parameter_optimization:
+    enable: false
+    show_progressbar: true
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        model_create:
+            n_estimators: ['randint', 1000]
+            min_samples_leaf: ['randint', 100]
+            max_features: ['uniform', 0.0, 1.0]
+
+functions:
+    dataset_split:
+      split_validate: 0.2
+      split_test: 0.0
+    model_create:
+      n_estimators: 30
+      min_samples_leaf: 3
+      max_features: 0.7
+    model_evaluate:
+
+model_search:
+  enable: true
+  models: !include models_search/*.yaml

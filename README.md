@@ -4,4 +4,4 @@
 Log(ML) is a framework that helps automate many steps in machine learning projects and let you quickly generate baseline results.
 
 
-# [Documentation](/manual/site/index.html)
+# See [Documentation](https://astrazeneca-ngs.github.io/LogMl/)

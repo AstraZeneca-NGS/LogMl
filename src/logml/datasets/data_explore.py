@@ -28,7 +28,7 @@ class DataExplore(MlFiles):
 
     def __init__(self, df, name, config, files_base, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
-        self.corr_thresdold = 0.7
+        self.corr_thresdld = 0.7
         self.correlation_analysis_max = 100
         self.dendogram_max = 100
         self.describe_kde_min_uniq_values = 100
@@ -40,7 +40,7 @@ class DataExplore(MlFiles):
         self.is_nas = True
         self.is_plot_pairs = True
         self.is_summary = True
-        self.is_use_ori = False
+        self.is_use_ori = True
         self.name = name
         self.plot_pairs_max = 20
         self.rank_correlation_matrix = None
@@ -73,7 +73,7 @@ class DataExplore(MlFiles):
         add_idx = 0
         for idx in range(len(ind[0])):
             i, j = ind[0][-idx], ind[1][-idx]
-            if i < j and abs(corr[i, j]) > self.corr_thresdold:
+            if i < j and abs(corr[i, j]) > self.corr_thresdld:
                 row = pd.DataFrame({'col_i': cols[i], 'col_j': cols[j], 'i': i, 'j': j, 'corr': corr[i, j]}, index=[add_idx])
                 add_idx += 1
                 self.top_correlations.add_row_df(row)
@@ -82,7 +82,7 @@ class DataExplore(MlFiles):
             self.top_correlations.print(f"Top correlations {self.name}: {tcdf.shape}  {tcdf.shape[0]}")
             self._save_csv(f"{self.files_base}.top_correlations.csv", "Correlation analysis (top correlations)", tcdf, save_index=True)
         else:
-            print(f"Top correlations {self.name}: There are no variables correlated over corr_thresdold={self.corr_thresdold}")
+            print(f"Top correlations {self.name}: There are no variables correlated over corr_thresdld={self.corr_thresdld}")
         # Plot in a heatmap
         plt.figure()
         self.correlation_df = pd.DataFrame(corr, columns=cols, index=cols)

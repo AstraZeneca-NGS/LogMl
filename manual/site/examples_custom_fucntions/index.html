@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Examples: Custom functions - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../cross_validation/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="disabled">
+                                <a rel="prev" >
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#learning-by-examples">Learning by examples</a></li>
+            <li><a href="#basic-setup">Basic setup</a></li>
+            <li><a href="#example-1-a-neural-network-for-xor">Example 1: A neural network for "XOR"</a></li>
+            <li><a href="#example-2-hyper-parameter-optimization">Example 2: Hyper-parameter optimization</a></li>
+            <li><a href="#example-3-neural-network-architecture-optimization">Example 3: Neural network architecture optimization</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="learning-by-examples">Learning by examples</h1>
+<p>This is Machine Learning, so let's learn by showing some examples...(hopefully you can generalize)</p>
+<p>In this section we introduce some examples on how to use <code>Log(ML)</code> and show how the framework simplifies some aspect fo machine learning projects.</p>
+<h3 id="basic-setup">Basic setup</h3>
+<p><code>Log(ML)</code> can provide some default implementations for some steps of the workflow, but others you need to provide yourself (e.g. code to create your machine learning model). These steps are provided in the Python code you write.</p>
+<p>Both your Python code and the default <code>Log(ML)</code> implementations require parameters, these parameters are configured in a YAML file.</p>
+<p>So, a <code>Log(ML)</code> project consist of (at least) two parts:
+1. A Python program
+1. A YAML configuration file</p>
+<h3 id="example-1-a-neural-network-for-xor">Example 1: A neural network for "XOR"</h3>
+<p>In the code shown in <code>example_01.py</code> (see below)
+we train a neural network model to learn the "XOR" problem. We create three functions:
+- <code>my_dataset_create</code>: Create a dataset (a NumPy matrix) having the inputs and outputs for our problem. We create two columns (the inputs) of <code>num_samples</code> row or random numbers in the interval <code>[-1, 1]</code>. The third column (the output) is the "XOR" of the first two columns
+- <code>my_model_create</code>: Create a neural network using Tenforflow and Keras sequential mode. The network one hidden layer with <code>num_neurons</code> neurons
+- <code>my_model_train</code>: Train the neural network using a learning rate of <code>learning_rate</code> and <code>epochs</code> number of epochs.
+- <code>my_model_eval</code>: Evaluate the neural network.</p>
+<p>Note that the functions are decorated using <code>Log(ML)</code> decorators <code>@dataset_create</code>, <code>@@model_create</code>, <code>@model_train</code> , <code>@model_evaluate</code></p>
+<p>Python code <code>example_01.py</code>:</p>
+<pre><code>#!/usr/bin/env python3
+
+import numpy as np
+import tensorflow as tf
+from logml import *
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adagrad
+
+@dataset_create
+def my_dataset_create(num_samples):
+    x = 2 * np.random.rand(num_samples, 2) - 1
+    y = ((x[:, 0] &gt; 0) ^ (x[:, 1] &gt; 0)).astype('float').reshape(num_samples, 1)
+    return np.concatenate((x, y), axis=1)
+
+@model_create
+def my_model_create(dataset, num_neurons):
+    model = Sequential()
+    model.add(Dense(num_neurons, activation='tanh', input_shape=(2,)))
+    model.add(Dense(1, activation='tanh'))
+    return model
+
+@model_train
+def my_model_train(model, dataset, learning_rate, epochs):
+    model.compile(optimizer=Adagrad(lr=learning_rate), loss='mean_squared_error')
+    return model.fit(dataset[:, 0:2], dataset[:, 2], epochs=epochs)
+
+@model_evaluate
+def my_model_eval(model, dataset):
+    return model.evaluate(dataset[:, 0:2], dataset[:, 2])
+
+ml = LogMl()
+ml()
+</code></pre>
+
+<p>We also need to create a configuration YAML file (see below). This YAML file defines three sections:
+- <code>dataset</code>: Defines the name of the dataset and path to save dataset files.
+- <code>train</code>: Defines the name of the model and path to save model, model parameters and training results files.
+- <code>functions</code>: These define the values to pass to the functions defined in our python program (or <code>Log(ML)</code> default implementations).</p>
+<p>Configuration YAML file <code>example_01.yaml</code></p>
+<pre><code>dataset:
+  dataset_name: 'example_01'
+  dataset_path: 'data/example_01'
+
+model:
+  model_name: 'example_01'
+  model_path: 'data/example_01/model'
+
+functions:
+  dataset_create:
+    num_samples: 1000
+  dataset_split:
+    split_test: 0.2
+    split_validate: 0.0
+  model_create:
+      num_neurons: 3
+  model_train:
+    epochs: 20
+    learning_rate: 0.3
+</code></pre>
+
+<p>A few remarks about the <code>functions</code> section:
+1. The name of the parameters in the YAML must match exactly the name of the respective Python functions parameters
+1. Python annotation matches the subsection in the YAML file (e.g. parameters defined YAML subsection <code>dataset_create</code> is called <code>num_samples</code>, which matches the parameter of the Python function annotated with <code>@dataset_create</code>)
+1. Since our <code>@model_evaluate</code> function doesn't take any additional arguments than the ones provided by <code>Log(ML)</code> (i.e. <code>model</code> and <code>dataset</code>), we don't need to specify the sub-sections in our YAML file
+1. The <code>@dataset_split</code> function was not implemented in our program, so <code>Log(ML)</code> will provide a default implementation. This default implementation uses the parameters <code>split_test</code> and <code>split_validate</code> (the dataset is split according to these numbers)</p>
+<p>Now we can run the program:</p>
+<pre><code># By default the expected config file name is &quot;ml.yaml&quot; so we provide an alternative name name with command line option &quot;-c&quot;
+
+$ ./example_01.py -c example_01.yaml
+Epoch 1/20
+1000/1000 [==============================] - 0s 178us/sample - loss: 0.2416
+Epoch 2/20
+1000/1000 [==============================] - 0s 30us/sample - loss: 0.1588
+...
+Epoch 20/20
+1000/1000 [==============================] - 0s 30us/sample - loss: 0.0949
+</code></pre>
+
+<p>So, <code>Log(ML)</code> performed a workflow that:
+1. Invoked the function to create a dataset using the arguments from the YAML file (i.e. <code>my_dataset_create(num_samples=20)</code>)
+1. Invoked the function to create a model using as arguments the <code>dataset</code> plus the parameters from the YAML file (i.e. <code>my_model_create(dataset, num_neurons=3)</code>)
+1. Invoked the function to train the model using as arguments the <code>model</code>, the <code>dataset</code> plus the parameters from the YAML file (i.e. <code>my_model_train(model, dataset, learning_rate=0.3, epochs=20)</code>)
+1. Invoked the function to validate the model (evaluate on the validation dataset split) using only as arguments <code>model</code>, and <code>dataset_validate</code> (since there are no additional parameters from the YAML file)</p>
+<p>But <code>Log(ML)</code> it also did log a lot of information that is useful for future references. In this case, it saved the dataset to a pickle file (<code>example_01.pkl</code>), the all parameters used to create and train this model (<code>data/example_01/train/example_01.parameters.20190823.212609.830649.1.yaml</code>) and the full STDOUT/STDERR (<code>data/example_01/train/example_01.20190823.212609.830649.1.stdout</code> and <code>data/example_01/train/example_01.20190823.212609.830649.1.stderr</code>)</p>
+<pre><code>$ ls data/example_01/* data/example_01/train/*
+data/example_01/example_01.pkl
+data/example_01/train/example_01.20190823.212609.830649.1.stdout
+data/example_01/train/example_01.20190823.212609.830649.1.stderr
+data/example_01/train/example_01.parameters.20190823.212609.830649.1.yaml
+</code></pre>
+
+<p>Now we can change the parameters in the YAML file (for instance set <code>learning_rate: 0.1</code>) and run the program again.</p>
+<pre><code>$ ./example_01.py -c example_01.yaml
+Epoch 1/20
+1000/1000 [==============================] - 0s 184us/sample - loss: 0.2561
+...
+Epoch 20/20
+1000/1000 [==============================] - 0s 23us/sample - loss: 0.1112
+</code></pre>
+
+<p>All the new log files will be created and we can keep track of our project and the parameters we used.
+OK, this model is not as good as the previous one, but fortunately we have all the logging information, so we don't have to remember the parameters we used for the best model.</p>
+<pre><code>$ ls data/example_01/* data/example_01/train/*
+data/example_01/example_01.pkl
+data/example_01/train/example_01.20190823.213803.075040.1.stdout
+data/example_01/train/example_01.20190823.212609.830649.1.stderr
+data/example_01/train/example_01.parameters.20190823.212609.830649.1.yaml
+data/example_01/train/example_01.20190823.212609.830649.1.stdout
+data/example_01/train/example_01.parameters.20190823.213803.075040.1.yaml
+data/example_01/train/example_01.20190823.213803.075040.1.stderr
+</code></pre>
+
+<h3 id="example-2-hyper-parameter-optimization">Example 2: Hyper-parameter optimization</h3>
+<p>Building on the previous example (<code>example_01.py</code> and <code>example_01.yaml</code>), let's assume that instead of trying to tune the <code>learning_rate</code> manually, we'd prefer to perform hyper-parameter optimization.</p>
+<p>In this example (<code>example_02</code>), we'll set up hyper-parameter optimization on <code>learning_rate</code>. The python program remains exactly the same as in the previous example, we'll be adding a hyper-parameter optimization section to the YAML file.</p>
+<p>For the config YAML file (see <code>example_02.yaml</code>), we jut add the following section:</p>
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        model_train:
+          learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<p>We added a <code>hyper_parameter_optimization</code> section where we:
+- Define the hyper parameter algorithm (<code>tpe</code>) which is a Bayesian apprach
+- Set the number of evaluations to <code>100</code>
+- Define that we want to optimize the parameter <code>learning_rate</code> in the function <code>@model_train</code> using a uniform prior in the interval <code>[0.0, 0.5]</code>.</p>
+<p>We run the program:</p>
+<pre><code>$ ./example_02.py -c example_02.yaml
+
+100%|██████████| 10/10 [00:06&lt;00:00,  1.44it/s, best loss: 0.07341234689950943]
+</code></pre>
+
+<p>Here the hyper-parameter optimization is saying that the best loss found (with ten iterations) is <code>0.0734</code>.</p>
+<p>We also have all the parameter details, models, and STDOUT/STDERR for every single model created and trained:</p>
+<pre><code>$ ls data/example_02/* data/example_02/train/* | cat
+data/example_02/example_02.pkl
+data/example_02/train/example_02.20190823.215947.132156.1.stderr
+data/example_02/train/example_02.20190823.215947.132156.1.stdout
+...
+data/example_02/train/example_02.20190823.215953.151580.10.stderr
+data/example_02/train/example_02.20190823.215953.151580.10.stdout
+data/example_02/train/example_02.hyper_param_search.20190823.215953.151580.10.pkl
+data/example_02/train/example_02.parameters.20190823.215947.132156.1.yaml
+...
+data/example_02/train/example_02.parameters.20190823.215953.151580.10.yaml
+</code></pre>
+
+<h3 id="example-3-neural-network-architecture-optimization">Example 3: Neural network architecture optimization</h3>
+<p>Now we build on the previous example (Example 2) by trying to optimize the neural network architecture. For this we just need to add a hyper parameter optimization when building the neural network (i.e. the <code>@model_create</code> step in the workflow). Simply add a line in the <code>space</code> definition within <code>hyper_parameter_optimization</code> section:</p>
+<p>The YAML is changed like this (see <code>example_03.yaml</code>):</p>
+<pre><code>hyper_parameter_optimization:
+    ...
+    space:
+        model_create:
+          num_neurons: ['randint', 5]
+        ...
+</code></pre>
+
+<p>Also we need a minor change in the python program is to ensure that we at least have one neuron in the hidden layer (otherwise the model doesn't make sense) So we add a single line to <code>@model_create</code> (see line <code>num_neurons = max(num_neurons, 1)</code> below):</p>
+<pre><code>@model_create
+def my_model_create(dataset, num_neurons):
+    model = Sequential()
+    num_neurons = max(num_neurons, 1)                                  # &lt;-- Added this line
+    model.add(Dense(num_neurons, activation='tanh', input_shape=(2,)))
+    model.add(Dense(1, activation='tanh'))
+    return model
+</code></pre>
+
+<p>That's is, we have network architecture optimization (<code>num_neurons</code>) and hyper-parameter optimization (<code>learning_rate</code>). Let's run the program (output edited for readability):</p>
+<pre><code>$ ./example_03.py -v -c example_03.yaml
+...
+2019-08-23 21:29:51,924 INFO Hyper parameter optimization:  iteration: 10   ...
+    best fit: 0.06886020198464393
+    best parameters: {'model_create': {'num_neurons': 3}, 'model_train': {'learning_rate': 0.22890998206259194}}
+...
+</code></pre>
+
+<p>The best parameters, for a 10 iteration hyper-optimization, are <code>num_neurons=3</code> and <code>learning_rate=0.2289</code>.</p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

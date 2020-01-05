@@ -459,7 +459,7 @@ class DataFeatureImportance(MlFiles):
             funcs = {f_classif: True, mutual_info_classif: False}
             # Chi^2 only works on non-negative values
             if (self.x < 0).all(axis=None):
-                funcs.append(chi2)
+                funcs[chi2] = True
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
         # Apply all functions

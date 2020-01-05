@@ -57,7 +57,7 @@ dataset:
   is_use_default_transform: true
 
   # Output variables, a.k.a. dependent variables (i.e. what we want to predict)
-  outputs: ['SalePrice']
+  outputs: []
 
 #---
 # Dataset transformations: Conver to categorical variable, dates, one hot, etc.
@@ -108,7 +108,7 @@ dataset_transform:
   # Shuffle samples (e.g. shuffle rows in dataframe)
   shuffle: false
 
-  # Drop columns having standard deviation below this limit
+  # Drop inputs having standard deviation below this limit
   std_threshold: 0.0001
 
 #---
@@ -242,7 +242,7 @@ dataset_explore:
   is_use_ori: false
 
   # Consider variables 'highly correlated' if over this threshold
-  corr_thresdold: 0.7
+  corr_thresdld: 0.7
 
   # Do not plot pairs if there are more than 'correlation_analysis_max' variables
   correlation_analysis_max: 100
@@ -315,7 +315,6 @@ dataset_feature_importance:
   is_wilks: true
   # Variables used for setting the null model
   wilks_null_model_variables: ['age', 'sex', 'pc_1', 'pc_2', 'pc_3', 'pc_4']
-
 
 #---
 # Model definition and parameters

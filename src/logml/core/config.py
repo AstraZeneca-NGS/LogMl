@@ -9,7 +9,7 @@ from .files import MlFiles
 from .registry import MlRegistry
 
 
-DEFAULT_YAML = "ml.yaml"
+DEFAULT_YAML = "config.yaml"
 
 CONFIG_CONFIG = ''
 CONFIG_CROSS_VALIDATION = 'cross_validation'
@@ -82,18 +82,18 @@ class Config(MlFiles):
 
     def get_parameters_functions(self, fname):
         ''' Get user-defined functions parameters '''
-        return self.get_parameters_section(CONFIG_FUNCTIONS, fname, empty_dict=True)
+        return self.get_parameters_section(CONFIG_FUNCTIONS, fname, default_value=dict())
 
-    def get_parameters_section(self, section, param_name, empty_dict=False):
+    def get_parameters_section(self, section, param_name, default_value=None):
         ''' Get parameters 'param_name' from section 'section' '''
         fdict = self.get_parameters(section)
         if not fdict:
             self._debug(f"Config has no '{section}' section.")
-            return dict() if empty_dict else None
+            return default_value
         if param_name in fdict:
             return fdict[param_name]
-        self._debug(f"Config has no parameters for '{param_name}' in '{section}' section.")
-        return dict() if empty_dict else None
+        self._debug(f"Config has no parameters for '{param_name}' in '{section}' section, returning default value '{default_value}'.")
+        return default_value
 
     def invoke(self, name, tag, args=None):
         return MlRegistry().invoke(name, tag, args, self.get_parameters_functions(name))

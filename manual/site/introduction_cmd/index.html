@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Introduction command line - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../introduction/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../introduction_juppyter/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#introduction">Introduction</a></li>
+            <li><a href="#running-from-command-line">Running from command line</a></li>
+        <li class="main "><a href="#results">Results</a></li>
+            <li><a href="#results-dataset-exploration">Results: Dataset exploration</a></li>
+            <li><a href="#feature-importance">Feature importance</a></li>
+            <li><a href="#model-search">Model search</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="introduction">Introduction</h1>
+<p>In this introduction, we show an example on how to run LogMl from the command line</p>
+<h2 id="running-from-command-line">Running from command line</h2>
+<p>In order to run this example, you'll need to</p>
+<ol>
+<li>Copy the dataset to your LogMl install directory</li>
+<li>Copy the configuration file to your LogMl install directory</li>
+<li>Run LogMl</li>
+</ol>
+<h3 id="set-up-environment-variables">Set up environment variables</h3>
+<p>In the rest of the examples, we assume that the following variables are set to the corresponding directories:</p>
+<pre><code># I checked out LogMl GitHub repository to $HOME/workspace/LogMl
+# You need to change this variable accordingly
+LOGML_SRC=&quot;$HOME/workspace/LogMl&quot;
+
+# I installed LogMl in the default directory: $HOME/logml
+# You need to change this variable accordingly
+LOGML_INSTALL=&quot;$HOME/logml&quot;
+</code></pre>
+
+<h3 id="copy-dataset-file">Copy dataset file</h3>
+<p>The dataset in this example consists of three normally distributed variables (<code>x1</code>, <code>x2</code>, <code>x3</code>) and some random noise (<code>n</code>), the output variable (<code>y</code>) is calculated as:</p>
+<pre><code>y = 2 * x1 - 1 * x2 + 0.5 * x3 + 0.1 * n
+</code></pre>
+
+<p>The file <code>data/intro/intro.csv</code> (from GitHub repository) is a CSV file with <code>1,000</code> samples from the above equation.</p>
+<p>Copy the file to your <code>logml</code> directory</p>
+<pre><code># Create data directory
+cd $LOGML_INSTALL
+mkdir -p data/intro
+
+# Copy dataset file from the source directory.
+cp $LOGML_SRC/data/intro/intro.csv data/intro/intro.csv
+</code></pre>
+
+<h3 id="copy-configuration-file">Copy configuration file</h3>
+<p>The YAML configuraton file for this example, is in GitHub's repository <code>config/intro.yaml</code>, you can copy it to the <code>logml</code> directory</p>
+<pre><code>cd $LOGML_INSTALL
+mkdir -p config
+cp $LOGML_SRC/config/intro.yaml config/
+</code></pre>
+
+<h3 id="running-logml">Running LogMl</h3>
+<p>To run LogMl, you just need to invoke LogMl with the propper configuration file</p>
+<pre><code># Activate virtual environment
+cd $LOGML_INSTALL
+. ./bin/activate
+
+# Run LogMl
+./src/logml.py -c config/intro.yaml
+</code></pre>
+
+<h1 id="results">Results</h1>
+<p>The output includes:</p>
+<h2 id="results-dataset-exploration">Results: Dataset exploration</h2>
+<h3 id="show-dataset-head-tail">Show dataset (head &amp; tail)</h3>
+<table>
+<thead>
+<tr>
+<th>idx</th>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.977291</td>
+<td>0.247040</td>
+<td>0.272578</td>
+<td>0.772232</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1.261573</td>
+<td>-0.090584</td>
+<td>-0.386493</td>
+<td>1.036706</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0.442205</td>
+<td>-1.059191</td>
+<td>0.877819</td>
+<td>0.986426</td>
+</tr>
+<tr>
+<td>4</td>
+<td>-1.353664</td>
+<td>-0.310002</td>
+<td>1.697421</td>
+<td>-0.672185</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.744831</td>
+<td>0.750820</td>
+<td>0.754703</td>
+<td>0.448015</td>
+</tr>
+</tbody>
+</table>
+<h3 id="variables-statistics-including-normally-analysis">Variables statistics (including normally analysis)</h3>
+<table>
+<thead>
+<tr>
+<th>variable</th>
+<th>x1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>count</td>
+<td>853</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>1.77011e-17</td>
+</tr>
+<tr>
+<td>std</td>
+<td>1.00059</td>
+</tr>
+<tr>
+<td>min</td>
+<td>-3.17445</td>
+</tr>
+<tr>
+<td>25%</td>
+<td>-0.689298</td>
+</tr>
+<tr>
+<td>50%</td>
+<td>-0.0406822</td>
+</tr>
+<tr>
+<td>75%</td>
+<td>0.663965</td>
+</tr>
+<tr>
+<td>max</td>
+<td>2.74289</td>
+</tr>
+<tr>
+<td>unique</td>
+<td>853</td>
+</tr>
+<tr>
+<td>skewness</td>
+<td>0.0353077</td>
+</tr>
+<tr>
+<td>kurtosis</td>
+<td>-0.192718</td>
+</tr>
+<tr>
+<td>Normality</td>
+<td>True</td>
+</tr>
+<tr>
+<td>Normality_test_pvalue</td>
+<td>0.465024</td>
+</tr>
+<tr>
+<td>Log_Normality</td>
+<td>False</td>
+</tr>
+<tr>
+<td>Log_Normality_test_pvalue</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="variables-distributions">Variables distributions</h3>
+<p><img alt="Distribution x1" src="../intro/logml_plots/dataset_explore.transformed.Distribution_x1.png" /></p>
+<h3 id="pairs-plots">Pairs plots</h3>
+<p><img alt="Pairs" src="../intro/logml_plots/dataset_explore.transformed.Pairs.png" /></p>
+<h3 id="correlation-analysis">Correlation analysis</h3>
+<p><img alt="Correlation" src="../intro/logml_plots/dataset_explore.transformed.Correlation__numeric_features_.png" /></p>
+<h3 id="correlation-dendogram">Correlation dendogram</h3>
+<p><img alt="Dendogram" src="../intro/logml_plots/dataset_explore.transformed.Dendogram_rank_correlation.png" /></p>
+<h2 id="feature-importance">Feature importance</h2>
+<h3 id="feature-importance-model-based">Feature importance: Model based</h3>
+<p>RandomForest, ExtraTrees, GradientBoosting. Using drop column and permutation analysis</p>
+<p><img alt="drop column" src="../intro/logml_plots/dataset_feature_importance_dropcolumn.Feature_importance_drop_column__all_RandomForest.png" /></p>
+<h3 id="feature-importance-regression-models">Feature importance: Regression models</h3>
+<p><img alt="regression models" src="../intro/logml_plots/dataset_feature_importance.Mean_square_error_per_fold__coordinate_descent.png" /></p>
+<h3 id="feature-importance-tree-desition-graph">Feature importance: Tree desition graph</h3>
+<p><img alt="tree" src="../intro/intro.tree_graph_all.png" /></p>
+<h3 id="feature-importance-weighted-rank-sum-of-all-methods">Feature importance: Weighted rank sum of all methods</h3>
+<table>
+<thead>
+<tr>
+<th>variable</th>
+<th>importance_permutation_RandomForest</th>
+<th>...</th>
+<th>importance_dropcol_RandomForest</th>
+<th>...</th>
+<th>ranks_sum</th>
+<th>rank_of_ranksum</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x1</td>
+<td>73.424</td>
+<td>...</td>
+<td>50.154</td>
+<td>...</td>
+<td>134.99</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>x2</td>
+<td>16.635</td>
+<td>...</td>
+<td>11.455</td>
+<td>...</td>
+<td>269.99</td>
+<td>2.0</td>
+</tr>
+<tr>
+<td>x3</td>
+<td>2.723</td>
+<td>...</td>
+<td>1.856</td>
+<td>...</td>
+<td>404.98</td>
+<td>3.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="model-search">Model search</h2>
+<h3 id="model-search-with-hyper-parameter-tuning">Model search with hyper-parameter tuning</h3>
+<p>Summary of all models, ranked by validation performance</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>train</th>
+<th>validation</th>
+<th>time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sklearn.linear_model.TheilSenRegressor.20200104.020150.141139.143</td>
+<td>0.0017</td>
+<td>0.00144</td>
+<td>0.89</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.LassoCV.20200104.020155.308599.151</td>
+<td>0.0017</td>
+<td>0.00145</td>
+<td>0.05</td>
+</tr>
+<tr>
+<td>sklearn.svm.LinearSVR.20200104.020005.137177.30</td>
+<td>0.0017</td>
+<td>0.00145</td>
+<td>0.02</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.ARDRegression.20200104.020005.196092.32</td>
+<td>0.0017</td>
+<td>0.00146</td>
+<td>3.88</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.BayesianRidge.20200104.020004.916091.22</td>
+<td>0.0017</td>
+<td>0.00146</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.Lars.20200104.020510.961392.460</td>
+<td>0.0017</td>
+<td>0.00146</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.LinearRegression.20200104.020006.495526.34</td>
+<td>0.0017</td>
+<td>0.00146</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.OrthogonalMatchingPursuit.20200104.020004.965360.24</td>
+<td>0.0017</td>
+<td>0.00146</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.RANSACRegressor.20200104.020155.257481.149</td>
+<td>0.0017</td>
+<td>0.00146</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.HuberRegressor.20200104.020155.202713.147</td>
+<td>0.0017</td>
+<td>0.00147</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>sklearn.ensemble.GradientBoostingRegressor.20200104.020331.408829.326</td>
+<td>0.0035</td>
+<td>0.00698</td>
+<td>0.54</td>
+</tr>
+<tr>
+<td>sklearn.ensemble.GradientBoostingRegressor.20200104.020333.410398.328</td>
+<td>0.0048</td>
+<td>0.00781</td>
+<td>0.72</td>
+</tr>
+<tr>
+<td>sklearn.ensemble.GradientBoostingRegressor.20200104.020337.272208.333</td>
+<td>0.0036</td>
+<td>0.00841</td>
+<td>0.45</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.RidgeCV.20200104.020150.046718.139</td>
+<td>0.0098</td>
+<td>0.00926</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>sklearn.ensemble.GradientBoostingRegressor.20200104.020309.050059.304</td>
+<td>0.0029</td>
+<td>0.01083</td>
+<td>0.98</td>
+</tr>
+<tr>
+<td>...</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sklearn.ensemble.GradientBoostingRegressor.20200104.020251.214883.275</td>
+<td>1.0007</td>
+<td>1.00914</td>
+<td>0.51</td>
+</tr>
+<tr>
+<td>sklearn.linear_model.Lasso.20200104.020155.407230.153</td>
+<td>1.0</td>
+<td>1.01526</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>sklearn.dummy.DummyRegressor.20200104.020004.830997.18</td>
+<td>1.0</td>
+<td>1.01526</td>
+<td>0.01</td>
+</tr>
+</tbody>
+</table></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
