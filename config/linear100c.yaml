@@ -7,6 +7,12 @@ dataset:
   dataset_path: 'data/linear100c'
   outputs: ['y']
 
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
+
 dataset_explore:
   enable: true
   correlation_analysis_max: 999
@@ -20,15 +26,6 @@ dataset_feature_importance:
   is_dropcol_gradient_boosting: false
   is_dropcol_random_forest: true
   is_rfe_model: false
-
-dataset_preprocess:
-  enable: true
-  normalize:
-    standard: true
-    skip: ['y']
-
-dataset_transform:
-  enable: true
 
 model:
   enable: false

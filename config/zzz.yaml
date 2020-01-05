@@ -7,14 +7,11 @@ dataset:
   dataset_path: 'data/zzz'
   outputs: ['y']
 
-dataset_explore:
-  enable: false
-
 dataset_preprocess:
   enable: false
 
-dataset_transform:
-  enable: true
+dataset_explore:
+  enable: false
 
 dataset_augment:
   enable: false

@@ -7,10 +7,6 @@ dataset:
     is_use_default_split: False
     outputs: ['y']
 
-dataset_transform:
-  enable: true
-
-# Dataset prerpocessing
 dataset_preprocess:
   enable: true
   impute:

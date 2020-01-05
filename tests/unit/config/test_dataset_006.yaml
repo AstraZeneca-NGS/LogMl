@@ -6,7 +6,7 @@ dataset:
   dataset_type: 'df'
   is_use_default_split: false
 
-dataset_transform:
+dataset_preprocess:
   enable: true
   categories:
     UsageBand: ['Low', 'Medium', 'High']

@@ -23,7 +23,7 @@ dataset_preprocess:
   impute:
     median: true
 
-dataset_transform:
+dataset_preprocess:
   enable: true
 
 model:

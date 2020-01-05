@@ -7,12 +7,9 @@ dataset:
     is_use_default_split: False
     outputs: ['y']
 
-dataset_transform:
+dataset_preprocess:
   enable: true
   remove_columns: ['x1', 'd1']
-
-dataset_preprocess:
-  enable: false
   normalize:
     standard: true
 

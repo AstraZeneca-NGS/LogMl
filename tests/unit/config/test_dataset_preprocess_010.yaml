@@ -7,12 +7,9 @@ dataset:
     is_use_default_split: False
     outputs: ['y']
 
-dataset_transform:
+dataset_preprocess:
   enable: true
   shuffle: true
-
-dataset_preprocess:
-  enable: false
 
 model:
   enable: false

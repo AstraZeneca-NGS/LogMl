@@ -7,14 +7,11 @@ dataset:
     is_use_default_split: False
     outputs: ['y']
 
-dataset_transform:
+dataset_preprocess:
   enable: true
   categories_regex:
     - 'zzz_.*': ['low', 'mid', 'high']
     - 'zzzz_.*': True
-
-dataset_preprocess:
-  enable: false
   normalize:
     standard: true
 

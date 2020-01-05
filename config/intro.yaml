@@ -9,18 +9,15 @@ dataset:
   dataset_path: 'data/intro'
   outputs: ['y']
 
-dataset_transform:
-  enable: true
-
-dataset_augment:
-  enable: true
-
 dataset_preprocess:
   enable: true
   impute:
     median: true
   normalize:
     standard: true
+
+dataset_augment:
+  enable: true
 
 dataset_explore:
   enable: true

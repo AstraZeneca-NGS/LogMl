@@ -12,9 +12,6 @@ dataset_explore:
 dataset_preprocess:
   enable: false
 
-dataset_transform:
-  enable: false
-
 dataset_augment:
   enable: true
   pca:

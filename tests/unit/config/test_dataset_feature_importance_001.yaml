@@ -7,13 +7,8 @@ dataset:
     is_use_default_split: true
     outputs: ['y']
 
-dataset_transform:
-  enable: false
-
 dataset_preprocess:
   enable: false
-  normalize:
-    standard: true
 
 dataset_feature_importance:
   # Set to 'false' to disable this step

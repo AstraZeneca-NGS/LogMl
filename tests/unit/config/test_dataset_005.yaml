@@ -6,7 +6,7 @@ dataset:
   is_use_default_split: True
   is_use_all_inputs: True
 
-dataset_transform:
+dataset_preprocess:
   categories:
     UsageBand: ['Low', 'Medium', 'High']
     ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']

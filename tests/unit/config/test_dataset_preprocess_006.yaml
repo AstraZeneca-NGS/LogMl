@@ -7,12 +7,9 @@ dataset:
     is_use_default_split: False
     outputs: ['y']
 
-dataset_transform:
-  enable: true
-  dates: ['d1']
-
 dataset_preprocess:
   enable: true
+  dates: ['d1']
   impute:
     mean: true
 
