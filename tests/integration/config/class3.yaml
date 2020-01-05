@@ -8,12 +8,6 @@ dataset:
   do_not_load_pickle: true
   outputs: ['y']
 
-dataset_explore:
-  enable: true
-
-dataset_feature_importance:
-  enable: true
-
 dataset_preprocess:
   enable: true
   normalize:
@@ -23,7 +17,10 @@ dataset_preprocess:
   impute:
     median: true
 
-dataset_transform:
+dataset_explore:
+  enable: true
+
+dataset_feature_importance:
   enable: true
 
 model:

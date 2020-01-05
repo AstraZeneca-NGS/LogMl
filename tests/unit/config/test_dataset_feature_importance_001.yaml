@@ -1,19 +1,14 @@
 logger:
 
 dataset:
-    dataset_name: 'test_dataset_feature_importance_002'
+    dataset_name: 'test_dataset_feature_importance_001'
     dataset_path: 'tests/unit/data'
     dataset_type: 'df'
     is_use_default_split: true
     outputs: ['y']
 
-dataset_transform:
-  enable: false
-
 dataset_preprocess:
   enable: false
-  normalize:
-    standard: true
 
 dataset_feature_importance:
   # Set to 'false' to disable this step
@@ -23,7 +18,7 @@ dataset_feature_importance:
   enable_na: false
 
   # Enable "Feature Importance using Permutations" (for different models)
-  is_fip_random_forest: true
+  is_fip_random_forest: false
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
 
@@ -59,16 +54,16 @@ dataset_feature_importance:
   weight_min: 1.0
 
   # Logistic regression p-value (Wilks)
-  is_wilks: false
+  is_wilks: true
   # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
 
 model:
   enable: false
-  model_name: 'test_model_dataset_feature_importance_002'
-  model_path: 'tests/tmp/test_model_dataset_feature_importance_002'
+  model_name: 'test_model_dataset_feature_importance_001'
+  model_path: 'tests/tmp/test_model_dataset_feature_importance_001'
 
 functions:
   dataset_split:
     split_test: 0.0
-    split_validate: 0.2
+    split_validate: 0.5

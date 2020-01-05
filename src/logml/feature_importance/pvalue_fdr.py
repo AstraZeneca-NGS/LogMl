@@ -31,6 +31,7 @@ class PvalueFdr(MlFiles):
         self.loss_base = None
         self.model_null = None
         self.model_null_results = None
+        self.null_model_required = False
         self.p_values = dict()  # Dictionary of 'raw' p-values
         self.p_values_corrected = None  # Array of FDR-corrected p-values (sorted by 'columns')
         self.rejected = None  # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
@@ -40,6 +41,9 @@ class PvalueFdr(MlFiles):
         # Base performance
         self._debug(f"{self.algorithm} ({self.tag}): Start, null model variables {self.null_model_variables}")
         if not self.filter_null_variables():
+            if self.null_model_required:
+                self._error(f"{self.algorithm} ({self.tag}): No variables left for null model")
+                return False
             self._warning(f"{self.algorithm} ({self.tag}): No variables left for null model")
         # Create 'null' model
         if not self.fit_null_model():
@@ -113,6 +117,7 @@ class LogisticRegressionWilks(PvalueFdr):
         super().__init__(datasets, null_model_variables, tag)
         self.algorithm = 'Logistic regression Wilks'
         self.class_to_analyze = class_to_analyze
+        self.null_model_required = True
 
     def binarize(self, y):
         """ Make sure 'y' has values in range [0, 1] """

@@ -60,40 +60,52 @@ dataset:
   outputs: []
 
 #---
-# Dataset transformations: Conver to categorical variable, dates, one hot, etc.
+# Dataset prerpocessing: Convert to categorical variable, dates, one hot,
+# impute missing values, normalize, etc.
 #---
-dataset_transform:
+dataset_preprocess:
   # Set to 'false' to disable this step
   enable: true
 
+  # Balance an unbalanced datasets (classification models only, since outputs
+  # must be cathegorical)
+  balance: false
+
   # Categorical data
   # A list of categorical input variables
-  # Can be followed by a list of categories to enforce some type of categorical order in the codes
+  # Can be followed by a list of categories to enforce some type of categorical
+  # order in the codes
   categories:
     UsageBand: ['Low', 'Medium', 'High']
     ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
 
   # Categorical data: Match field names using regular expressions
   # A list of categorical input variables
-  # Can be followed by a list of categories to enforce some type of categorical order in the codes
+  # Can be followed by a list of categories to enforce some type of categorical
+  # order in the codes
   categories_regex:
     - 'zzz_.*': ['low', 'mid', 'high']
     - 'yyy_.*': True
 
   # List of data columns that are transformed into 'date/time'
-  # These columns are also split into 'date parts' (year, month, day, day_of_week, etc.)
+  # These columns are also split into 'date parts' (year, month, day,
+  # day_of_week, etc.)
   dates: ['saledate']
 
-  # Sanitize column names: Convert column names so that characters outside the set [_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] are converted to '_' (underscore)
+  # Sanitize column names: Convert column names so that characters outside the
+  # set [_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] are
+  # converted to '_' (underscore)
   is_sanitize_column_names: True
 
   # One hot encoding: List of variable to transform to one_hot
   ont_hot: ['Enclosure_Type']
 
-  # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
+  # One hot encoding: Encode all variables having a cardinality less or equal
+  # to 'one_hot_max_cardinality'
   one_hot_max_cardinality: 7
 
-  # Remove repeated inputs (i.e. input variables that have the exact same values as other inputs)
+  # Remove repeated inputs (i.e. input variables that have the exact same
+  # values as other inputs)
   remove_equal_inputs: true
 
   # Remove rows having missing output/s
@@ -102,7 +114,8 @@ dataset_transform:
   # Remove columns: List of columns to remove from dataFrame
   remove_columns: []
 
-  # Remove columns: List of columns to remove from dataFrame (after all transformations have been applied)
+  # Remove columns: List of columns to remove from dataFrame (after all
+  # transformations have been applied)
   remove_columns_after: []
 
   # Shuffle samples (e.g. shuffle rows in dataframe)
@@ -110,6 +123,68 @@ dataset_transform:
 
   # Drop inputs having standard deviation below this limit
   std_threshold: 0.0001
+
+  # Impute values
+  # Imputation method name, followed by list of variables, regex or 'true'
+  # (this last option means "use as default method")
+  # that all variables should be imputed using this method
+  impute:
+    # Use the mean value
+    mean:  ['x2', 'x5', 'xx.*']
+
+    # Impute using the median value
+    median: true
+
+    # Impute using the most frequent value
+    most_frequent: ['x3', 'x4']
+
+    # Impute by assigning value '1'
+    one: ['x9', 'o.*']
+
+    # Do not impute these variables
+    skip: ['x7', 'x8']
+
+    # Impute by assigning value '0'
+    zero: ['x10', 'z.*']
+
+  # Normalize values
+  # Normalization methods followed by list of variables, regex or 'true' meaning
+  # that all variables should be normalized using this method
+  normalize:
+    # Transform so that mean(x)=0 var(x)=1
+    # Set to 'true' means to use as default (i.e. use this normalization
+    # for all variables not explicitly define elsewhere)
+    standard: true
+
+    # Normalize dividing by max(abs(x_i))
+    maxabs: ['x2', 'x5', 'xx.*']
+
+    # Use min/max normalizer, i.e. transform to interval [0,1]
+    minmax: ['x3']
+
+    # Use min/max normalizer with negative values, i.e. transform to interval [-1,1]
+    minmax_neg: ['x6', 'neg_.*']
+
+    # Apply log(x)
+    log: ['x9']
+
+    # Apply log(x+1)
+    log1p: ['x10', 'x11']
+
+    # Apply log(x), then use standard transform: (log(x) - mean(log(x))) / std(log(x))
+    log_standard: ['x9']
+
+    # Apply log(x+1), then use standard transform: (log(x+1) - mean(log(x+1))) / std(log(x+1))
+    log1p_standard: ['x10', 'x11']
+
+    # Quantile transformation: This method transforms the features to follow a
+    # uniform or a normal distribution
+    quantile: ['q.*']
+
+    # Do not normalize these variables
+    skip: ['x7', 'x8']
+
+
 
 #---
 # Dataset augmentation: Add variable interaction terms
@@ -143,75 +218,6 @@ dataset_augment:
     nmf_expr:
       num: 3
       fields: ['expr_.*', '.*_EXPR']
-
-#---
-# Dataset prerpocessing
-#---
-dataset_preprocess:
-  # Set to 'false' to disable this step
-  enable: true
-
-  # Balance an unbalanced datasets (classification models only, since outputs must be cathegorical)
-  balance: false
-
-  # Impute values
-  # Imputation method name, followed by list of variables, regex or 'true' (this last option means "use as default method")
-  # that all variables should be imputed using this method
-  impute:
-    # Use the mean value
-    mean:  ['x2', 'x5', 'xx.*']
-
-    # Impute using the median value
-    median: true
-
-    # Impute using the most frequent value
-    most_frequent: ['x3', 'x4']
-
-    # Impute by assigning value '1'
-    one: ['x9', 'o.*']
-
-    # Do not impute these variables
-    skip: ['x7', 'x8']
-
-    # Impute by assigning value '0'
-    zero: ['x10', 'z.*']
-
-
-  # Normalize values
-  # Normalization methods followed by list of variables, regex or 'true' meaning
-  # that all variables should be normalized using this method
-  normalize:
-    # Transform so that mean(x)=0 var(x)=1
-    # Set to 'true' means to use as default (i.e. use this normalization
-    # for all variables not explicitly define elsewhere)
-    standard: true
-
-    # Normalize dividing by max(abs(x_i))
-    maxabs: ['x2', 'x5', 'xx.*']
-
-    # Use min/max normalizer, i.e. transform to interval [0,1]
-    minmax: ['x3']
-
-    # Use min/max normalizer with negative values, i.e. transform to interval [-1,1]
-    minmax_neg: ['x6', 'neg_.*']
-
-    # Apply log(x)
-    log: ['x9']
-
-    # Apply log(x+1)
-    log1p: ['x10', 'x11']
-
-    # Apply log(x), then use standard transform: (log(x) - mean(log(x))) / std(log(x))
-    log_standard: ['x9']
-
-    # Apply log(x+1), then use standard transform: (log(x+1) - mean(log(x+1))) / std(log(x+1))
-    log1p_standard: ['x10', 'x11']
-
-    # Quantile transformation: This method transforms the features to follow a uniform or a normal distribution
-    quantile: ['q.*']
-
-    # Do not normalize these variables
-    skip: ['x7', 'x8']
 
 #---
 # Dataset exploration

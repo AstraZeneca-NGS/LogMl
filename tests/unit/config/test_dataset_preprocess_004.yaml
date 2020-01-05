@@ -6,13 +6,8 @@ dataset:
     dataset_type: 'df'
     outputs: ['y']
 
-dataset_transform:
-  enable: true
-
-# Dataset prerpocessing
 dataset_preprocess:
   enable: true
-  # Balance an unbalanced datasets (classification models only, since outputs must be cathegorical)
   balance: true
 
 model:

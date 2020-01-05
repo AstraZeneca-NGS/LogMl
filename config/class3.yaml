@@ -21,9 +21,6 @@ dataset_preprocess:
     standard: true
     skip: ['y']
 
-dataset_transform:
-  enable: true
-
 model:
   enable: true
   model_type: classification

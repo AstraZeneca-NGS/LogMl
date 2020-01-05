@@ -12,7 +12,6 @@ DATASET_LOAD = 'dataset_load'
 DATASET_PREPROCESS = 'dataset_preprocess'
 DATASET_SAVE = 'dataset_save'
 DATASET_SPLIT = 'dataset_split'
-DATASET_TRANSFORM = 'dataset_transform'
 MODEL_CREATE = 'model_create'
 MODEL_EVALUATE = 'model_evaluate'
 MODEL_PREDICT = 'model_predict'
@@ -23,7 +22,7 @@ ENABLE = 'enable'
 
 REGISTRATION_KEYS = [DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT
                      , DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE
-                     , DATASET_SPLIT, DATASET_TRANSFORM
+                     , DATASET_SPLIT
                      , MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_SAVE
                      , MODEL_TRAIN]
 
@@ -132,10 +131,6 @@ def dataset_save(f):
 
 def dataset_split(f):
     return register(DATASET_SPLIT, f)
-
-
-def dataset_transform(f):
-    return register(DATASET_TRANSFORM, f)
 
 
 def model_create(f):

@@ -30,7 +30,7 @@ class DfImpute(MethodsFields):
     def __call__(self):
         """
         Impute inputs
-        Returns a new (transformed) dataset
+        Returns a new (imputed) dataset
         """
         if not self.enable:
             self._debug(f"Imputing dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', sub-section 'normalize', enable='{self.enable}'")

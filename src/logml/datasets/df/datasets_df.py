@@ -6,7 +6,6 @@ from ..datasets import Datasets
 from ..datasets_base import InOut
 from .df_augment import DfAugment
 from .df_preprocess import DfPreprocess
-from .df_transform import DfTransform
 
 from sklearn.ensemble import RandomForestRegressor
 from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
@@ -33,7 +32,6 @@ class DatasetsDf(Datasets):
         self.categories = dict()  # Convert these fields to categorical
         self.dataset_ori = None
         self.dataset_preprocess = None
-        self.dataset_transform = None
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
         self.model_type = model_type
         if set_config:
@@ -60,11 +58,11 @@ class DatasetsDf(Datasets):
         if df is None:
             return None
         # Keep output and 'na_columns'
-        cols_na = set([c for c in df.columns if c in self.outputs or c in self.dataset_transform.na_columns])
+        cols_na = set([c for c in df.columns if c in self.outputs or c in self.dataset_preprocess.na_columns])
         # Keep cathegorical if they have 'na'
         for c in df.columns:
-            if c in self.dataset_transform.category_column:
-                cat_col = self.dataset_transform.category_column[c]
+            if c in self.dataset_preprocess.category_column:
+                cat_col = self.dataset_preprocess.category_column[c]
                 cat_isna = cat_col.isna().astype('int')
                 if cat_isna.sum() > 0:
                     cols_na.add(c)
@@ -78,7 +76,7 @@ class DatasetsDf(Datasets):
         return self._create_from_csv()
 
     def _create_from_csv(self):
-        ''' Create from CSV: Load CSV and transform dataframe '''
+        ''' Create from CSV: Load CSV dataframe '''
         # Loading from CSV
         self._debug("Start")
         ret = self._load_from_csv()
@@ -119,17 +117,6 @@ class DatasetsDf(Datasets):
         self._debug(f"Dataset preprocess: End")
         return True
 
-    def default_transform(self):
-        " Default implementation for '@dataset_transform' "
-        self._debug(f"Using default dataset transform for dataset type 'DataFrame'")
-        if self.dataset_ori is None:
-            # Keep a copy.copy of the original dataset
-            self.dataset_ori = self.dataset
-        self.dataset_transform = DfTransform(self.dataset, self.config, self.outputs)
-        self.dataset = self.dataset_transform()
-        self._debug(f"End: Columns after transform are {list(self.dataset.columns)}")
-        return True
-
     def get_input_names(self):
         """ Get dataset's input names """
         return self.dataset.columns
@@ -146,15 +133,15 @@ class DatasetsDf(Datasets):
         for c in df.columns:
             if c in self.outputs:
                 pass
-            elif c in cols_na and c in self.dataset_transform.category_column:
-                cat_col = self.dataset_transform.category_column[c]
+            elif c in cols_na and c in self.dataset_preprocess.category_column:
+                cat_col = self.dataset_preprocess.category_column[c]
                 df_na[c] = cat_col.isna().astype('int')
                 self._debug(f"Get dataframe NA: Adding cathegorical column '{c}', number of NA: {df_na[c].sum()}")
         return df_na
 
     def get_datasets_na(self):
         """ Create a dataset of 'missing value indicators' """
-        if self.dataset_transform is None:
+        if self.dataset_preprocess is None:
             self._error("Cannot create 'missing' dataset")
             return None
         # Create a new datasets, with same parameters

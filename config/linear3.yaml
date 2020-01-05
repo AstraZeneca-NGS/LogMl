@@ -7,19 +7,16 @@ dataset:
   dataset_path: 'data/linear3'
   outputs: ['y']
 
-dataset_explore:
-  enable: false
-
-dataset_feature_importance:
-  enable: true
-
 dataset_preprocess:
   enable: true
   normalize:
     standard: true
     skip: ['y']
 
-dataset_transform:
+dataset_explore:
+  enable: false
+
+dataset_feature_importance:
   enable: true
 
 model:

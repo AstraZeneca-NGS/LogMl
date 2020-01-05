@@ -8,7 +8,7 @@ import pandas as pd
 from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
-from ..datasets import Datasets, DatasetsCv, DatasetsDf, DataExplore
+from ..datasets import Datasets, DatasetsCv, DatasetsDf, DfExplore
 from ..feature_importance import DataFeatureImportance
 from ..models import HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
 from ..util.results_df import ResultsDf
@@ -120,13 +120,13 @@ class LogMl(MlFiles):
         # Explore original dataset
         if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori', True):
             files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
-            self.dataset_explore_original = DataExplore(self.datasets.get_ori(), 'original', self.config, files_base)
+            self.dataset_explore_original = DfExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         else:
             self._debug("Dataset Explore: Exploring 'original' datasets disables ('is_use_ori'=False), skipping")
         # Explore pre-processed dataset
         files_base = self.datasets.get_file_name(f"dataset_explore.preprocessed", ext='')
-        self.dataset_explore_preprocessed = DataExplore(self.datasets.get(), 'preprocessed', self.config, files_base)
+        self.dataset_explore_preprocessed = DfExplore(self.datasets.get(), 'preprocessed', self.config, files_base)
         ok = self.dataset_explore_preprocessed() and ok
         self._debug("Dataset Explore: End")
         return ok

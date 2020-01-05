@@ -1,19 +1,14 @@
 logger:
 
 dataset:
-    dataset_name: 'test_dataset_feature_importance_001'
+    dataset_name: 'test_dataset_feature_importance_003'
     dataset_path: 'tests/unit/data'
     dataset_type: 'df'
     is_use_default_split: true
     outputs: ['y']
 
-dataset_transform:
-  enable: false
-
 dataset_preprocess:
   enable: false
-  normalize:
-    standard: true
 
 dataset_feature_importance:
   # Set to 'false' to disable this step
@@ -29,9 +24,9 @@ dataset_feature_importance:
 
   # Regularization methods
   # Enable regularization methods (for different models)
-  is_regularization_lasso: false
-  is_regularization_ridge: false
-  is_regularization_lars: false
+  is_regularization_lasso: true
+  is_regularization_ridge: true
+  is_regularization_lars: true
   # Number of Cross-validation in regularization methods
   regularization_model_cv: 10
 
@@ -59,14 +54,14 @@ dataset_feature_importance:
   weight_min: 1.0
 
   # Logistic regression p-value (Wilks)
-  is_wilks: true
+  is_wilks: false
   # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
 
 model:
   enable: false
-  model_name: 'test_model_dataset_feature_importance_001'
-  model_path: 'tests/tmp/test_model_dataset_feature_importance_001'
+  model_name: 'test_model_dataset_feature_importance_003'
+  model_path: 'tests/tmp/test_model_dataset_feature_importance_003'
 
 functions:
   dataset_split:

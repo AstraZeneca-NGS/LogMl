@@ -1,22 +1,19 @@
 logger:
 
 dataset:
-    dataset_name: 'test_dataset_transform_002'
+    dataset_name: 'test_dataset_preprocess_006'
     dataset_path: 'tests/unit/data'
     dataset_type: 'df'
     is_use_default_split: False
     outputs: ['y']
 
-dataset_transform:
-  enable: true
-  dates: ['d1']
-
 dataset_preprocess:
   enable: true
+  dates: ['d1']
   impute:
     mean: true
 
 model:
   enable: false
-  model_name: 'test_model_dataset_transform_002'
-  model_path: 'tests/tmp/test_model_dataset_transform_002'
+  model_name: 'test_model_dataset_preprocess_006'
+  model_path: 'tests/tmp/test_model_dataset_preprocess_006'
