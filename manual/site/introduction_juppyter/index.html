@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Introduction Jupyter Notebooks - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../introduction_cmd/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../logging/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#introduction">Introduction</a></li>
+            <li><a href="#running-from-jupyter-notebooks">Running from Jupyter Notebooks</a></li>
+            <li><a href="#results">Results</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="introduction">Introduction</h1>
+<p>In this introduction, we show an example on how to run LogMl from a Jupyter Notebook</p>
+<p>The source notebook can be found in <code>notebooks/intro_bare.ipynb</code> (source code from GitHub)</p>
+<h2 id="running-from-jupyter-notebooks">Running from Jupyter Notebooks</h2>
+<p>In order to run this example, you'll need to</p>
+<ol>
+<li>Set up your Jupyter Notebook's LogMl environment (if you never did it before)</li>
+<li>Copy the dataset to your LogMl install directory</li>
+<li>Copy the configuration file to your LogMl install directory</li>
+<li>Run LogMl from a new Jupyter Notebook</li>
+</ol>
+<h3 id="set-up-environment-variables">Set up environment variables</h3>
+<p>In the rest of the examples, we assume that the following variables are set to the corresponding directories:</p>
+<pre><code># I checked out LogMl GitHub repository to $HOME/workspace/LogMl
+# You need to change this variable accordingly
+LOGML_SRC=&quot;$HOME/workspace/LogMl&quot;
+
+# I installed LogMl in the default directory: $HOME/logml
+# You need to change this variable accordingly
+LOGML_INSTALL=&quot;$HOME/logml&quot;
+</code></pre>
+
+<h3 id="set-up-jupyter-notebooks-environment">Set up Jupyter Notebooks environment</h3>
+<p>The first step is to make sure the LogMl virtual environment is available when you run Jupyter Notebooks
+You can do it by running these commands:</p>
+<pre><code># Activate virtual environment
+cd $LOGML_INSTALL
+. ./bin/activate
+
+# Make sure you have `ipykernel` installed, otherwise you can run the following line
+pip install ipykernel
+
+# Add kernel to Jupyter Notebooks
+python -m ipykernel install --name=logml
+</code></pre>
+
+<h3 id="copy-dataset-file">Copy dataset file</h3>
+<p>The dataset in this example consists of three normally distributed variables (<code>x1</code>, <code>x2</code>, <code>x3</code>) and some random noise (<code>n</code>), the output variable (<code>y</code>) is calculated as:</p>
+<pre><code>y = 2 * x1 - 1 * x2 + 0.5 * x3 + 0.1 * n
+</code></pre>
+
+<p>The file <code>data/intro/intro.csv</code> (from GitHub repository) is a CSV file with <code>1,000</code> samples from the above equation.</p>
+<p>Copy the file to your <code>logml</code> directory</p>
+<pre><code># Create data directory
+cd $LOGML_INSTALL
+mkdir -p data/intro
+
+# Copy dataset file from the source directory.
+cp $LOGML_SRC/data/intro/intro.csv data/intro/intro.csv
+</code></pre>
+
+<h3 id="copy-configuration-file">Copy configuration file</h3>
+<p>The YAML configuraton file for this example, is in GitHub's repository <code>config/intro.yaml</code>, you can copy it to the <code>logml</code> directory</p>
+<pre><code>$ cd $LOGML_INSTALL
+$ mkdir -p config
+$ cp $LOGML_SRC/config/intro.yaml config/
+</code></pre>
+
+<h3 id="running-logml">Running LogMl</h3>
+<p>To run LogMl, create a new Jupyter notebook, making sure to select <code>logml</code> environment.</p>
+<p>Then (from the new NoteBook) you typically run a cell to configure some defaults:</p>
+<pre><code># Show plots in the notebook
+%matplotlib inline
+
+# Set path to use 'src' subdir
+import os, sys
+from pathlib import Path
+
+logml_src = str(Path(os.getcwd())/'src')
+sys.path.append(logml_src)
+</code></pre>
+
+<p>After that, all you need to do is to create a LogMl object and run it</p>
+<pre><code>from logml import *
+ml = LogMl('config/intro.yaml')
+ml()
+</code></pre>
+
+<h2 id="results">Results</h2>
+<p><a href="../intro_bare.html">Click here to see LogMl's output</a></p>
+<p><a href="../intro.html">Or here</a> to see the full notebook that creates the dataset and explains more details</p>
+<ul>
+<li>Dataset exploration<ul>
+<li>Show dataset (head &amp; tail)</li>
+<li>Variables statistics (including normally analysis)</li>
+<li>Variables distributions</li>
+<li>Pairs plots</li>
+<li>Correlation analysis</li>
+<li>Correlation dendogram</li>
+</ul>
+</li>
+<li>Feature importance<ul>
+<li>Model based:  RandomForest, ExtraTrees, GradientBoosting. Using drop column and permutation analysis</li>
+<li>Regression models</li>
+<li>Tree decition graph</li>
+<li>Weighted rank sum of all methods</li>
+</ul>
+</li>
+<li>Model search with hyper-parameter tunning<ul>
+<li>Summary of all models, ranked by validation performance</li>
+</ul>
+</li>
+</ul></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

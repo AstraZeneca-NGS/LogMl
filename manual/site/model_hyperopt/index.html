@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Workflow: Hyper-parameter tunnig - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../model/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../model_search/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#hyper-parameter-optimization">Hyper-parameter optimization</a></li>
+            <li><a href="#yaml-config">YAML config</a></li>
+            <li><a href="#examples">Examples</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="hyper-parameter-optimization">Hyper-parameter optimization</h1>
+<p>This workflow allows to perform hyper-parameter optimization using a Bayesian framework (<code>hyper-opt</code>). The hyper parameters can be optimized in several stages of the "dataset" and "model".</p>
+<p>The hyper-parameter optimization workflow adds a bayesian optimization on top of the main workflow. This means that, conceptually, it's executing the main workflow several times using a bayesian optimizer.</p>
+<p>The hyper-parameter optimizaition method used is HyperOpt, for details see <a href="http://hyperopt.github.io/hyperopt/">Hyperopt documentation</a></p>
+<p>Typically, hyper-parameter optimization is used to tune model training parameters. <code>Log(ML)</code> also allows to tune model creation parameters, as well as data augmentation and preprocessing parameters.</p>
+<h3 id="yaml-config">YAML config</h3>
+<p>YAML configuration of hyper parameter optimization: All parameter are defined in the <code>hyper_parameter_optimization</code> section.</p>
+<pre><code>hyper_parameter_optimization:
+    enable: False                   # Set this to 'True' or comment out to enable hyper-parameter optimization
+    show_progressbar: True          # Show progress bar
+    algorithm: 'tpe'                # Algorithm: 'tpe' (Bayesian Tree of Parzen Estimators), 'random' (random search)
+    max_evals: 100                  # Max number of hyper-parameter evaluations. Keep in mnd that each evaluation is a full model training    # Parameter space to explore
+    space:                          # Parameters search space specification, add one section for each user defined function you want to optimize
+        dataset_augment:                    # Add parameter space specification for each part you want to optimize (see examples below)
+        dataset_create:
+        dataset_preprocess:
+        model_create:
+        model_train:
+</code></pre>
+
+<p><strong>Search space</strong>: We define parameters for each part we want to optimize (e.g. <code>preprocess</code>, <code>model_create</code>, etc.).
+The format for each parameter space is:</p>
+<pre><code>parameter_name: ['distribution', distribution)parameters...]
+</code></pre>
+
+<p>For distribution names and parameters, see: <a href="https://github.com/hyperopt/hyperopt/wiki/FMin">section 'Parameter Expressions'</a></p>
+<p>Important: The parameters space definition should be a subset of the parameters in each <code>function</code> section.</p>
+<h3 id="examples">Examples</h3>
+<p>Perform hyper-parameter optimization of the learning rate using a uniform distribution as a p</p>
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        model_train:
+            learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<p>Hyper parameter optimization not only can be used with <code>model_train</code>, but also with other <em>named_workflow_steps</em>, such as <code>model_create</code></p>
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        model_create:
+            layer_1: ['randint', 10]
+        model_train:
+            learning_rate: ['uniform', 0.0, 0.5]
+</code></pre>
+
+<p>You can even perform hyper-parameter optimization including the <code>dataset_preprocess</code> <em>named_workflow_step</em></p>
+<pre><code>hyper_parameter_optimization:
+    algorithm: 'tpe'
+    max_evals: 100
+    space:
+        dataset_preprocess:
+          num_x: ['choice', [100, 200, 300, 400, 500]]
+          num_y: ['choice', [20, 50, 100, 200]]
+        model_create:
+            layer_1: ['randint', 20]
+            layer_2: ['randint', 10]
+        model_train:
+            learning_rate: ['uniform', 0.0, 0.5]
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

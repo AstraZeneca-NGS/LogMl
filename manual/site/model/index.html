@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Workflow: Model - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../feature_importance/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../model_hyperopt/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#workflow-model">Workflow: Model</a></li>
+            <li><a href="#model-create">Model: Create</a></li>
+            <li><a href="#model-train">Model: Train</a></li>
+            <li><a href="#model-save">Model: Save</a></li>
+            <li><a href="#model-save-train-results">Model: Save train Results</a></li>
+            <li><a href="#model-test">Model: Test</a></li>
+            <li><a href="#model-save-test-results">Model: Save test results</a></li>
+            <li><a href="#model-validate">Model: Validate</a></li>
+            <li><a href="#model-save-validate-results">Model: Save validate results</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="workflow-model">Workflow: Model</h1>
+<p>In these steps we create and train models. This also takes care of common tasks, such as hyper-parameter optimization, cross-validation and model analysis.</p>
+<p>The main steps are:</p>
+<ol>
+<li><code>model_create</code>: Model Create</li>
+<li><code>model_train</code>: Model Train</li>
+<li><code>model_save</code>: Model Save</li>
+<li>Model Save train results</li>
+<li><code>model_evaluate</code>: Model Test</li>
+<li><code>model_evaluate</code>: Model Validate</li>
+</ol>
+<p>A new <code>model_id</code> is created each time a new model is created/trained. This is used to make sure that files created during a run do not collision with other files names from previous runs. The <code>model_id</code> has the format <code>yyyymmdd_hhmmss.counter</code> where:
+    - <code>yyyy</code>, <code>mm</code>, <code>dd</code>, <code>hh</code>, <code>mm</code>, <code>ss</code>: Current year, month, day, hour, minute, second (UTC time)
+    - <code>counter</code>: Number of models created in this <code>Log(ML)</code> run (increasing counter starting with <code>1</code>).</p>
+<p><strong>Logging</strong>: All results from STDOUT and STDERR are saved to <code>{model_path}/{model_name}.parameters.{model_id}.stdout</code> and <code>{model_path}/{model_name}.parameters.{model_id}.stderr</code> respectively. Note that <code>model_id</code> is included in the path, so creating several models in the same <code>Log(ML)</code> run would save each output set to different <code>stdout/stderr</code> files (see details below).</p>
+<h3 id="model-create">Model: Create</h3>
+<p>Create a new model, to be trained. It also saves the parameters used to create the model to a YAML file.</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_create</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameter is <code>dataset_train</code> if the dataset was split, otherwise is the full dataset. Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>model_create</code></li>
+<li>The return value from the user defined function is stored as the <code>model</code></li>
+</ul>
+</li>
+<li>Current parameters are saved to a YAML file <code>{model_path}/{model_name}.parameters.{model_id}.yaml</code>. Note that <code>model_id</code> is included in the path, so creating several models in the same <code>Log(ML)</code> run would save each parameter set to different YAML files.</li>
+</ol>
+<h3 id="model-train">Model: Train</h3>
+<p>Train the model.</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_train</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameters are <code>model</code> and <code>dataset_train</code> (if the dataset was split, otherwise is the full dataset). Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>model_train</code></li>
+<li>The return value from the user defined function is stored as the <code>train_results</code> (these result will be saved, see later steps)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save">Model: Save</h3>
+<p>Save the (trained) model.</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_save</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program tries to save using a pickle file (see next step).</li>
+<li>Parameters: The first parameters is the <code>model</code>. Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>model_save</code></li>
+<li>Return successful</li>
+</ul>
+</li>
+<li>Attempt to save model to pickle file if previous step (<code>@model_save</code> function) failed.<ul>
+<li>If parameter <code>is_save_model_pickle</code> from <em>config_YAML</em> file is set to <code>False</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.model.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so training several models in the same <code>Log(ML)</code> run would save each model to different pickle files.</li>
+</ul>
+</li>
+<li>Attempt to save model to using <code>model.save()</code> if previous step failed.<ul>
+<li>If parameter <code>is_save_model_method</code> from <em>config_YAML</em> file is set to <code>False</code>, this step is skipped</li>
+<li>Invoke model's method <code>model.save({file_name})</code>, where <code>file_name</code> is set to <code>{model_path}/{model_name}.model.{model_id}.{is_save_model_method_ext}</code> (parameter <code>is_save_model_method_ext</code> is defined in <em>config_YAML</em> file)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save-train-results">Model: Save train Results</h3>
+<p>Save results from training to a pickle file</p>
+<ol>
+<li>Attempt to save model training results (i.e. the return value from <code>@model_train</code> function) to pickle.<ul>
+<li>If parameter <code>is_save_train_pickle</code> from <em>config_YAML</em> file is set to <code>False</code>, this step is skipped</li>
+<li>If the results are <code>None</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.train_results.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so training several models in the same <code>Log(ML)</code> run would save train results to different pickle files.</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-test">Model: Test</h3>
+<p>Evaluate the model on the <code>dataset_test</code> dataset_test</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_evaluate</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameters are <code>model</code> and <code>dataset_test</code> (if the dataset was split, otherwise use full dataset). Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>model_evaluate</code></li>
+<li>The return value from the user defined function is stored as the <code>test_results</code> (these result will be saved, see later steps)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save-test-results">Model: Save test results</h3>
+<ol>
+<li>Attempt to save model test results (i.e. the return value from <code>@model_evaluate</code> function invoked with <code>dataset_test</code> parameter) to pickle.<ul>
+<li>If parameter <code>is_save_test_pickle</code> from <em>config_YAML</em> file is set to <code>False</code>, this step is skipped</li>
+<li>If the results are <code>None</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.test_results.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so testing several models in the same <code>Log(ML)</code> run would save train results to different pickle files.</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-validate">Model: Validate</h3>
+<p>Evaluate the model on the <code>dataset_validate</code> dataset_test</p>
+<ol>
+<li>If a user defined function decorated with <code>@model_evaluate</code> exists, it is invoked<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, the program exits with an error.</li>
+<li>Parameters: The first parameters are <code>model</code> and <code>dataset_validate</code> (if the dataset was split, otherwise this step fails). Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>model_evaluate</code></li>
+<li>The return value from the user defined function is stored as the <code>validate_results</code> (these result will be saved, see later steps)</li>
+</ul>
+</li>
+</ol>
+<h3 id="model-save-validate-results">Model: Save validate results</h3>
+<ol>
+<li>Attempt to save model test results (i.e. the return value from <code>@model_evaluate</code> function invoked with <code>dataset_validate</code> parameter) to pickle.<ul>
+<li>If parameter <code>is_save_validate_pickle</code> from <em>config_YAML</em> file is set to <code>False</code>, this step is skipped</li>
+<li>If the results are <code>None</code>, this step is skipped</li>
+<li>The model resulting from training is saved to a pickle file file <code>{model_path}/{model_name}.validate_results.{model_id}.pkl</code>.</li>
+<li>Note that <code>model_id</code> is included in the path, so validating several models in the same <code>Log(ML)</code> run would save train results to different pickle files.</li>
+</ul>
+</li>
+</ol></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

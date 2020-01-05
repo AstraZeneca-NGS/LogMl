@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Workflow: Datasets - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../workflow/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../explore/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#datasets">Datasets</a></li>
+            <li><a href="#config_yaml">Config_YAML</a></li>
+            <li><a href="#dataset-load">Dataset: Load</a></li>
+            <li><a href="#dataset-create">Dataset: Create</a></li>
+            <li><a href="#dataset-preprocess">Dataset: Preprocess</a></li>
+            <li><a href="#dataset-augment">Dataset: Augment</a></li>
+            <li><a href="#dataset-split">Dataset: Split</a></li>
+            <li><a href="#dataset-inputs-outputs">Dataset: Inputs / Outputs</a></li>
+            <li><a href="#dataset-save">Dataset: Save</a></li>
+        <li class="main "><a href="#dataframes">DataFrames</a></li>
+            <li><a href="#dataset-df-default-load">Dataset (df): Default Load</a></li>
+            <li><a href="#dataset-df-default-preprocess">Dataset (df): Default Preprocess</a></li>
+            <li><a href="#dataset-df-default-augment">Dataset (df): Default Augment</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="datasets">Datasets</h1>
+<p>The first steps in a <em>LogMl_workflow</em> perform dataset operations.
+There are several <em>named_workflow_steps</em> taking care of different aspects of dataset processing to make sure is suitable for training a model</p>
+<ol>
+<li><code>dataset_load</code>: Load a dataset from a file</li>
+<li><code>dataset_create</code>: Create a dataset using a user_defined_function</li>
+<li><code>dataset_preprocess</code>: Pre-process data, e.g. to make it suitable for model training.</li>
+<li><code>dataset_augment</code>: Data augmentation</li>
+<li><code>dataset_split</code>: Split data into train / validate / test datasets</li>
+<li><code>dataset_inout</code>: Obtain inputs and output for each (train / validate / test) dataset.</li>
+<li><code>dataset_save</code>: Save datasets to a file</li>
+</ol>
+<h3 id="config_yaml">Config_YAML</h3>
+<p>There are several parameters that can be defined in the <em>config_YAML</em>:</p>
+<pre><code>dataset:
+  # Dataset type: 'df' means dataFrame
+  dataset_type: 'df'
+
+  # Dataset name:
+  #   A simple name for the dataset.
+  #   It is appended to dataset_path to create dataset_file_name
+  dataset_name: 'my_dataset'
+
+  # Dataset Path: Path to use when loading and saving datasets
+  dataset_path: 'data/my_dataset'
+
+  # If set, loading dataset from pickle file will be skipped
+  do_not_load_pickle: false
+
+  # If set, saving dataset will be skipped
+  do_not_save: false
+
+  # Use all inputs, no outputs.
+  # I.e. do not split in/out.
+  # E.g. unsupervised learning
+  is_use_all_inputs: false
+
+  # Use default 'in_out' method
+  is_use_default_in_out: true
+
+  # Use default preprocess
+  is_use_default_preprocess: true
+
+  # Use (internal) 'split' function if none is provided by the user?
+  # Note: This function returns dataset as a list
+  is_use_default_split: false
+
+  # Use default transform operation
+  is_use_default_transform: true
+
+  # Output variables, a.k.a. dependent variables (i.e. what we want to predict)
+  outputs: []
+</code></pre>
+
+<h3 id="dataset-load">Dataset: Load</h3>
+<p>This step typical attempts to load data from files (e.g. load a "data frame" or a set of images).</p>
+<ol>
+<li>Attempt to load from pickle file (<code>{dataset_path}/{dataset_name}.pkl</code>). If the files exists, load the dataset.</li>
+<li>Invoke a <em>user_defined_function</em> decorated with <code>@dataset_load</code>.<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, so LogMl will attempt to create a dataset (next step)</li>
+<li>Parameters to the <em>user_defined_function</em> are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_load</code></li>
+<li>The dataset is marked to be saved</li>
+</ul>
+</li>
+</ol>
+<h3 id="dataset-create">Dataset: Create</h3>
+<p>This part creates a dataset by invoking the <em>user_defined_function</em> decorated by <code>@dataset_create</code></p>
+<ol>
+<li>If the dataset has been loaded (i.e. "Load dataset" step was successful), skip this step</li>
+<li>Invoke a <em>user_defined_function</em> decorated with <code>@dataset_create</code>:<ul>
+<li>If there is no <em>user_defined_function</em> or the section is disabled in the config file (i.e. <code>enable=False</code>), this step <em>hard_fails</em>, i.e. since LogMl doesn't have a dataset to work with (load and create steps both failed) it will exit with an error.</li>
+<li>Parameters to the <em>user_defined_function</em> are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_create</code></li>
+<li>The return value from the <em>user_defined_function</em> is used as a dataset</li>
+<li>The dataset is marked to be saved</li>
+</ul>
+</li>
+</ol>
+<h3 id="dataset-preprocess">Dataset: Preprocess</h3>
+<p>This step is used to pre-process data in order to make the dataset compatible with the inputs required by the model (e.g. normalize values)</p>
+<ol>
+<li>If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been pre-processed), the step is skipped</li>
+<li>Invoke a <em>user_defined_function</em> decorated with <code>@dataset_preprocess</code>:<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, no error is produced.</li>
+<li>Parameters: The first parameter is the dataset. Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_preprocess</code></li>
+<li>The return value replaces the original dataset</li>
+<li>The dataset is marked to be saved</li>
+</ul>
+</li>
+</ol>
+<h3 id="dataset-augment">Dataset: Augment</h3>
+<p>This step invokes the <em>user_defined_function</em> <code>@augment</code> to perform dataset augmentation</p>
+<ol>
+<li>If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been augmented), the step is skipped</li>
+<li>Invoke a <em>user_defined_function</em> decorated with <code>@dataset_augment</code>:<ul>
+<li>If there is no function or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed, no error is produced.</li>
+<li>Parameters: The first parameter is the dataset. Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_augment</code></li>
+<li>The return value replaces the original dataset</li>
+<li>The dataset is marked to be saved</li>
+</ul>
+</li>
+</ol>
+<h3 id="dataset-split">Dataset: Split</h3>
+<p>This step us used to split the dataset into "train", "test" and "validation" datasets.</p>
+<ol>
+<li>If this step has already been performed (i.e. a dataset loaded from a pickle file that has already been split), the step is skipped</li>
+<li>Invoke a <em>user_defined_function</em> decorated with <code>@dataset_split</code>:<ol>
+<li>If there is no <em>user_defined_function</em> <code>@dataset_split</code> or the section is disabled in the config file (i.e. <code>enable=False</code>), this step has failed (no error is produced) attempt to use a <em>LogMl_default_function</em> of <code>dataset_split</code>.</li>
+<li>Parameters: The first parameter is the dataset. Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_split</code></li>
+<li>If the function is invoked, the return value must be a tuple of three datasets: <code>(dataset_train, dataset_test, dataset_validate)</code></li>
+<li>The return value from the function replaces the original dataset (specifically, each value replaces the train/test/validate datasets)</li>
+<li>The dataset is marked to be saved</li>
+</ol>
+</li>
+<li>Attempt to use a <em>LogMl_default_function</em> of <code>dataset_split</code><ul>
+<li>If <em>config_YAML</em> parameter <code>is_use_default_split</code> is set to <code>False</code>, the split step failed (no error is produced)</li>
+<li>The default split implementation attempts to split the dataset in three parts, defined by <em>config_YAML</em> file parameters <code>split_test</code> and <code>split_validate</code> in section <code>dataset_split</code>. If these parameters are not defined in the <em>config_YAML</em> file, the split section failed (no error is produced)</li>
+</ul>
+</li>
+</ol>
+<h3 id="dataset-inputs-outputs">Dataset: Inputs / Outputs</h3>
+<ol>
+<li>For each dataset splie (train, validation, and test):<ol>
+<li>Invoke a <em>user_defined_function</em> decorated with <code>@dataset_inout</code>:<ol>
+<li>If there is no <em>user_defined_function</em> <code>@dataset_inout</code> or the section is disabled in the config file (i.e. <code>enable=False</code>), this step fails (no error is produced) and LogMl attempts to use a <em>LogMl_default_function</em> for <code>dataset_inout</code>.</li>
+<li>Parameters: The first parameter is the dataset, the second parameter is the datset name (<code>train</code>, <code>validate</code>, or <code>test</code>). Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_inout</code></li>
+<li>If the function is invoked, the return value must be a tuple: <code>(inputs, outputs)</code></li>
+<li>The return value from the function replaces the original dataset (specifically, each value replaces the train/test/validate datasets)</li>
+<li>The dataset is marked to be saved</li>
+</ol>
+</li>
+<li>Attempt to use a <em>LogMl_default_function</em> of <code>dataset_inout</code><ul>
+<li>If <em>config_YAML</em> parameter <code>is_use_default_in_out</code> is set to <code>False</code>, the split step <em>hard_fails</em> (execution is halted)</li>
+<li>The default implementation only returns the same dataset is the <em>config_YAML</em> parameter <code>is_use_all_inputs</code> is set. Otherwise it <em>hard_fails</em>.</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="dataset-save">Dataset: Save</h3>
+<p>If the dataset is marked to be saved in any of the previous steps, attempt to save the dataset.</p>
+<ol>
+<li>If the the YAML config variable <code>do_not_save</code> is set to <code>True</code>, this step is skipped</li>
+<li>If a <em>user_defined_function</em> decorated with <code>@dataset_save</code> exists, it is invoked<ul>
+<li>Parameters: The first four parameters are <code>dataset, dataset_train, dataset_test, dataset_validate</code>. Other parameters are defined in <em>config_YAML</em> file section <code>functions</code>, sub-section <code>dataset_save</code></li>
+</ul>
+</li>
+<li>Otherwise the dataset is saved to the pickle file <code>{dataset_path}/{dataset_name}.pkl</code></li>
+</ol>
+<h1 id="dataframes">DataFrames</h1>
+<p>There are several useful <em>LogMl_default_function</em> then the dataset is a DataFrame, i.e. when <em>config_YAML</em> defines <code>dataset_type='df'</code>.</p>
+<h3 id="dataset-df-default-load">Dataset (df): Default Load</h3>
+<p>Load DataFrame from a CSV file using (using <code>pandas.read_csv</code>).</p>
+<h3 id="dataset-df-default-preprocess">Dataset (df): Default Preprocess</h3>
+<p>The default method for DataFrame pre-processing does:</p>
+<ol>
+<li>Sanitize variables names: Convert names so that characters outside the set <code>[_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]</code> are converted to <code>_</code> (underscore)</li>
+<li>Convert to categorical: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>categories</code> are converted into categorical data and converted to a numerical (integer) representation. Category <code>0</code> represents missing values.</li>
+<li>Convert to one-hot: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>ont_hot</code> are converted into one-hot encoding. Also, any categorical field that has a cardinality (i.e. number of categories) equal or less then <code>one_hot_max_cardinality</code> is converted to one-hot encoding. If there are missing values, a column <code>*_isna</code> is added to the one-hot encoding.</li>
+<li>Missing data indicators: In any column having missing values that was not converted to date, categorical or one-hot; a new column <code>*_na</code> is created (where the value is '1' if the field has missing a value) and the missing values are replaced by the median of the non-missing values.</li>
+<li>Expand date/time features: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>dates</code> are treated as date/time when the dataFrame CSV is loaded and then expanded into several columns: <code>[Year, Month, Day, DayOfWeek, Hour, Minute, Second, etc.]</code>.</li>
+<li>Remove samples with missing outputs: Can be disables using <em>config_YAML</em> option <code>remove_missing_outputs</code></li>
+<li>Drop low standard deviation fields: All fields having standard deviation equal or lower than <code>std_threshold</code> (by default <code>0.0</code>) are dropped. Using the default value (<code>std_threshold=0.0</code>) this means dropping all fields having the exact same value for all samples.</li>
+<li>Remove duplicated inputs (e.g. two columns that are exactly the same)</li>
+<li>Shuffle samples: Can be enabled using <em>config_YAML</em> option <code>shuffle</code></li>
+<li>Balance dataset: re-sample categories having low number of samples. Can be enabled using <em>config_YAML</em> option <code>balance</code></li>
+<li>Impute missing values. Can use several strategies: <code>[mean, median, most_frequent, one, zero]</code></li>
+<li>Normalize variables: Can use several strategies: <code>[standard, maxabs, minmax, minmax_neg, log, log1p, log_standard, log1p_standard, quantile]</code></li>
+</ol>
+<p><strong>Config_YAML Options</strong> for datasets (df) pre-process</p>
+<pre><code>dataset_preprocess:
+  # Set to 'false' to disable this step
+  enable: true
+
+  # Categorical data
+  # A list of categorical input variables
+  # Can be followed by a list of categories to enforce some type of categorical order in the codes
+  categories:
+    UsageBand: ['Low', 'Medium', 'High']
+    ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
+
+  # Categorical data: Match field names using regular expressions
+  # A list of categorical input variables
+  # Can be followed by a list of categories to enforce some type of categorical order in the codes
+  categories_regex:
+    - 'zzz_.*': ['low', 'mid', 'high']
+    - 'yyy_.*': True
+
+  # List of data columns that are transformed into 'date/time'
+  # These columns are also split into 'date parts' (year, month, day, day_of_week, etc.)
+  dates: ['saledate']
+
+  # Sanitize column names: Convert column names so that characters outside the set [_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] are converted to '_' (underscore)
+  is_sanitize_column_names: True
+
+  # One hot encoding: List of variable to transform to one_hot
+  ont_hot: ['Enclosure_Type']
+
+  # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
+  one_hot_max_cardinality: 7
+
+  # Remove repeated inputs (i.e. input variables that have the exact same values as other inputs)
+  remove_equal_inputs: true
+
+  # Remove rows having missing output/s
+  remove_missing_outputs: true
+
+  # Remove columns: List of columns to remove from dataFrame
+  remove_columns: []
+
+  # Remove columns: List of columns to remove from dataFrame (after all transformations have been applied)
+  remove_columns_after: []
+
+  # Shuffle samples (e.g. shuffle rows in dataframe)
+  shuffle: false
+
+  # Drop inputs having standard deviation below this limit
+  std_threshold: 0.0001
+
+  # Balance an unbalanced datasets (classification models only, since outputs must be cathegorical)
+  balance: false
+
+  # Impute values
+  # Imputation method name, followed by list of variables, regex or 'true' (this last option means &quot;use as default method&quot;)
+  # that all variables should be imputed using this method
+  impute:
+    # Use the mean value
+    mean:  ['x2', 'x5', 'xx.*']
+
+    # Impute using the median value
+    median: true
+
+    # Impute using the most frequent value
+    most_frequent: ['x3', 'x4']
+
+    # Impute by assigning value '1'
+    one: ['x9', 'o.*']
+
+    # Do not impute these variables
+    skip: ['x7', 'x8']
+
+    # Impute by assigning value '0'
+    zero: ['x10', 'z.*']
+
+
+  # Normalize values
+  # Normalization methods followed by list of variables, regex or 'true' meaning
+  # that all variables should be normalized using this method
+  normalize:
+    # Transform so that mean(x)=0 var(x)=1
+    # Set to 'true' means to use as default (i.e. use this normalization
+    # for all variables not explicitly define elsewhere)
+    standard: true
+
+    # Normalize dividing by max(abs(x_i))
+    maxabs: ['x2', 'x5', 'xx.*']
+
+    # Use min/max normalizer, i.e. transform to interval [0,1]
+    minmax: ['x3']
+
+    # Use min/max normalizer with negative values, i.e. transform to interval [-1,1]
+    minmax_neg: ['x6', 'neg_.*']
+
+    # Apply log(x)
+    log: ['x9']
+
+    # Apply log(x+1)
+    log1p: ['x10', 'x11']
+
+    # Apply log(x), then use standard transform: (log(x) - mean(log(x))) / std(log(x))
+    log_standard: ['x9']
+
+    # Apply log(x+1), then use standard transform: (log(x+1) - mean(log(x+1))) / std(log(x+1))
+    log1p_standard: ['x10', 'x11']
+
+    # Quantile transformation: This method transforms the features to follow a uniform or a normal distribution
+    quantile: ['q.*']
+
+    # Do not normalize these variables
+    skip: ['x7', 'x8']
+</code></pre>
+
+<h3 id="dataset-df-default-augment">Dataset (df): Default Augment</h3>
+<p>The <em>LogMl_default_function</em> for dataset augmentation focusses on adding more columns to the dataset (i.e. augment the input variables), as opposed to augmenting the number of samples.</p>
+<ol>
+<li>Add Principal components (PCA values): Can be customized to act on several groups of variables.</li>
+<li>Add Non-negative Matrix Factorization components (NMF values): Can be customized to act on several groups of variables.</li>
+</ol>
+<p><strong>Config_YAML Options</strong> for datasets (df) augment:</p>
+<pre><code>dataset_augment:
+  # Set to 'false' to disable this step
+  enable: true
+
+  # Add principal componenets
+  # After the 'pca', you can add several &quot;sub-sections&quot;:
+  #   name:                 # Unique name, used to add PCA fields on each sample (name_1, name_2, ... name_num)
+  #     num: 2              # Number of PCA componenets to add
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  pca:
+    pca_dna:
+      num: 2
+      fields: ['DNA_.*']
+    pca_log2:
+      num: 3
+      fields: ['log2ratio_.*', '.*_LOG2F']
+  # Add NMF (non-negative matrix factorization)
+  # After the 'nmf', you can add several &quot;sub-sections&quot;:
+  #   name:                 # Unique name, used to add NMF fields on each sample (name_1, name_2, ... name_num)
+  #     num: 2              # Number of NMF componenets to add
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  nmf:
+    nmf_dna:
+      num: 2
+      fields: ['DNA_.*']
+    nmf_expr:
+      num: 3
+      fields: ['expr_.*', '.*_EXPR']
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

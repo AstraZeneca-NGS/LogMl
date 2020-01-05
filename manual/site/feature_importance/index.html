@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Workflow: Feature importance - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../explore/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../model/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#workflow-feature-importance">Workflow: Feature importance</a></li>
+            <li><a href="#model-based-column-permutation">Model-based column permutation</a></li>
+            <li><a href="#model-based-drop-column">Model-based drop-column</a></li>
+            <li><a href="#sklearn-importance">SkLearn importance</a></li>
+            <li><a href="#regularization-models">Regularization models</a></li>
+            <li><a href="#selection">Selection</a></li>
+            <li><a href="#recursive-feature-elimination">Recursive Feature Elimination</a></li>
+            <li><a href="#linear-model-p-value">Linear model p-value</a></li>
+            <li><a href="#logistic-regression-p-value">Logistic regression p-value</a></li>
+            <li><a href="#tree-graph">Tree graph</a></li>
+        <li class="main "><a href="#weighted-rank">Weighted rank</a></li>
+        <li class="main "><a href="#congig-yaml">Congig YAML</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="workflow-feature-importance">Workflow: Feature importance</h1>
+<p>Feature importance tries to detemine which</p>
+<p>These steps implement data exploration when dataset is a DataFrame (i.e. <code>dataset_type: 'df'</code>).</p>
+<h3 id="model-based-column-permutation">Model-based column permutation</h3>
+<p>Estimate feature importance based on a model by randomly permuting values on each column.</p>
+<p>How it works: Suffle a column and analyze how model performance is degraded. Most important features will make the model perform much worse when shuffled, unimportant features will not affect performance.</p>
+<p>Models used (SciKit-Learn, default parameters):
+- Random Forest
+- ExtraTrees
+- GradientBoosting</p>
+<p><img alt="ExtraTrees drop column" src="../intro/logml_plots/dataset_feature_importance_dropcolumn.Feature_importance_permutation__all_ExtraTrees.png" /></p>
+<h3 id="model-based-drop-column">Model-based drop-column</h3>
+<p>Estimate feature importance based on a model by dropping a column.</p>
+<p>How it works: Drops a single column, re-train and analyze how model performance
+is degraded (respect to validation dataset). Most important features will
+make the model perform much worse when dropped, unimportant features will
+not affect performance</p>
+<p>Models used (SciKit-Learn, default parameters):
+- Random Forest
+- ExtraTrees
+- GradientBoosting</p>
+<p><img alt="drop column" src="../intro/logml_plots/dataset_feature_importance_dropcolumn.Feature_importance_drop_column__all_RandomForest.png" /></p>
+<h3 id="sklearn-importance">SkLearn importance</h3>
+<p>Use default SciKit-Learn importance estimation method.
+Models: Random Forest, ExtraTrees, GradientBoosting (default parameters)</p>
+<h3 id="regularization-models">Regularization models</h3>
+<p>Perform a model fir with regularization (using cross-validation), then analyze the model coefficients.</p>
+<p>Models used (SciKit-Learn, default parameters):
+- Lasso
+- Ridge
+- Lars (AIC)
+- Lars (BIC)</p>
+<p><img alt="regression models" src="../intro/logml_plots/dataset_feature_importance.Mean_square_error_per_fold__coordinate_descent.png" /></p>
+<h3 id="selection">Selection</h3>
+<p>Use a SciKit-Learn <code>SelectFdr</code> or <code>SelectKBest</code>, depending on whether the selection function has p-values or not.</p>
+<table>
+<thead>
+<tr>
+<th>Selection function</th>
+<th>Has p-value</th>
+<th>Classification / Regression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>f_regression</td>
+<td>True</td>
+<td>Regression</td>
+</tr>
+<tr>
+<td>mutual_info_regression</td>
+<td>False</td>
+<td>Regression</td>
+</tr>
+<tr>
+<td>f_classif</td>
+<td>True</td>
+<td>Classification</td>
+</tr>
+<tr>
+<td>mutual_info_classif</td>
+<td>False</td>
+<td>Classification</td>
+</tr>
+<tr>
+<td>chi^2</td>
+<td>False</td>
+<td>Classification</td>
+</tr>
+</tbody>
+</table>
+<h3 id="recursive-feature-elimination">Recursive Feature Elimination</h3>
+<p>Use recursive feature elimination (SciKit-Learn <code>RFECV</code>) using several models:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Classification / Regression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lasso</td>
+<td>Regression</td>
+</tr>
+<tr>
+<td>Ridge</td>
+<td>Regression</td>
+</tr>
+<tr>
+<td>Lars (AIC)</td>
+<td>Regression</td>
+</tr>
+<tr>
+<td>Lars (BIC)</td>
+<td>Regression</td>
+</tr>
+<tr>
+<td>Random Forest</td>
+<td>Classification, Regression</td>
+</tr>
+<tr>
+<td>ExtraTrees</td>
+<td>Classification, Regression</td>
+</tr>
+<tr>
+<td>GradientBoosting</td>
+<td>Classification, Regression</td>
+</tr>
+</tbody>
+</table>
+<p>In all cases, Scikit-Learn models with default parameters are used.</p>
+<h3 id="linear-model-p-value">Linear model p-value</h3>
+<p>Calculate p-value based on a linear model (<code>statsmodels.regression.linear_model.OLS</code>).
+The null model variables can be set in the <em>config_YAML</em>, parameter <code>linear_pvalue_null_model_variables</code>.
+P-values are corrected for multiple testing using False Discovery Rate (FDR).</p>
+<h3 id="logistic-regression-p-value">Logistic regression p-value</h3>
+<p>Calculate p-value based on a logistic regression model (Wilks theorem) (<code>statsmodels.discrete.discrete_model.Logit</code>).
+The null model variables can be set in the <em>config_YAML</em>, parameter <code>logistic_regressions_by_class</code>
+P-values are corrected for multiple testing using False Discovery Rate (FDR).</p>
+<p>When the classification is non-binary (i.e. multiple classes), the p-values are calculated as one class compared to all others (for each class). Then p-values are FDR adjusted. Significance is assessed on any comparison.</p>
+<h3 id="tree-graph">Tree graph</h3>
+<p>Create a shallow decision tree (default <code>tree_graph_max_depth=4</code>) and show a graph og the tree</p>
+<p><img alt="tree" src="../intro/intro.tree_graph_all.png" /></p>
+<h1 id="weighted-rank">Weighted rank</h1>
+<p>All feature importance algorithm results are combined in a summary table.</p>
+<p>Finally the results are ranked according to all methods:</p>
+<ul>
+<li>Model based methods are weighted according to the 'loss functions' from each model (on the validation set), i.e. lower is better. Losses (lower is better) are transformed to weights (higher is better) and corrected to be in the range <code>[weight_min, weight_max]</code> (defalt <code>[1, 10]</code>)</li>
+<li>Other methods use a weight of <code>weight_min</code> (default 1.0)</li>
+<li>Ranks from all algorithms are multiplied by the weights to form a weighted rank sum (<code>rank_sum</code> in the summary table)</li>
+<li>The <code>rank_sum</code> result is ranked, most important variables are shown first</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>variable</th>
+<th>importance_permutation_RandomForest</th>
+<th>...</th>
+<th>importance_dropcol_RandomForest</th>
+<th>...</th>
+<th>ranks_sum</th>
+<th>rank_of_ranksum</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x1</td>
+<td>73.424</td>
+<td>...</td>
+<td>50.154</td>
+<td>...</td>
+<td>134.99</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>x2</td>
+<td>16.635</td>
+<td>...</td>
+<td>11.455</td>
+<td>...</td>
+<td>269.99</td>
+<td>2.0</td>
+</tr>
+<tr>
+<td>x3</td>
+<td>2.723</td>
+<td>...</td>
+<td>1.856</td>
+<td>...</td>
+<td>404.98</td>
+<td>3.0</td>
+</tr>
+</tbody>
+</table>
+<h1 id="congig-yaml">Congig YAML</h1>
+<p>These are the <em>config_YAML</em> options related to feature importance</p>
+<pre><code>dataset_feature_importance:
+  # Set to 'false' to disable this step
+  enable: true
+
+  # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
+  enable_na: true
+
+  # Enable &quot;Feature Importance using Permutations&quot; (for different models)
+  is_fip_random_forest: true
+  is_fip_extra_trees: true
+  is_fip_gradient_boosting: true
+
+  # Regularization methods
+  # Enable regularization methods (for different models)
+  is_regularization_lasso: true
+  is_regularization_ridge: true
+  is_regularization_lars: true
+  # Number of Cross-validation in regularization methods
+  regularization_model_cv: 10
+
+  # Enable Recursive Feature Elimination (for different models)
+  is_rfe_model: true
+  is_rfe_model_lasso: true
+  is_rfe_model_ridge: true
+  is_rfe_model_lars_aic: true
+  is_rfe_model_lars_bic: true
+  is_rfe_model_random_forest: true
+  is_rfe_model_extra_trees: true
+  is_rfe_model_gradient_boosting: true
+  rfe_model_cv: 0  # Number of Corss-validations in Recursive Feature Elimination methods
+
+  # Enable model selection methods (SelectFdr / SelectKBest)
+  is_select: true
+
+  # Linear regression p-value
+  is_linear_pvalue: true
+  # Variables used for setting the null model (always add to linear regression model)
+  linear_pvalue_null_model_variables: ['x6']
+
+  # Tree graph
+  is_tree_graph: true
+  tree_graph_max_depth: 4  # Number of layers to show in graph
+
+  # Range to use when expanding weights
+  # Note: Weights are converted to an interval [weight_min, weight_max]
+  weight_max: 10.0
+  weight_min: 1.0
+
+  # Logistic regression p-value (Wilks)
+  is_wilks: true
+  # Variables used for setting the null model
+  wilks_null_model_variables: ['age', 'sex', 'pc_1', 'pc_2', 'pc_3', 'pc_4']
+
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

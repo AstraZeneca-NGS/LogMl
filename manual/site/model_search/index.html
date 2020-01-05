@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Workflow: Model Search - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li >
+    <a href="../workflow/">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../model_hyperopt/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../cross_validation/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#model-search">Model Search</a></li>
+            <li><a href="#model-search-with-hyper-parameter-optimization">Model Search with Hyper-parameter optimization:</a></li>
+            <li><a href="#results">Results</a></li>
+            <li><a href="#config_yaml">Config_YAML</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="model-search">Model Search</h1>
+<p>LogMl can perform model search, that is, fit many different models and rank them according to their (validation) performance.</p>
+<p>Models used in model search (these models are based on SciKit-Learn):</p>
+<ol>
+<li>sklearn.dummy.DummyClassifier</li>
+<li>sklearn.dummy.DummyRegressor</li>
+<li>sklearn.ensemble.AdaBoostClassifier</li>
+<li>sklearn.ensemble.AdaBoostRegressor</li>
+<li>sklearn.ensemble.BaggingClassifier</li>
+<li>sklearn.ensemble.BaggingRegressor</li>
+<li>sklearn.ensemble.ExtraTreesClassifier</li>
+<li>sklearn.ensemble.ExtraTreesRegressor</li>
+<li>sklearn.ensemble.GradientBoostingClassifier</li>
+<li>sklearn.ensemble.GradientBoostingRegressor</li>
+<li>sklearn.ensemble.HistGradientBoostingClassifier</li>
+<li>sklearn.ensemble.HistGradientBoostingRegressor</li>
+<li>sklearn.ensemble.RandomForestClassifier</li>
+<li>sklearn.ensemble.RandomForestRegressor</li>
+<li>sklearn.linear_model.ARDRegression</li>
+<li>sklearn.linear_model.BayesianRidge</li>
+<li>sklearn.linear_model.HuberRegressor</li>
+<li>sklearn.linear_model.Lars</li>
+<li>sklearn.linear_model.Lasso</li>
+<li>sklearn.linear_model.LassoCV</li>
+<li>sklearn.linear_model.LinearRegression</li>
+<li>sklearn.linear_model.LogisticRegressionCV</li>
+<li>sklearn.linear_model.OrthogonalMatchingPursuit</li>
+<li>sklearn.linear_model.PassiveAggressiveClassifier</li>
+<li>sklearn.linear_model.Perceptron</li>
+<li>sklearn.linear_model.RANSACRegressor</li>
+<li>sklearn.linear_model.Ridge</li>
+<li>sklearn.linear_model.RidgeCV</li>
+<li>sklearn.linear_model.TheilSenRegressor</li>
+<li>sklearn.naive_bayes.BernoulliNB</li>
+<li>sklearn.naive_bayes.ComplementNB</li>
+<li>sklearn.naive_bayes.GaussianNB</li>
+<li>sklearn.naive_bayes.MultinomialNB</li>
+<li>sklearn.neighbors.KNeighborsClassifier</li>
+<li>sklearn.neighbors.KNeighborsRegressor</li>
+<li>sklearn.neighbors.NearestCentroid</li>
+<li>sklearn.neighbors.RadiusNeighborsClassifier</li>
+<li>sklearn.neighbors.RadiusNeighborsRegressor</li>
+<li>sklearn.svm.LinearSVC</li>
+<li>sklearn.svm.LinearSVR</li>
+<li>sklearn.svm.NuSVC</li>
+<li>sklearn.svm.NuSVR</li>
+<li>sklearn.svm.SVC</li>
+<li>sklearn.svm.SVR</li>
+<li>sklearn.tree.DecisionTreeClassifier</li>
+<li>sklearn.tree.DecisionTreeRegressor</li>
+</ol>
+<p>Note that Dummy models are included. Dummy models are useful as a simple baseline to compare with other (real) models.</p>
+<h3 id="model-search-with-hyper-parameter-optimization">Model Search with Hyper-parameter optimization:</h3>
+<p>Hyper-parameter optimization can be used in conjunction with model search for find a suitable set of hyper-parameters for each model.
+These are the models currently using hyper-parameter optimization in model search.</p>
+<ol>
+<li>sklearn.ensemble.ExtraTreesClassifier</li>
+<li>sklearn.ensemble.ExtraTreesRegressor</li>
+<li>sklearn.ensemble.GradientBoostingClassifier</li>
+<li>sklearn.ensemble.GradientBoostingRegressor</li>
+<li>sklearn.neighbors.KNeighborsClassifier</li>
+<li>sklearn.neighbors.KNeighborsRegressor</li>
+<li>sklearn.ensemble.RandomForestClassifier</li>
+<li>sklearn.ensemble.RandomForestRegressor</li>
+</ol>
+<h3 id="results">Results</h3>
+<p>Model search results are shown in a table, ranked by validation score.
+The table also shows:
+- train loss
+- validation loss
+- training time
+- all hyper-parameters used to create the model (NA if the hyper-parameters does not apply to a specific model)</p>
+<p><img alt="Model search" src="../img/model_seach.png" /></p>
+<h3 id="config_yaml">Config_YAML</h3>
+<p>The <em>config_YAML</em> pard that refers to model search simply includes all model file YAMLs in a sub directory:</p>
+<pre><code>model_search:
+  enable: true
+  models: !include models_search/*.yaml
+</code></pre>
+
+<p>Each YAML file in the sub-directory <code>models_search</code> is a configuration for a specific model.
+For instance, here is the configuration YAML for RandomForestRegressor, you can see how default parameter values and hyper parameter optimization:</p>
+<pre><code>RandomForestRegressor:
+  functions:
+    model_create:
+      bootstrap: true
+      criterion: mse
+      max_features: auto
+      min_impurity_decrease: 0.0
+      min_samples_leaf: 1
+      min_samples_split: 2
+      min_weight_fraction_leaf: 0.0
+      n_jobs: -1
+      n_estimators: 100
+      oob_score: false
+      verbose: 0
+      warm_start: false
+  hyper_parameter_optimization:
+    enable: true
+    algorithm: tpe
+    max_evals: 100
+    show_progressbar: true
+    space:
+      model_create:
+        max_depth:
+          - uniformint
+          - 2
+          - 30
+        max_features:
+          - uniform
+          - 0.3
+          - 1.0
+        min_samples_split:
+          - uniformint
+          - 2
+          - 20
+        min_samples_leaf:
+          - uniformint
+          - 1
+          - 100
+        n_estimators:
+          - uniformint
+          - 2
+          - 1000
+  model:
+    model_class: sklearn.ensemble.RandomForestRegressor
+    model_type: regression
+</code></pre></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

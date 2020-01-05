@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Workflow - LogMl</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">LogMl</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../about/">About</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Manual <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../overview/">Overview</a>
+</li>
+                                    
+<li >
+    <a href="../install/">Install</a>
+</li>
+                                    
+<li >
+    <a href="../introduction/">Introduction</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_cmd/">Introduction command line</a>
+</li>
+                                    
+<li >
+    <a href="../introduction_juppyter/">Introduction Jupyter Notebooks</a>
+</li>
+                                    
+<li >
+    <a href="../logging/">Logging</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">Workflow</a>
+</li>
+                                    
+<li >
+    <a href="../datasets/">Workflow: Datasets</a>
+</li>
+                                    
+<li >
+    <a href="../explore/">Workflow: Explore</a>
+</li>
+                                    
+<li >
+    <a href="../feature_importance/">Workflow: Feature importance</a>
+</li>
+                                    
+<li >
+    <a href="../model/">Workflow: Model</a>
+</li>
+                                    
+<li >
+    <a href="../model_hyperopt/">Workflow: Hyper-parameter tunnig</a>
+</li>
+                                    
+<li >
+    <a href="../model_search/">Workflow: Model Search</a>
+</li>
+                                    
+<li >
+    <a href="../cross_validation/">Cross validation</a>
+</li>
+                                    
+<li >
+    <a href="../examples_custom_fucntions/">Examples: Custom functions</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../logging/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../datasets/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#logml-workflow">LogMl Workflow</a></li>
+            <li><a href="#nomenclature">Nomenclature</a></li>
+        <li class="main "><a href="#customizing-workflow-steps">Customizing workflow steps</a></li>
+            <li><a href="#user_defined_function">User_defined_function</a></li>
+            <li><a href="#config_yaml">Config_YAML</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="logml-workflow">LogMl Workflow</h1>
+<p>LogMl workflow is shown in the diagram</p>
+<p><img alt="LogMl pipeline diagram" src="../img/LogMl.png" /></p>
+<p>Note that some steps have a <code>name</code> to identify them, these steps can be customized with user_defined_functions</p>
+<ol>
+<li>Dataset:<ol>
+<li><code>dataset_load</code>: Load a dataset from a file</li>
+<li><code>dataset_create</code>: Create a dataset using a user_defined_function</li>
+<li><code>dataset_preprocess</code>: Pre-process data, e.g. to make it suitable for model training.</li>
+<li><code>dataset_augment</code>: Data augmentation</li>
+<li><code>dataset_split</code>: Split data into train / validate / test datasets</li>
+<li><code>dataset_inout</code>: Obtain inputs and output for each (train / validate / test) dataset.</li>
+<li><code>dataset_save</code>: Save datasets to a file</li>
+</ol>
+</li>
+<li>Explore: E.g. show dataset, correlation analysis, dendogram, missingness analysis, etc.</li>
+<li>Feature importance:</li>
+<li>Model:<ol>
+<li><code>model_create</code>: Create a new model</li>
+<li><code>model_train</code>: Train a model</li>
+<li>Hyper-parameter optimization: Train models using hyper-parameter optimization using Bayesian or Random algorithms</li>
+<li>Model Search: Search over 50 different model families (i.e. machine learning algorithms). This search can be done using hyper-parameter optimizations on each model's hyper-parameters.</li>
+<li><code>model_evaluate</code>: Evaluate the model using train, validation or test datasets</li>
+<li><code>model_predict</code>: Generate model predictions</li>
+<li><code>model_save</code>: Save model to a file</li>
+</ol>
+</li>
+<li>Cross-validation: Perform cross-validation (KFold, RepeatedKFold, LeaveOneOut, LeavePOut, ShuffleSplit). Cross-validation can be used in all model search and Feature importance steps.</li>
+<li>Logging: All outputs are directed to log files</li>
+<li>Save models &amp; datasets: Automatically save models and datasets for easier retrieval later</li>
+</ol>
+<h3 id="nomenclature">Nomenclature</h3>
+<p>Note that these nomenclature items are separated by underscores instead of spaces, to denote a special meaning.</p>
+<p><strong>LogMl_workflow</strong>: The workflow the LogMl, specified in the previous section</p>
+<p><strong>Workflow_step</strong>: Each of steps in the <strong>LogMl_workflow</strong></p>
+<p><strong>Named_workflow_step</strong>: A <em>workflow_step</em> that has a name (see previous section), e.g. The steps identified with <code>dataset_load</code>, <code>dataset_preprocess</code>, <code>model_train</code>, etc.</p>
+<p><strong>workflow_step_name</strong>: The name of a <strong>Named_workflow_step</strong>, e.g. <code>dataset_load</code>, <code>dataset_preprocess</code>, <code>model_train</code>, etc.</p>
+<p><strong>User_defined_function</strong>: Python code that has been annotated with a LogMl name (from a <em>named_workflow_step</em>).</p>
+<p><strong>LogMl_default_function</strong>: A function provided by LogMl, if no <em>user_defined_function</em> exists, the <em>LogMl_default_function</em> will be invoked instead</p>
+<p><strong>Config_YAML</strong>: A LogMl configuration YAML file. The YAML file can also store parameters that are passed to <em>user_defined_functions</em></p>
+<p><strong>Soft_fail</strong>: When a <em>workflow_step</em> fails, warning might be shown, but <em>LogMl_workflow</em> execution continues</p>
+<p><strong>Hard_fail</strong>: When a <em>workflow_step</em> fails, an error message is shown and <em>LogMl_workflow</em> is stopped</p>
+<p><strong>Processed_dataset_file</strong>: LogMl saves datasets to (pickle) file after dataset steps (pre-processed, augmented, split), so that next time it ca be retrieved from the file instead of spending time on running the steps again.</p>
+<h1 id="customizing-workflow-steps">Customizing workflow steps</h1>
+<p>There are two ways to customize the workflow steps:</p>
+<ol>
+<li><strong>User_defined_functions</strong>: Custom (Python) code. This can be done on <em>named_workflow_steps</em>, such as <code>dataset_load</code>, <code>dataset_preprocess</code>, <code>model_train</code>, etc.</li>
+<li><strong>Config_YAML</strong>: Configuration parameters are stored in a YAML file.</li>
+</ol>
+<p>How each LogMl <em>named_workflow_step</em> works:</p>
+<ol>
+<li>The user can provide a <em>user_defined_function</em> (custom Python code) for each <em>named_workflow_steps</em>. E.g. For the <code>dataset_load</code> workflow step, a user provides a function to load the dataset</li>
+<li>If there is no user_defined_function, a <em>LogMl_default_function</em> is used. E.g. For the <code>dataset_load</code> workflow step, LogMl tries to load a dataset from a CSV file</li>
+<li>If there is neither a <em>user_defined_function</em>, nor a <em>LogMl_default_function</em>, the step fails (can be <em>soft_fail</em> or <em>hard_fail</em>, depending on the step)</li>
+</ol>
+<h3 id="user_defined_function">User_defined_function</h3>
+<p>A <em>user_defined_function</em> is just Python code that has been annotated with a LogMl name (from a <em>named_workflow_step</em>).
+The <em>user_defined_functions</em> are often referred by the names with an <code>@</code> prefix, for instance <code>@dataset_load</code> refers to the <em>user_defined_function</em> annotated with <code>dataset_load</code> <em>workflow_step_name</em></p>
+<p>Sample code using <em>user_defined_function</em> to create a dataset:</p>
+<pre><code>#!/usr/bin/env python3
+
+import numpy as np
+from logml import *
+
+# This is a user_defined_function (it is annotated with a LogMl 'named_workflow_step')
+@dataset_create
+def my_dataset_create(num_samples):
+    x = 2 * np.random.rand(num_samples, 2) - 1
+    y = ((x[:, 0] &gt; 0) ^ (x[:, 1] &gt; 0)).astype('float').reshape(num_samples, 1)
+    return np.concatenate((x, y), axis=1)
+
+# Main
+lm = LogMl()  # Create LogMl object
+lm()          # Invoke it to execute the LogMl workflow (LogMl objects are callable)
+</code></pre>
+
+<h3 id="config_yaml">Config_YAML</h3>
+<p>The <em>user_defined_function</em> we saw in the previous section (<code>my_dataset_create</code>) has a parameter <code>num_samples</code>.
+We can define the parameter in the <em>config_YAML</em> file:</p>
+<pre><code>dataset:
+  dataset_name: 'example_01'
+  dataset_path: 'data/example_01'
+
+model:
+  enable: True
+  model_name: 'example_01'
+  model_path: 'data/example_01/model'
+
+functions:
+    dataset_create:           # Parameters in this sub-section are passed
+      num_samples: 1000       # to @dataset_create user_defined_function
+</code></pre>
+
+<p>Note that the <code>functions</code> section in the <em>config_YAML</em> file, has a <code>dataset_create</code> sub-section.
+All parameters defined in that sub-section are passed as named parameters to the Python <code>my_dataset_create</code> function (i.e the <em>user_defined_function</em> annotated with <code>dataset_create</code>).</p>
+<p>Given the code and YAML shown above, when LogMl executes the wokflow and reaches the <code>dataset_create</code> <em>workflow_step</em>, it will invoke <code>my_dataset_create(1000)</code> and store the return value as the dataset.
+The dataset will then be used in all the next <em>workflow_steps</em>: it will be pre-processed, split into train/validation/test, used for model training, etc.</p>
+<p><strong>LogMl_default_functions</strong>: Creating custom functions is very flexible, but many times LogMl already has good default functions you can use.
+Particularly, when using a DataFrame (e.g. a dataset provided as CSV file), there are many functionalities that LogMl provides by default.
+These <em>LogMl_default_functions</em> have many parameters that are defined in the <em>config_YAML</em></p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
