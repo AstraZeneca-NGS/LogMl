@@ -51,8 +51,8 @@ class DfAugment(MlLog):
             self._debug("Augment dataframe: Could not do NMF")
             return False
         else:
-            self.df = self.df.join(ret)
-            self._debug(f"Augment dataframe: NMF has shape {ret.shape}, joined datasets has shape {self.df.shape}")
+            self.df = pd.concat([self.df, ret], axis=1)
+            self._debug(f"Augment dataframe: DataFrame has shape {self.df.shape}, NMF has shape {ret.shape}, joined datasets has shape {self.df.shape}")
             return True
 
     def _pca(self):
@@ -62,8 +62,9 @@ class DfAugment(MlLog):
             self._debug("Augment dataframe: Could not do PCA")
             return False
         else:
-            self.df = self.df.join(ret)
-            self._debug(f"Augment dataframe: PCA has shape {ret.shape}, joined datasets has shape {self.df.shape}")
+            df_shape = self.df.shape
+            self.df = pd.concat([self.df, ret], axis=1)
+            self._debug(f"Augment dataframe: DataFrame has shape {df_shape}, PCA has shape {ret.shape}, joined datasets has shape {self.df.shape}")
             return True
 
 
