@@ -113,7 +113,7 @@ class DfPreprocess(MlLog):
         if not self.enable:
             self._debug(f"Preprocessing dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', enable='{self.enable}'")
             return self.df
-        self._debug("Preprocessing dataframe: Start")
+        self._debug("Preprocessing dataframe: Start. Shape: {self.df.shape}")
         self._sanitize_column_names()
         self._shuffle()
         self._remove_rows_with_missing_outputs()
@@ -131,7 +131,7 @@ class DfPreprocess(MlLog):
         self.normalize_df = DfNormalize(self.df, self.config, self.outputs, self.model_type)
         self.df = self.normalize_df()
         self._balance()
-        self._debug("Preprocessing dataframe: End")
+        self._debug(f"Preprocessing dataframe: End. Shape: {self.df.shape}")
         return self.df
 
     def create(self):

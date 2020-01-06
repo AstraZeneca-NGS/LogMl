@@ -36,12 +36,12 @@ class DfAugment(MlLog):
             self._debug(f"Augment dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_AUGMENT}', enable='{self.enable}'")
             return self.df
         cols = "', '".join([c for c in self.df.columns])
-        self._debug(f"Augment dataframe: Start. Fields ({len(self.df.columns)}): ['{cols}']")
+        self._debug(f"Augment dataframe: Start. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
         self._nmf()
         self._pca()
         self._debug(f"Augment dataframe: Finished")
         cols = "', '".join([c for c in self.df.columns])
-        self._debug(f"Augment dataframe: End. Fields ({len(self.df.columns)}): ['{cols}']")
+        self._debug(f"Augment dataframe: End. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
         return self.df
 
     def _nmf(self):

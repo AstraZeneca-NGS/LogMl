@@ -84,10 +84,10 @@ class DatasetsDf(Datasets):
 
     def default_augment(self):
         " Default implementation for '@dataset_augment' "
-        self._debug(f"Dataset preprocess (default): Start")
+        self._debug(f"Dataset augment (default): Start")
         self.dataset_augment = DfAugment(self.dataset, self.config, self.outputs, self.model_type)
         self.dataset = self.dataset_augment()
-        self._debug(f"Dataset preprocess: End")
+        self._debug(f"Dataset augment: End")
         return True
 
     def default_in_out(self, df, name):
