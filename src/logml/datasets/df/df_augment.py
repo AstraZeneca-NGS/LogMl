@@ -52,6 +52,7 @@ class DfAugment(MlLog):
             return False
         else:
             self.df = self.df.join(ret)
+            self._debug(f"Augment dataframe: NMF has shape {ret.shape}, joined datasets has shape {self.df}")
             return True
 
     def _pca(self):
@@ -62,6 +63,7 @@ class DfAugment(MlLog):
             return False
         else:
             self.df = self.df.join(ret)
+            self._debug(f"Augment dataframe: PCA has shape {ret.shape}, joined datasets has shape {self.df}")
             return True
 
 

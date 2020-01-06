@@ -150,14 +150,18 @@ class CountAndFields(MatchFields):
 
     def __call__(self):
         """ Perform PCA and return a dataFrame with PCA data """
-        df = None
+        dfs = list()
         for nf in self.num_fields.values():
             ret = self.calc(nf, self.df[nf.fields])
             if ret is not None:
                 # Column names: ''
                 cols = [f"{nf.name}_{i}" for i in range(ret.shape[1])]
                 dfret = pd.DataFrame(ret, columns=cols, index=self.df.index)
-                df = df.join(dfret) if df is not None else dfret
+                dfs.append(dfret)
+                self._debug(f"DataFrame calculated has shape {dfret.shape}")
+        if len(dfs) > 0:
+            df = pd.concat(dfs, axis=1)
+        self._debug(f"DataFrame calculated has shape {dfret.shape}, joined dataFrame has shape {df.shape}")
         return df if df is not None and len(df) > 0 else None
 
     def _initialize(self):
