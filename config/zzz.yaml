@@ -14,11 +14,32 @@ dataset_preprocess:
   normalize:
     standard: true
 
-dataset_explore:
+dataset_augment:
+  # Set to 'false' to disable this step
   enable: true
+  # TODO: add_interactions: ['*', '-', '+', '/']
+
+  # Add principal componenets
+  # After the 'pca', you can add several "sub-sections":
+  #   name:                 # Unique name, used to add PCA fields on each sample (name_1, name_2, ... name_num)
+  #     num: 2              # Number of PCA componenets to add
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  pca:
+    pca_a:
+      num: 2
+      fields: ['x0', 'x1', 'x2']
+    pca_b:
+      num: 3
+      fields: ['x3', 'x4', 'x5']
+    pca_c:
+      num: 3
+      fields: ['x0', 'x3', 'x5']
+
+dataset_explore:
+  enable: false
 
 dataset_feature_importance:
-  enable: true
+  enable: false
   enable_na: true
   is_fip_random_forest: true
   is_fip_extra_trees: true
@@ -43,7 +64,7 @@ dataset_feature_importance:
 
 
 model:
-  enable: true
+  enable: false
   model_type: classification
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -59,5 +80,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: true
+  enable: false
   models: !include models_search/*.yaml

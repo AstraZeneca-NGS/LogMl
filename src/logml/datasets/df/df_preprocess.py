@@ -142,14 +142,18 @@ class DfPreprocess(MlLog):
         # Drop old columns categorical columns
         df_new.drop(list(self.columns_to_remove), axis=1, inplace=True)
         # Join new columns
-        for c in self.columns_to_add:
-            self._debug(f"Creating transformed dataset: Adding columns '{c}'")
-            df_new = df_new.join(self.columns_to_add[c])
+        # for c in self.columns_to_add:
+        #     self._debug(f"Creating transformed dataset: Adding columns '{c}'")
+        #     df_new = df_new.join(self.columns_to_add[c])
+        if len(self.columns_to_add) > 0:
+            dfs = list([df_new])
+            dfs.extend(self.columns_to_add.values())
+            df_new = pd.concat(dfs, axis=1)
         self.df_new = df_new
         # Reset columns
         self.columns_to_add = dict()
         self.columns_to_remove = set()
-        self._debug(f"Creating transformed dataset: End")
+        self._debug(f"Creating transformed dataset: End. Shape: {df_new.shape}")
         return df_new
 
     def create_categories(self):

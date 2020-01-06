@@ -161,8 +161,10 @@ class CountAndFields(MatchFields):
                 self._debug(f"DataFrame calculated has shape {dfret.shape}")
         if len(dfs) > 0:
             df = pd.concat(dfs, axis=1)
-        self._debug(f"DataFrame calculated has shape {dfret.shape}, joined dataFrame has shape {df.shape}")
-        return df if df is not None and len(df) > 0 else None
+            self._debug(f"DataFrame joined dataFrame has shape {df.shape}")
+            return df
+        self._debug(f"No results")
+        return None
 
     def _initialize(self):
         for name, vals in self.__dict__[self.subsection].items():

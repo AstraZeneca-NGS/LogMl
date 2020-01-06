@@ -184,8 +184,6 @@ dataset_preprocess:
     # Do not normalize these variables
     skip: ['x7', 'x8']
 
-
-
 #---
 # Dataset augmentation: Add variable interaction terms
 #---
