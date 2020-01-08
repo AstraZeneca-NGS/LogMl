@@ -137,7 +137,7 @@ class DatasetsDf(Datasets):
                 cat_col = self.dataset_preprocess.category_column[c]
                 df_na[c] = cat_col.isna().astype('int')
                 self._debug(f"Get dataframe NA: Adding cathegorical column '{c}', number of NA: {df_na[c].sum()}")
-        return df_na
+        return df_na.isnull().astype('float')
 
     def get_datasets_na(self):
         """ Create a dataset of 'missing value indicators' """
