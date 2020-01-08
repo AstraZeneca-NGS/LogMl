@@ -5,9 +5,9 @@ import random
 from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
-from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT # InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
+from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT
 
-
+# InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
 InOut = namedtuple('InOut', ['x', 'y'])
 DATASET_OPS = [DATASET_PREPROCESS, DATASET_AUGMENT, DATASET_SPLIT, DATASET_INOUT]
 

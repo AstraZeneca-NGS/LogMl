@@ -274,10 +274,20 @@ dataset_feature_importance:
   # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
   enable_na: true
 
-  # Enable "Feature Importance using Permutations" (for different models)
+  # Enable feature importance using "Drop column" (for different models)
+  is_dropcol_extra_trees: true
+  is_dropcol_gradient_boosting: true
+  is_dropcol_random_forest: true
+
+  # Enable model-based feature importance (for different models): permutataion, drop column, skleanr
   is_fip_random_forest: true
   is_fip_extra_trees: true
   is_fip_gradient_boosting: true
+
+  # Enable feature importance using "Permutations" (for different models)
+  is_permutation_extra_trees: true
+  is_permutation_gradient_boosting: true
+  is_permutation_random_forest: true
 
   # Regularization methods
   # Enable regularization methods (for different models)
@@ -300,6 +310,11 @@ dataset_feature_importance:
 
   # Enable model selection methods (SelectFdr / SelectKBest)
   is_select: true
+
+  # Use skmodel method (different models)
+  is_skmodel_extra_trees: true
+  is_skmodel_gradient_boosting: true
+  is_skmodel_random_forest: true
 
   # Linear regression p-value
   is_linear_pvalue: true

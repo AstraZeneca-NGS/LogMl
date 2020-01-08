@@ -120,10 +120,19 @@ class LogisticRegressionWilks(PvalueFdr):
         self.null_model_required = True
 
     def binarize(self, y):
-        """ Make sure 'y' has values in range [0, 1] """
+        """ Make sure 'y' has values in range [0, 1]
+        Returns: A tuple with < y_normalize, ok>
+        Where 'ok' is True on success, False on error
+        The value of y_normalized is meaningless if 'ok' is False
+        """
         if self.class_to_analyze is None:
-            return (y - y.min()) / (y.max() - y.min())
-        return (y == self.class_to_analyze).astype('float')
+            if y.min() < y.max():
+                self._debug(f"Converting to [0, 1] range: [{y.min()}, {y.max()}]")
+                return (y - y.min()) / (y.max() - y.min()), True
+            self._warning(f"Cannot convert to [0, 1] range: Variable min={y.min()}, max={y.max()}")
+            return None, False
+        self._debug(f"Converting to binary: Class {self.class_to_analyze}")
+        return (y == self.class_to_analyze).astype('float'), True
 
     def fit_null_model(self):
         ''' Fit 'null' model '''
@@ -140,7 +149,9 @@ class LogisticRegressionWilks(PvalueFdr):
             if alt_model_variables:
                 cols.append(alt_model_variables)
             x, y = self._drop_na_inf(cols)
-            y = self.binarize(y)
+            y, ok = self.binarize(y)
+            if not ok:
+                return None, None
             logit_model = Logit(y, x)
             res = logit_model.fit(disp=0)
             return logit_model, res
