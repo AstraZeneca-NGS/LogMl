@@ -9,6 +9,8 @@ dataset:
 
 dataset_preprocess:
   enable: true
+  impute:
+    median: true
   normalize:
     standard: true
     skip: ['y']

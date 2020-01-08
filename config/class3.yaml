@@ -8,18 +8,20 @@ dataset:
   dataset_path: 'data/class3'
   outputs: ['y']
 
+dataset_preprocess:
+  enable: true
+  impute:
+    median: true
+  normalize:
+    standard: true
+    skip: ['y']
+
 dataset_explore:
   enable: true
   is_use_ori: true
 
 dataset_feature_importance:
   enable: true
-
-dataset_preprocess:
-  enable: true
-  normalize:
-    standard: true
-    skip: ['y']
 
 model:
   enable: true

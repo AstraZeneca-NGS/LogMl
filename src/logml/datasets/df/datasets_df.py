@@ -21,6 +21,10 @@ def _copy_inout(inout):
     return InOut(_copy_df(inout.x), _copy_df(inout.y)) if inout is not None else InOut(None, None)
 
 
+def shape_or_none(df):
+    return 'None' if df is None else df.shape
+
+
 class DatasetsDf(Datasets):
     '''
     A dataset based on a Pandas DataFrame
@@ -162,7 +166,7 @@ class DatasetsDf(Datasets):
         dsna.dataset_validate = self._get_dataframe_na(self.dataset_validate, cols_na)
         # Split x,y for all datasets
         dsna.in_outs()
-        self._debug(f"Creating 'missing' dataset: End")
+        self._debug(f"Creating 'missing' dataset: End. {dsna}")
         return dsna
 
     def __getitem__(self, key):
@@ -215,6 +219,9 @@ class DatasetsDf(Datasets):
             x_col = df[col_name].copy()
             df[col_name] = np.random.permutation(x_col)
             return x_col
+
+    def __str__(self):
+        return f"Dtasets(df). Shapes: all={shape_or_none(self.dataset)}, train={shape_or_none(self.dataset_train)}, validate={shape_or_none(self.dataset_validate)}, test={shape_or_none(self.dataset_test)}"
 
     def zero_input(self, name, restore=None):
         """
