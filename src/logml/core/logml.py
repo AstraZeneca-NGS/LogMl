@@ -152,6 +152,9 @@ class LogMl(MlFiles):
         if datasets_na is None:
             self._debug("Dataset feature importance (missing data): Could not create 'missing' dataset, skipping")
             return False
+        if datasets_na.dataset.abs().sum().sum() == 0:
+            self._debug("Dataset feature importance (missing data): There are no missing values, skipping")
+            return True
         self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type, 'na')
         return self.dataset_feature_importance_na()
 
