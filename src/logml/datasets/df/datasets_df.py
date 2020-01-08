@@ -135,7 +135,7 @@ class DatasetsDf(Datasets):
                 pass
             elif c in cols_na and c in self.dataset_preprocess.category_column:
                 cat_col = self.dataset_preprocess.category_column[c]
-                df_na[c] = cat_col.isna().astype('int')
+                df_na[c] = cat_col.isnull().astype('float')
                 self._debug(f"Get dataframe NA: Adding cathegorical column '{c}', number of NA: {df_na[c].sum()}")
         return df_na.isnull().astype('float')
 

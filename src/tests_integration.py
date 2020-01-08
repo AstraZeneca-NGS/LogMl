@@ -33,7 +33,7 @@ class TestLogMlIntegration(unittest.TestCase):
         config_file = os.path.join('tests', 'integration', 'config', 'linear3.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
-        ml = LogMl(config=config)
+        ml = LogMl(config=config, debug=DEBUG)
         ml()
         # Check data preprocessing
         dp = ml.datasets.dataset_preprocess
@@ -60,7 +60,7 @@ class TestLogMlIntegration(unittest.TestCase):
         config_file = os.path.join('tests', 'integration', 'config', 'linear3c.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
-        ml = LogMl(config=config)
+        ml = LogMl(config=config, debug=DEBUG)
         ml()
         # Check results
         dp = ml.datasets.dataset_preprocess
@@ -97,7 +97,7 @@ class TestLogMlIntegration(unittest.TestCase):
         config_file = os.path.join('tests', 'integration', 'config', 'class3.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
-        ml = LogMl(config=config)
+        ml = LogMl(config=config, debug=DEBUG)
         ml()
         # Check results
         dp = ml.datasets.dataset_preprocess
