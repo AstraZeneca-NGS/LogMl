@@ -100,6 +100,10 @@ class DfAugmentPca(CountAndFields):
         Returns: A dataframe of PCAs (None on failure)
         """
         self._debug(f"Calculating PCA: Start, name={nf.name}, num={nf.number}, fields:{nf.fields}")
+        if x.isnull().sum().sum() > 0:
+            cols_na = x.isnull().sum(axis=0) > 0
+            # self._fatal_error(f"There are NA values i the dataset, columns: {cols_na}")
+            self._fatal_error(f"Calculating PCA: There are NA values in the inputs, columns: {list(x.columns[cols_na])}")
         pca = PCA(n_components=nf.number)
         pca.fit(x)
         self.sk_pca_by_name[nf.name] = pca
