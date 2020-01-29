@@ -1,87 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/about/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/cross_validation/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/datasets/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/examples_custom_fucntions/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/explore/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/feature_importance/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/install/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/introduction/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/introduction_cmd/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/introduction_juppyter/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/logging/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/model/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/model_hyperopt/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/model_search/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/overview/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/workflow/</loc>
+     <loc>None</loc>
      <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
