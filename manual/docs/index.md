@@ -2,7 +2,7 @@
 
 # LogMl
 
-![LogMl](img/LogMl.png)
+![LogMl](img/logml_logo.png)
 
 Log(ML) is a framework that helps automate many steps in machine learning projects and let you quickly generate baseline results.
 
@@ -24,3 +24,5 @@ Log(ML) is designed to:
 `Log(ML)` has a standard "data science workflow" (a.k.a. pipeline).
 The workflow include several steps, such as data transformation, data augmentation, data exploration, feature importance, model training, hyper-parameter search, cross-validation, etc.
 Each step in the workflow can be customized either in a configuration YAML file or adding custom Python code.
+
+![LogMl](img/LogMl.png)
