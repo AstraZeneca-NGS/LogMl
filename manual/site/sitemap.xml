@@ -1,88 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/about/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/cross_validation/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/datasets/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/examples_custom_fucntions/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/explore/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/feature_importance/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/install/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/introduction/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/introduction_cmd/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/introduction_juppyter/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/logging/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/model/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/model_hyperopt/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/model_search/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/overview/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2020-01-04</lastmod>
+     <loc>/workflow/</loc>
+     <lastmod>2020-01-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>

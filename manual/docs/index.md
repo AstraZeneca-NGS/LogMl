@@ -1,5 +1,8 @@
 
+
 # LogMl
+
+![LogMl](img/logml.png)
 
 Log(ML) is a framework that helps automate many steps in machine learning projects and let you quickly generate baseline results.
 
