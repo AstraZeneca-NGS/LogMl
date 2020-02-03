@@ -289,6 +289,22 @@ class TestLogMl(unittest.TestCase):
         cov_diff = np.linalg.norm(Cov - Cov_expected)
         self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{Cov}\nExpected:\n{Cov_expected}")
 
+    def test_dataset_augment_002(self):
+        ''' Checking dataset augment: Operations '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        self.assertTrue('add_x_0' in df.columns)
+        dfpca = df[['pca_x_0', 'pca_x_1']]
+        self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{Cov}\nExpected:\n{Cov_expected}")
+
     def test_dataset_feature_importance_001(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_001.yaml')
