@@ -11,6 +11,16 @@ from .df_impute import DfImpute
 from .methods_fields import FieldsParams
 
 
+def _parse_base(base):
+    """ Initialize operations """
+    if base is None:
+        return np.log(2)
+    elif base == 'e':
+        return 1.0
+    else:
+        return np.log(base)
+
+
 class DfAugment(MlLog):
     '''
     DataFrame augmentation
@@ -22,8 +32,6 @@ class DfAugment(MlLog):
         self.df = df
         self.outputs = outputs
         self.model_type = model_type
-        self.pca = dict()
-        self.pca_augment = None  # DfAugmentPca object
         if set_config:
             self._set_from_config()
 
@@ -62,43 +70,43 @@ class DfAugment(MlLog):
         return self.df
 
     def _op_add(self):
-        self.add_augment = DfAugmentOpAdd(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('add', self.add_augment)
+        add_augment = DfAugmentOpAdd(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('add', add_augment)
 
     def _op_div(self):
-        self.divide_augment = DfAugmentOpDiv(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('div', self.divide_augment)
+        divide_augment = DfAugmentOpDiv(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('div', divide_augment)
 
     def _op_mult(self):
-        self.multiply_augment = DfAugmentOpMult(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('mult', self.multiply_augment)
+        multiply_augment = DfAugmentOpMult(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('mult', multiply_augment)
 
     def _op_log_ratio(self):
-        self.log_ratio_augment = DfAugmentOpLogRatio(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('log_ratio', self.log_ratio_augment)
+        log_ratio_augment = DfAugmentOpLogRatio(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('log_ratio', log_ratio_augment)
 
     def _op_logp1_ratio(self):
-        self.logp1_ratio_augment = DfAugmentOpLogPlusOneRatio(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('logp1_ratio', self.logp1_ratio_augment)
+        logp1_ratio_augment = DfAugmentOpLogPlusOneRatio(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('logp1_ratio', logp1_ratio_augment)
 
     def _op_sub(self):
-        self.sub_augment = DfAugmentOpSub(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('sub', self.sub_augment)
+        sub_augment = DfAugmentOpSub(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('sub', sub_augment)
 
     def _nmf(self):
-        self.nmf_augment = DfAugmentNmf(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('NMF', self.nmf_augment)
+        nmf_augment = DfAugmentNmf(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('NMF', nmf_augment)
 
     def _pca(self):
-        self.pca_augment = DfAugmentPca(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('PCA', self.pca_augment)
+        pca_augment = DfAugmentPca(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('PCA', pca_augment)
 
 
 class DfAugmentOp(FieldsParams):
     ''' Augment dataset by adding "operations" between fields '''
 
-    def __init__(self, df, config, subsection, outputs, model_type, set_config=True):
-        super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs)
+    def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
+        super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
         self.operation_name = subsection
         self.symmetric = True
 
@@ -107,8 +115,10 @@ class DfAugmentOp(FieldsParams):
         Returns: A dataframe of 'operations' (None on failure)
         """
         self._debug(f"Calculating {self.operation_name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
-        dfs = list()
+        results = list()
         skip_second = set()
+        self._op_init(namefieldparams)
+        cols = list()
         for i in range(len(namefieldparams.fields)):
             field_i = namefieldparams.fields[i]
             if not self.can_apply_first(field_i):
@@ -127,10 +137,13 @@ class DfAugmentOp(FieldsParams):
                     skip_second.add(field_j)
                     continue
                 res = self.op(field_i, field_j)
-                dfs.append(res)
+                cols.append(f"{namefieldparams.name}_{field_i}_{field_j}")
+                results.append(res)
         self._debug(f"Calculating {self.operation_name}: End")
-        if len(dfs) > 0:
-            df = pd.concat(dfs, axis=1)
+        if len(results) > 0:
+            x = np.concatenate(results)
+            x = x.reshape(-1, len(results))
+            df = self.array_to_df(x, cols)
             self._debug(f"Calculating {self.operation_name}: DataFrame joined shape {df.shape}")
             return df
         return None
@@ -147,12 +160,16 @@ class DfAugmentOp(FieldsParams):
         """ Calculate the arithmetic operation between the two fields """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
+    def _op_init(self, namefieldparams):
+        """ Initialize operations """
+        pass
+
 
 class DfAugmentOpAdd(DfAugmentOp):
     ''' Augment dataset by adding two fields '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(df, config, 'add', outputs, model_type, set_config=True)
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'add', outputs, model_type)
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
@@ -162,8 +179,8 @@ class DfAugmentOpAdd(DfAugmentOp):
 class DfAugmentOpDiv(DfAugmentOp):
     ''' Augment dataset by dividing two fields '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(df, config, 'div', outputs, model_type, set_config=True)
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'div', outputs, model_type)
 
     def can_apply_second(self, field):
         """ We apply this operation only if all numbers in the second field are non-zero """
@@ -177,8 +194,8 @@ class DfAugmentOpDiv(DfAugmentOp):
 class DfAugmentOpLogRatio(DfAugmentOp):
     ''' Augment dataset by applying the log ratio of two fields '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(df, config, 'log_ratio', outputs, model_type, set_config=True)
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'log_ratio', outputs, model_type, params=['base'])
 
     def can_apply_first(self, field):
         """ We apply this operation if all numbers in the first field are positive """
@@ -190,14 +207,20 @@ class DfAugmentOpLogRatio(DfAugmentOp):
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
-        return (self.df[field_i].log() - self.df[field_j].log()) / self.log_base
+        return (np.log(self.df[field_i]) - np.log(self.df[field_j])) / self.log_base
+
+    def _op_init(self, namefieldparams):
+        """ Initialize operations """
+        base = namefieldparams.params.get('base')
+        self.log_base = _parse_base(base)
+        self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
 
 
 class DfAugmentOpLogPlusOneRatio(DfAugmentOp):
     ''' Augment dataset by applying the log+1 ratio of two fields '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(df, config, 'logp1_ratio', outputs, model_type, set_config=True)
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'logp1_ratio', outputs, model_type, params=['base'])
 
     def can_apply_first(self, field):
         """ We apply this operation if all numbers in the first field are non-negative """
@@ -209,16 +232,22 @@ class DfAugmentOpLogPlusOneRatio(DfAugmentOp):
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
-        n = (self.df[field_i] + 1).log()
-        d = (self.df[field_j] + 1).log()
+        n = np.log(self.df[field_i] + 1)
+        d = np.log(self.df[field_j] + 1)
         return (n - d) / self.log_base
+
+    def _op_init(self, namefieldparams):
+        """ Initialize operations """
+        base = namefieldparams.params.get('base')
+        self.log_base = _parse_base(base)
+        self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
 
 
 class DfAugmentOpMult(DfAugmentOp):
     ''' Augment dataset by multiplying two fields '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(df, config, 'mult', outputs, model_type, set_config=True)
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'mult', outputs, model_type)
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
@@ -228,8 +257,8 @@ class DfAugmentOpMult(DfAugmentOp):
 class DfAugmentOpSub(DfAugmentOp):
     ''' Augment dataset by substracting two fields '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
-        super().__init__(df, config, 'sub', outputs, model_type, set_config=True)
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'sub', outputs, model_type)
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
@@ -239,7 +268,7 @@ class DfAugmentOpSub(DfAugmentOp):
 class DfAugmentNmf(FieldsParams):
     ''' Augment dataset by adding Non-negative martix factorization '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
+    def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, 'nmf', df.columns, outputs, params=['num'], madatory_params=['num'])
         self.sk_nmf_by_name = dict()
 
@@ -253,7 +282,8 @@ class DfAugmentNmf(FieldsParams):
         self.sk_nmf_by_name[namefieldparams.name] = nmf
         xnmf = nmf.transform(x)
         self._debug(f"Calculating NMF: End")
-        return xnmf
+        cols = self.get_col_names_num(namefieldparams, xnmf)
+        return self.array_to_df(xnmf, cols)
 
 
 class DfAugmentPca(FieldsParams):
@@ -277,4 +307,5 @@ class DfAugmentPca(FieldsParams):
         self.sk_pca_by_name[namefieldparams.name] = pca
         xpca = pca.transform(x)
         self._debug(f"Calculating PCA: End")
-        return xpca
+        cols = self.get_col_names_num(namefieldparams, xpca)
+        return self.array_to_df(xpca, cols)

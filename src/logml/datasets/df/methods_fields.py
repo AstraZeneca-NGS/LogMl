@@ -146,13 +146,16 @@ class FieldsParams(MatchFields):
         self._set_from_config()
         self._initialize()
 
+    def array_to_df(self, x, cols):
+        return pd.DataFrame(x, columns=cols, index=self.df.index)
+
     def calc(self, namefieldparams, x):
         """Method to calculate
         Arguments:
             namefieldparams: A NameFieldsParams object
             x: Input variables
         Returns:
-            A Numpy array with new values (or None on failure)
+            A Pnadas DataFrame with new values (or None on failure)
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
@@ -162,17 +165,18 @@ class FieldsParams(MatchFields):
         for nf in self.name_fields_params.values():
             ret = self.calc(nf, self.df[nf.fields])
             if ret is not None:
-                # Column names
-                cols = [f"{nf.name}_{i}" for i in range(ret.shape[1])]
-                dfret = pd.DataFrame(ret, columns=cols, index=self.df.index)
-                dfs.append(dfret)
-                self._debug(f"DataFrame calculated has shape {dfret.shape}")
+                dfs.append(ret)
+                self._debug(f"DataFrame calculated has shape {ret.shape}")
         if len(dfs) > 0:
             df = pd.concat(dfs, axis=1)
             self._debug(f"DataFrame joined shape {df.shape}")
             return df
         self._debug(f"No results")
         return None
+
+    def get_col_names_num(self, namefieldparams, x):
+        " Create a list of column names as 'name_i' "
+        return [f"{namefieldparams.name}_{i}" for i in range(x.shape[1])]
 
     def _get_params(self, name, vals):
         """
