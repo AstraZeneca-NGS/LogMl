@@ -69,37 +69,45 @@ class DfAugment(MlLog):
         self._debug(f"Augment dataframe: End. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
         return self.df
 
+    def __getstate__(self):
+        " Do not pickle any '_augment' objects "
+        state = self.__dict__.copy()
+        to_delete = [k for k in state.keys() if k.endswith('_augment')]
+        for k in to_delete:
+            del state[k]
+        return state
+
     def _op_add(self):
-        add_augment = DfAugmentOpAdd(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('add', add_augment)
+        self.add_augment = DfAugmentOpAdd(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('add', self.add_augment)
 
     def _op_div(self):
-        divide_augment = DfAugmentOpDiv(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('div', divide_augment)
+        self.divide_augment = DfAugmentOpDiv(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('div', self.divide_augment)
 
     def _op_mult(self):
-        multiply_augment = DfAugmentOpMult(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('mult', multiply_augment)
+        self.multiply_augment = DfAugmentOpMult(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('mult', self.multiply_augment)
 
     def _op_log_ratio(self):
-        log_ratio_augment = DfAugmentOpLogRatio(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('log_ratio', log_ratio_augment)
+        self.log_ratio_augment = DfAugmentOpLogRatio(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('log_ratio', self.log_ratio_augment)
 
     def _op_logp1_ratio(self):
-        logp1_ratio_augment = DfAugmentOpLogPlusOneRatio(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('logp1_ratio', logp1_ratio_augment)
+        self.logp1_ratio_augment = DfAugmentOpLogPlusOneRatio(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('logp1_ratio', self.logp1_ratio_augment)
 
     def _op_sub(self):
-        sub_augment = DfAugmentOpSub(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('sub', sub_augment)
+        self.sub_augment = DfAugmentOpSub(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('sub', self.sub_augment)
 
     def _nmf(self):
-        nmf_augment = DfAugmentNmf(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('NMF', nmf_augment)
+        self.nmf_augment = DfAugmentNmf(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('NMF', self.nmf_augment)
 
     def _pca(self):
-        pca_augment = DfAugmentPca(self.df, self.config, self.outputs, self.model_type)
-        return self.augment('PCA', pca_augment)
+        self.pca_augment = DfAugmentPca(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('PCA', self.pca_augment)
 
 
 class DfAugmentOp(FieldsParams):
@@ -297,12 +305,12 @@ class DfAugmentPca(FieldsParams):
         """Calculate 'num' PCAs using 'fields' from dataframe
         Returns: A dataframe of PCAs (None on failure)
         """
-        self._debug(f"Calculating PCA: Start, name={namefieldparams.name}, num={namefieldparams.number}, fields:{namefieldparams.fields}")
+        num = namefieldparams.params['num']
+        self._debug(f"Calculating PCA: Start, name={namefieldparams.name}, num={num}, fields:{namefieldparams.fields}")
         if x.isnull().sum().sum() > 0:
             cols_na = x.isnull().sum(axis=0) > 0
-            # self._fatal_error(f"There are NA values i the dataset, columns: {cols_na}")
             self._fatal_error(f"Calculating PCA: There are NA values in the inputs, columns: {list(x.columns[cols_na])}")
-        pca = PCA(n_components=namefieldparams.number)
+        pca = PCA(n_components=num)
         pca.fit(x)
         self.sk_pca_by_name[namefieldparams.name] = pca
         xpca = pca.transform(x)

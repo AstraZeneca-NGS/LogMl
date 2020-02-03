@@ -288,10 +288,10 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(np.linalg.norm(s1_exp - s1) < 0.05, f"Sample 1 PCA:\n\tExpected:{s1_exp}\n\tValue   :{s1}")
         # Check PCA covariance
         pca = ds.dataset_augment.pca_augment.sk_pca_by_name['pca_x']
-        Cov_expected = np.array([[1.09, 0.65], [0.65, 0.5]])  # Covariance matrix expected
-        Cov = pca.get_covariance()
-        cov_diff = np.linalg.norm(Cov - Cov_expected)
-        self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{Cov}\nExpected:\n{Cov_expected}")
+        cov_expected = np.array([[1.09, 0.65], [0.65, 0.5]])  # Covariance matrix expected
+        cov = pca.get_covariance()
+        cov_diff = np.linalg.norm(cov - cov_expected)
+        self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{cov}\nExpected:\n{cov_expected}")
 
     def test_dataset_augment_002(self):
         ''' Checking dataset augment: Operations '''
