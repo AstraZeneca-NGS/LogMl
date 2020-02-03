@@ -12,8 +12,8 @@ from ...core.log import MlLog
 # Method and fields to apply to
 MethodAndFields = namedtuple('MethodAndFields', ['method', 'fields'])
 
-# Number and fields
-NumFields = namedtuple('NumFields', ['name', 'number', 'fields'])
+# Name, fields and parameters
+NameFieldsParams = namedtuple('FieldsParams', ['name', 'fields', 'params'])
 
 METHOD_SKIP_NAME = 'skip'
 
@@ -116,66 +116,95 @@ class MethodsFields(MatchFields):
         self._debug(f"Default method set to {default_method}")
 
 
-class CountAndFields(MatchFields):
-    """A class to parse a list of configurations options in the form:
-    - count: [list_of_regex]
-    Example:
+class FieldsParams(MatchFields):
+    """A class to parse a list of configurations options
+    Examples:
     ```
         pca:
-            - 2: ['x.*']
-            - 3: ['z.*']
+            name_pca_1:
+              num: 2
+              fields: ['x.*']
+            name_pca_2:
+              num: 7
+              fields: ['z.*']
+        log_ratio:
+            name_log_ratio:
+              base: 'e'
+              fields: ['z.*']
     ```
     """
 
-    def __init__(self, df, config, section, subsection, field_names, outputs):
+    def __init__(self, df, config, section, subsection, field_names, outputs, params=None, madatory_params=None):
         super().__init__(config, section, field_names, outputs)
         self.df = df
         self.section = section
         self.subsection = subsection
+        self.params = params
+        self.madatory_params = madatory_params
         self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
-        self.num_fields = dict()
+        self.name_fields_params = dict()
         self._set_from_config()
         self._initialize()
 
-    def calc(self, numfields, x):
+    def array_to_df(self, x, cols):
+        return pd.DataFrame(x, columns=cols, index=self.df.index)
+
+    def calc(self, namefieldparams, x):
         """Method to calculate
         Arguments:
-            num: Number of componenets to calculate
-            fields: List of field names
+            namefieldparams: A NameFieldsParams object
             x: Input variables
         Returns:
-            A Numpy array with new values (or None on failure)
+            A Pnadas DataFrame with new values (or None on failure)
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def __call__(self):
-        """ Perform PCA and return a dataFrame with PCA data """
+        """ Perform calculation and return a dataFrame with 'original + augmented' data """
         dfs = list()
-        for nf in self.num_fields.values():
+        for nf in self.name_fields_params.values():
             ret = self.calc(nf, self.df[nf.fields])
             if ret is not None:
-                # Column names: ''
-                cols = [f"{nf.name}_{i}" for i in range(ret.shape[1])]
-                dfret = pd.DataFrame(ret, columns=cols, index=self.df.index)
-                dfs.append(dfret)
-                self._debug(f"DataFrame calculated has shape {dfret.shape}")
+                dfs.append(ret)
+                self._debug(f"DataFrame calculated has shape {ret.shape}")
         if len(dfs) > 0:
             df = pd.concat(dfs, axis=1)
-            self._debug(f"DataFrame joined dataFrame has shape {df.shape}")
+            self._debug(f"DataFrame joined shape {df.shape}")
             return df
         self._debug(f"No results")
         return None
 
+    def get_col_names_num(self, namefieldparams, x):
+        " Create a list of column names as 'name_i' "
+        return [f"{namefieldparams.name}_{i}" for i in range(x.shape[1])]
+
+    def _get_params(self, name, vals):
+        """
+        Get a dictionary of parameters
+        @Return A dictionary of paramters on success, None on failure to satisfy
+        mandatory parameters
+        """
+        params = dict()
+        if self.params is None:
+            return params
+        for param_name in self.params:
+            value = vals.get(param_name)
+            if value is None and param_name in self.madatory_params:
+                self._warning(f"Parameter '{param_name}' is not set, ignoring entry '{name}' in sub section '{self.subsection}'")
+                return None
+            else:
+                params[param_name] = value
+        return params
+
     def _initialize(self):
         for name, vals in self.__dict__[self.subsection].items():
-            num = vals.get('num')
-            if num is None:
-                self._warning(f"Number is not set, ignoring entry '{name}' in sub section '{self.subsection}'")
+            params = self._get_params(name, vals)
+            if params is None:
                 continue
             regex_list = vals.get('fields')
             if regex_list is None:
                 self._warning(f"Fields not set, ignoring entry '{name}' in sub section '{self.subsection}'")
                 continue
             fields = [f for regex in regex_list for f in self.match_input_fields(regex)]
-            self._debug(f"CountAndFields: Name='{name}', number={num}, regex list={regex_list}, matched input fields={fields}")
-            self.num_fields[name] = NumFields(name, num, fields)
+            self._debug(f"FieldsParams: Name='{name}', params={params}, regex list={regex_list}, matched input fields={fields}")
+            self.name_fields_params[name] = NameFieldsParams(name, fields, params)

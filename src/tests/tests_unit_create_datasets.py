@@ -8,6 +8,37 @@ import sys
 import time
 
 
+def create_dataset_augment_002():
+    # Number of samples
+    num = 1000
+    # Inputs: x1, .. ., xn
+    x1 = rand_norm(num)
+    x2 = rand_norm(num)
+    x3 = rand_unif(num)
+    x4 = rand_unif(num)
+    x5 = rand_unif(num)
+    zero_prob = 0.05
+    x5_zero = (np.random.rand(num) <= zero_prob)
+    x5[x5_zero] = 0.0
+    x6 = rand_unif(num)
+    x6_zero = (np.random.rand(num) <= zero_prob)
+    x6[x6_zero] = 0.0
+    x7 = 2 * rand_unif(num) - 1
+    x8 = 2 * rand_unif(num) - 1
+    # Noise
+    n = rand_norm(num)
+    # Output
+    y = 3. * x1 - 1. * x2 + 0.5 * x3 + 0.1 * n
+    # Categorical output
+    y_str = np.array([to_num(c) for c in y])
+    # Create dataFrame
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4, 'x5': x5, 'x6': x6, 'x7': x7, 'x8': x8, 'y': y_str})
+    file = 'zzz.csv'
+    print(f"Saving dataset to file '{file}'")
+    df.to_csv(file, index=False)
+    return df
+
+
 # Create dataset
 def create_dataset_preprocess_001():
     # Number of samples
@@ -150,7 +181,7 @@ def rand_date():
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
 
 
-def rand_unif(num, mean, std, na_prob=0):
+def rand_unif(num, na_prob=0):
     xi = np.random.rand(num)
     if na_prob > 0:
         xi_na = (np.random.rand(num) <= na_prob)

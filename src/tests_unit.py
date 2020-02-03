@@ -22,6 +22,10 @@ DEBUG = os.getenv('TEST_UNIT_DEBUG', False)
 # DEBUG = True
 
 
+def is_close(x, y, epsilon=0.000001):
+    return abs(x - y) < epsilon
+
+
 def is_sorted(x):
     """ Is numpy array 'x' sorted? """
     return np.all(x[:-1] <= x[1:])
@@ -284,10 +288,48 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(np.linalg.norm(s1_exp - s1) < 0.05, f"Sample 1 PCA:\n\tExpected:{s1_exp}\n\tValue   :{s1}")
         # Check PCA covariance
         pca = ds.dataset_augment.pca_augment.sk_pca_by_name['pca_x']
-        Cov_expected = np.array([[1.09, 0.65], [0.65, 0.5]])  # Covariance matrix expected
-        Cov = pca.get_covariance()
-        cov_diff = np.linalg.norm(Cov - Cov_expected)
-        self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{Cov}\nExpected:\n{Cov_expected}")
+        cov_expected = np.array([[1.09, 0.65], [0.65, 0.5]])  # Covariance matrix expected
+        cov = pca.get_covariance()
+        cov_diff = np.linalg.norm(cov - cov_expected)
+        self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{cov}\nExpected:\n{cov_expected}")
+
+    def test_dataset_augment_002(self):
+        ''' Checking dataset augment: Operations '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        # Check that fields exists or don't exists
+        for name in ['add', 'sub', 'div', 'mult']:
+            self.assertTrue(f"{name}_expr_x1_x2" in df.columns, f"Missing: {name}_expr_x1_x2")
+            self.assertFalse(f"{name}_expr_x2_x1" in df.columns, f"Found {name}_expr_x2_x1")
+            self.assertFalse(f"{name}_expr_n1_n2" in df.columns, f"Found {name}_expr_n1_n2")
+        # Log10
+        self.assertTrue(f"log10_ratio_expr_x3_x4" in df.columns, f"Missing: log10_ratio_expr_x3_x4")
+        self.assertFalse(f"log10_ratio_expr_x1_x2" in df.columns, f"Found log10_ratio_expr_x1_x2")
+        self.assertFalse(f"log10_ratio_expr_x5_x6" in df.columns, f"Found log10_ratio_expr_x5_x6")
+        # Log (natural)
+        self.assertTrue(f"loge_ratio_expr_x3_x4" in df.columns, f"Missing: loge_ratio_expr_x3_x4")
+        self.assertFalse(f"loge_ratio_expr_x1_x2" in df.columns, f"Found loge_ratio_expr_x1_x2")
+        self.assertFalse(f"loge_ratio_expr_x5_x6" in df.columns, f"Found loge_ratio_expr_x5_x6")
+        # Log + 1
+        self.assertTrue(f"logep1_ratio_expr_x3_x4" in df.columns, f"Missing: logep1_ratio_expr_x3_x4")
+        self.assertFalse(f"logep1_ratio_expr_x1_x2" in df.columns, f"Found logep1_ratio_expr_x1_x2")
+        self.assertTrue(f"logep1_ratio_expr_x5_x6" in df.columns, f"Missing: logep1_ratio_expr_x5_x6")
+        # Check results
+        x1, x2, x3, x4 = -2.3042662810235153, 0.1202582216313, 0.9588706570406521, 0.880524565094321
+        self.assertTrue(is_close(x1 + x2, df['add_expr_x1_x2'][0]))
+        self.assertTrue(is_close(x1 - x2, df['sub_expr_x1_x2'][0]))
+        self.assertTrue(is_close(x1 / x2, df['div_expr_x1_x2'][0]))
+        self.assertTrue(is_close(np.log(x3 / x4) / np.log(10), df['log10_ratio_expr_x3_x4'][0]))
+        self.assertTrue(is_close(np.log(x3 / x4), df['loge_ratio_expr_x3_x4'][0]))
+        self.assertTrue(is_close(np.log((x3 + 1) / (x4 + 1)), df['logep1_ratio_expr_x3_x4'][0]))
 
     def test_dataset_feature_importance_001(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''

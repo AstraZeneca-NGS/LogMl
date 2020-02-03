@@ -1,0 +1,42 @@
+logger:
+
+dataset:
+  dataset_name: 'test_dataset_augment_002'
+  dataset_path: 'tests/unit/data'
+  dataset_type: 'df'
+  is_use_default_split: False
+
+dataset_explore:
+  enable: false
+
+dataset_preprocess:
+  enable: false
+
+dataset_augment:
+  enable: true
+  add:
+    add_expr:
+      fields: ['x.*']
+  sub:
+    sub_expr:
+      fields: ['x.*']
+  div:
+    div_expr:
+      fields: ['x.*']
+  log_ratio:
+    log10_ratio_expr:
+      base: 10
+      fields: ['x.*']
+    loge_ratio_expr:
+      base: 'e'
+      fields: ['x.*']
+  logp1_ratio:
+    logep1_ratio_expr:
+      base: 'e'
+      fields: ['x.*']
+  mult:
+    mult_expr:
+      fields: ['x.*']
+
+dataset_feature_importance:
+  enable: false
