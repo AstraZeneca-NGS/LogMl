@@ -39,7 +39,7 @@ class DfAugment(MlLog):
         """ Use an 'augmenter' object to add coluns to the dataFrame """
         ret = augmenter()
         if ret is None:
-            self._debug("Augment dataframe: Could not do {name}")
+            self._debug(f"Augment dataframe: Could not do {name}")
             return False
         else:
             self.df = pd.concat([self.df, ret], axis=1)
@@ -127,7 +127,7 @@ class DfAugmentOp(FieldsParams):
             for j in range(len(namefieldparams.fields)):
                 if i == j:
                     continue
-                if not self.symmetric and i < j:
+                if self.symmetric and i > j:
                     continue
                 field_j = namefieldparams.fields[j]
                 if field_j in skip_second:

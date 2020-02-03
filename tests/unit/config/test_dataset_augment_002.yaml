@@ -24,14 +24,14 @@ dataset_augment:
     div_expr:
       fields: ['x.*']
   log_ratio:
-    log10_expr:
+    log10_ratio_expr:
       base: 10
       fields: ['x.*']
-    loge_expr:
+    loge_ratio_expr:
       base: 'e'
       fields: ['x.*']
   logp1_ratio:
-    logep1_expr:
+    logep1_ratio_expr:
       base: 'e'
       fields: ['x.*']
   mult:
