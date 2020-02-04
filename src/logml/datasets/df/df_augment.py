@@ -117,12 +117,13 @@ class DfAugmentOp(FieldsParams):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
         self.operation_name = subsection
         self.symmetric = True
+        self.min_non_zero_count = 1
 
     def calc(self, namefieldparams, x):
         """Calculate the operation on pairwise fields from dataframe
         Returns: A dataframe of 'operations' (None on failure)
         """
-        self._debug(f"Calculating {self.operation_name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
+        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         results = list()
         skip_second = set()
         self._op_init(namefieldparams)
@@ -130,7 +131,7 @@ class DfAugmentOp(FieldsParams):
         for i in range(len(namefieldparams.fields)):
             field_i = namefieldparams.fields[i]
             if not self.can_apply_first(field_i):
-                self._debug(f"Calculating {self.operation_name}: Cannot apply operation '{self.operation_name}' to first field '{field_i}', skipping")
+                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Cannot apply operation '{self.operation_name}' to first field '{field_i}', skipping")
                 continue
             for j in range(len(namefieldparams.fields)):
                 if i == j:
@@ -141,18 +142,21 @@ class DfAugmentOp(FieldsParams):
                 if field_j in skip_second:
                     continue
                 if not self.can_apply_second(field_j):
-                    self._debug(f"Calculating {self.operation_name}: Cannot apply operation '{self.operation_name}' to second field '{field_j}', skipping")
+                    self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Cannot apply operation '{self.operation_name}' to second field '{field_j}', skipping")
                     skip_second.add(field_j)
                     continue
                 res = self.op(field_i, field_j)
-                cols.append(f"{namefieldparams.name}_{field_i}_{field_j}")
-                results.append(res)
-        self._debug(f"Calculating {self.operation_name}: End")
+                if self.should_add(field_i, field_j, res):
+                    cols.append(f"{namefieldparams.name}_{field_i}_{field_j}")
+                    results.append(res)
+                else:
+                    self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Should add returned False, skipping")
+        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
         if len(results) > 0:
             x = np.concatenate(results)
             x = x.reshape(-1, len(results))
             df = self.array_to_df(x, cols)
-            self._debug(f"Calculating {self.operation_name}: DataFrame joined shape {df.shape}")
+            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
             return df
         return None
 
@@ -170,14 +174,31 @@ class DfAugmentOp(FieldsParams):
 
     def _op_init(self, namefieldparams):
         """ Initialize operations """
-        pass
+        min_non_zero = namefieldparams.params.get('min_non_zero')
+        if min_non_zero is not None:
+            if min_non_zero < 0.0:
+                self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
+            if 0.0 < min_non_zero and min_non_zero < 1.0:
+                self.min_non_zero_count = int(min_non_zero * len(self.df))
+                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
+            else:
+                self.min_non_zero_count = int(min_non_zero)
+                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}")
+
+    def should_add(self, field_i, field_j, x):
+        """ Should we add add these results """
+        count_non_zero = (x != 0.0).sum()
+        ok = count_non_zero >= self.min_non_zero_count
+        if not ok:
+            self._debug(f"Calculating {self.operation_name}, fields {field_i}, {field_j}: Minimum number of non-zero fields is {self.min_non_zero_count}, but there are only {count_non_zero} non-zeros. Not adding column")
+        return ok
 
 
 class DfAugmentOpAdd(DfAugmentOp):
     ''' Augment dataset by adding two fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'add', outputs, model_type)
+        super().__init__(df, config, 'add', outputs, model_type, params=['min_non_zero'])
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
@@ -188,7 +209,7 @@ class DfAugmentOpDiv(DfAugmentOp):
     ''' Augment dataset by dividing two fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'div', outputs, model_type)
+        super().__init__(df, config, 'div', outputs, model_type, params=['min_non_zero'])
 
     def can_apply_second(self, field):
         """ We apply this operation only if all numbers in the second field are non-zero """
@@ -203,7 +224,7 @@ class DfAugmentOpLogRatio(DfAugmentOp):
     ''' Augment dataset by applying the log ratio of two fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'log_ratio', outputs, model_type, params=['base'])
+        super().__init__(df, config, 'log_ratio', outputs, model_type, params=['base', 'min_non_zero'])
 
     def can_apply_first(self, field):
         """ We apply this operation if all numbers in the first field are positive """
@@ -219,6 +240,7 @@ class DfAugmentOpLogRatio(DfAugmentOp):
 
     def _op_init(self, namefieldparams):
         """ Initialize operations """
+        super()._op_init(namefieldparams)
         base = namefieldparams.params.get('base')
         self.log_base = _parse_base(base)
         self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
@@ -228,7 +250,7 @@ class DfAugmentOpLogPlusOneRatio(DfAugmentOp):
     ''' Augment dataset by applying the log+1 ratio of two fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'logp1_ratio', outputs, model_type, params=['base'])
+        super().__init__(df, config, 'logp1_ratio', outputs, model_type, params=['base', 'min_non_zero'])
 
     def can_apply_first(self, field):
         """ We apply this operation if all numbers in the first field are non-negative """
@@ -246,6 +268,7 @@ class DfAugmentOpLogPlusOneRatio(DfAugmentOp):
 
     def _op_init(self, namefieldparams):
         """ Initialize operations """
+        super()._op_init(namefieldparams)
         base = namefieldparams.params.get('base')
         self.log_base = _parse_base(base)
         self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
@@ -255,7 +278,7 @@ class DfAugmentOpMult(DfAugmentOp):
     ''' Augment dataset by multiplying two fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'mult', outputs, model_type)
+        super().__init__(df, config, 'mult', outputs, model_type, params=['min_non_zero'])
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
@@ -266,7 +289,7 @@ class DfAugmentOpSub(DfAugmentOp):
     ''' Augment dataset by substracting two fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'sub', outputs, model_type)
+        super().__init__(df, config, 'sub', outputs, model_type, params=['min_non_zero'])
 
     def op(self, field_i, field_j):
         """ Calculate the arithmetic operation between the two fields """
@@ -277,7 +300,7 @@ class DfAugmentNmf(FieldsParams):
     ''' Augment dataset by adding Non-negative martix factorization '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, CONFIG_DATASET_AUGMENT, 'nmf', df.columns, outputs, params=['num'], madatory_params=['num'])
+        super().__init__(df, config, CONFIG_DATASET_AUGMENT, 'nmf', df.columns, outputs, params=['min_non_zero', 'num'], madatory_params=['num'])
         self.sk_nmf_by_name = dict()
 
     def calc(self, namefieldparams, x):

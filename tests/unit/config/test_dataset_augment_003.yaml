@@ -1,0 +1,26 @@
+logger:
+
+dataset:
+  dataset_name: 'test_dataset_augment_003'
+  dataset_path: 'tests/unit/data'
+  dataset_type: 'df'
+  is_use_default_split: False
+
+dataset_explore:
+  enable: false
+
+dataset_preprocess:
+  enable: false
+
+dataset_augment:
+  enable: true
+  mult:
+    mult_1:
+      min_non_zero: 500
+      fields: ['x.*']
+    mult_2:
+      min_non_zero: 0.6
+      fields: ['x.*']
+
+dataset_feature_importance:
+  enable: false
