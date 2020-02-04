@@ -189,7 +189,7 @@ class FieldsParams(MatchFields):
             return params
         for param_name in self.params:
             value = vals.get(param_name)
-            if value is None and param_name in self.madatory_params:
+            if value is None and self.madatory_params is not None and param_name in self.madatory_params:
                 self._warning(f"Parameter '{param_name}' is not set, ignoring entry '{name}' in sub section '{self.subsection}'")
                 return None
             else:
