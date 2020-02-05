@@ -39,6 +39,32 @@ def create_dataset_augment_002():
     return df
 
 
+def create_dataset_augment_003():
+    # Number of samples
+    num = 1000
+    # Inputs: x1, .. ., xn
+    x1 = rand_norm(num)
+    x2 = rand_norm(num)
+    x3 = rand_unif(num)
+    x4 = rand_norm(num)
+    x5 = rand_norm(num)
+    x6 = rand_unif(num)
+    for i, x in enumerate([x1, x2, x3, x4, x5, x6]):
+        zero_prob = (i + 1) / 10.0
+        idx_zero = (np.random.rand(num) <= zero_prob)
+        x[idx_zero] = 0.0
+    # Noise
+    n = rand_norm(num)
+    # Output
+    y = 3. * x1 - 1. * x2 + 0.5 * x3 + 0.1 * n
+    # Create dataFrame
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4, 'x5': x5, 'x6': x6, 'y': y})
+    file = 'zzz.csv'
+    print(f"Saving dataset to file '{file}'")
+    df.to_csv(file, index=False)
+    return df
+
+
 # Create dataset
 def create_dataset_preprocess_001():
     # Number of samples
