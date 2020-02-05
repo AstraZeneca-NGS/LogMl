@@ -63,6 +63,7 @@ class PvalueFdr(MlFiles):
             self.p_values[c] = self.p_value(c)
             self._info(f"{self.algorithm} ({self.tag}): Column {i} / {cols_count}, '{c}', pvalue: {self.p_values[c]}")
         self.fdr()
+        self.qq_log_plot()
         return len(self.p_values) > 0
 
     def fdr(self):
@@ -106,6 +107,39 @@ class PvalueFdr(MlFiles):
     def p_value(self, col):
         """ Calculate the p-value using column 'col' """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
+    def qq_log_plot(self):
+        """
+        QQ plot in log scale.
+        Plots the log10 of expected p-values (uniform) vs log10 of
+        observed p-values (probs). A 45 degree line is also shown.
+        If 'probs' contains values out of [0, 1] interval, an error
+        is produced.
+        If 'probs' contains 0.0 values, they are replaced by the minimum
+        non-zero value in probs, or 0.1/len(probs) (whichever is smaller)
+        """
+        probs = self.get_pvalues()
+        count_oor = ((probs < 0.0) | (probs > 1.0)).sum()
+        if count_oor > 0:
+            self._error(f"QQ-plot:There are {count_oor} values out of range (less than 0.0 or more than 1.0)")
+            return
+        count_zero = (probs == 0.0).sum()
+        if count_zero > 0:
+            min_val = probs[probs > 0.0].min()
+            epsilon = 1.0 / length(probs) / 10.0
+            min_val = min(min_val, epsilon)
+            self._warning(f"QQ-plot:There are {count_zero} values equal to zero, replacing them by with {min_val}")
+            probs[probs == 0.0] = min_val
+        # Log10 of expected vs observed (sorted) p-values
+        lp = -np.log10(probs)
+        lr = -np.log10(np.linspace(1.0 / len(probs), 1.0, num=len(probs)))
+        lp.sort()
+        lr.sort()
+        # Plot values and 45 degree line
+        plt.plot(lr, lp, '.')
+        plt.plot(lr, lr)
+        title = f"QQ-plot: {self.algorithm} - {self.tag}"
+        self._plot_show(title, 'qq_plot')
 
 
 class LogisticRegressionWilks(PvalueFdr):

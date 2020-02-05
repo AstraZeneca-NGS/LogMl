@@ -161,18 +161,21 @@ class FieldsParams(MatchFields):
 
     def __call__(self):
         """ Perform calculation and return a dataFrame with 'original + augmented' data """
+        self._info(f"Augment dataset: Start, name: {self.subsection}")
         dfs = list()
         for nf in self.name_fields_params.values():
             ret = self.calc(nf, self.df[nf.fields])
             if ret is not None:
                 dfs.append(ret)
                 self._debug(f"DataFrame calculated has shape {ret.shape}")
+        df = None
         if len(dfs) > 0:
             df = pd.concat(dfs, axis=1)
             self._debug(f"DataFrame joined shape {df.shape}")
-            return df
-        self._debug(f"No results")
-        return None
+        else:
+            self._debug(f"No results")
+        self._info(f"Augment dataset: End, name: {self.subsection}")
+        return df
 
     def get_col_names_num(self, namefieldparams, x):
         " Create a list of column names as 'name_i' "
