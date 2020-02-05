@@ -126,7 +126,7 @@ class PvalueFdr(MlFiles):
         count_zero = (probs == 0.0).sum()
         if count_zero > 0:
             min_val = probs[probs > 0.0].min()
-            epsilon = 1.0 / length(probs) / 10.0
+            epsilon = 0.1 / len(probs)
             min_val = min(min_val, epsilon)
             self._warning(f"QQ-plot:There are {count_zero} values equal to zero, replacing them by with {min_val}")
             probs[probs == 0.0] = min_val
