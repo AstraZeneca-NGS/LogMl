@@ -30,6 +30,7 @@ class DfAugment(MlLog):
         super().__init__(config, CONFIG_DATASET_AUGMENT)
         self.config = config
         self.df = df
+        self.dfs = list()
         self.outputs = outputs
         self.model_type = model_type
         if set_config:
@@ -42,8 +43,7 @@ class DfAugment(MlLog):
             self._debug(f"Augment dataframe: Could not do {name}")
             return False
         else:
-            self.df = pd.concat([self.df, ret], axis=1)
-            self._debug(f"Augment dataframe: DataFrame has shape {self.df.shape}, {name} result has shape {ret.shape}, joined datasets has shape {self.df.shape}")
+            self.dfs.append(ret)
             return True
 
     def __call__(self):
@@ -55,7 +55,7 @@ class DfAugment(MlLog):
             self._debug(f"Augment dataframe disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_AUGMENT}', enable='{self.enable}'")
             return self.df
         cols = "', '".join([c for c in self.df.columns])
-        self._debug(f"Augment dataframe: Start. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
+        self._info(f"Augment dataframe: Start. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
         self._op_add()
         self._op_sub()
         self._op_mult()
@@ -64,9 +64,15 @@ class DfAugment(MlLog):
         self._op_logp1_ratio()
         self._nmf()
         self._pca()
-        self._debug(f"Augment dataframe: Finished")
-        cols = "', '".join([c for c in self.df.columns])
-        self._debug(f"Augment dataframe: End. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
+        if len(self.dfs) > 0:
+            to_join = [self.df]
+            to_join.extend(self.dfs)
+            df_joined = pd.concat(to_join, axis=1)
+            self._info(f"Augment dataframe: DataFrame has shape {self.df.shape}, results have shapes {[ret.shape for ret in self.dfs]}")
+            self.df = df_joined
+            cols = "', '".join([c for c in self.df.columns])
+            self._info(f"Augment dataframe: End. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
+        self._info(f"Augment dataframe: Finished")
         return self.df
 
     def __getstate__(self):
