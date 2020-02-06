@@ -162,9 +162,11 @@ class LogisticRegressionWilks(PvalueFdr):
         if self.class_to_analyze is None:
             if y.min() < y.max():
                 self._debug(f"Converting to [0, 1] range: [{y.min()}, {y.max()}]")
-                return (y - y.min()) / (y.max() - y.min()), True
-            self._warning(f"Cannot convert to [0, 1] range: Variable min={y.min()}, max={y.max()}")
-            return None, False
+                ybin = (y - y.min()) / (y.max() - y.min())
+                return ybin, True
+            else:
+                self._warning(f"Cannot convert to [0, 1] range: Variable min={y.min()}, max={y.max()}")
+                return None, False
         self._debug(f"Converting to binary: Class {self.class_to_analyze}")
         return (y == self.class_to_analyze).astype('float'), True
 
@@ -186,12 +188,24 @@ class LogisticRegressionWilks(PvalueFdr):
             y, ok = self.binarize(y)
             if not ok:
                 return None, None
-            logit_model = Logit(y, x)
-            res = logit_model.fit(disp=0)
+            logit_model = Logit(y, x, missing='drop')
+            res = self._model_fit(logit_model)
             return logit_model, res
         except np.linalg.LinAlgError as e:
-            self._error(f"{self.algorithm}: Linear Algebra exception.\nException: {e}\n{traceback.format_exc()}")
+            self._error(f"{self.algorithm}: Could not fit logistic regression model")
             return None, None
+
+    def _model_fit(self, logit_model):
+        """ Try to fit the model using different methods """
+        methods = ['newton', 'bfgs', 'lbfgs', 'powell', 'cg', 'ncg', 'basinhopping']
+        for method in methods:
+            try:
+                res = logit_model.fit(method=method, disp=False)
+                return res
+            except np.linalg.LinAlgError as e:
+                self._warning(f"{self.algorithm}, method '{method}': Linear Algebra exception")
+                self._debug(f"Exception: {e}\n{traceback.format_exc()}")
+        raise np.linalg.LinAlgError("Could not fit logistic regression using any method")
 
     def p_value(self, col):
         """ Calculate the p-value using column 'col' """
