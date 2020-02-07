@@ -124,6 +124,7 @@ class DfAugmentOp(FieldsParams):
         self.operation_name = subsection
         self.symmetric = True
         self.min_non_zero_count = 1
+        self.order = 2
 
     def calc(self, namefieldparams, x):
         """Calculate the operation on pairwise fields from dataframe
