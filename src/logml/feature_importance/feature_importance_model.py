@@ -17,10 +17,11 @@ class FeatureImportanceModel(MlFiles):
     Estimate feature importance based on a model.
     '''
 
-    def __init__(self, model, model_type):
+    def __init__(self, model, model_type, num_iterations=1):
         self.model = model.clone()
         self.model_type = model_type
         self.datasets = model.datasets
+        self.num_iterations = self.num_iterations
         self.loss_base = None
         self.performance = dict()
         self.importance_name = ''
@@ -40,18 +41,8 @@ class FeatureImportanceModel(MlFiles):
         for i in range(cols_count):
             c = cols[i]
             # Only estimate importance of input variables
-            if c in self.datasets.outputs:
-                continue
-            # Change dataset, evaluate performance, restore originla dataset
-            ori = self.dataset_change(c)
-            loss_c = self.loss()
-            self.dataset_restore(c, ori)
-            # Performance is the loss difference respect to self.loss_base
-            # (the higher the loss, the more important the variable)
-            perf_c = loss_c - self.loss_base
-            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', performance {perf_c}")
-            perf.append(perf_c)
-            self.performance[c] = perf_c
+            if c not in self.datasets.outputs:
+                self.losses(c)
         # List of items sorted by importance (most important first)
         self.importance = sorted(self.performance.items(), key=lambda kv: kv[1], reverse=True)
         perf_array = np.array(perf)
@@ -69,6 +60,21 @@ class FeatureImportanceModel(MlFiles):
 
     def initialize(self):
         pass
+
+    def losses(self, column_name):
+        """ Train (if necesary) and calculate loss 'num_iterations' and store results """
+        perf = list()
+        for i in range(self.num_iterations):
+            # Change dataset, evaluate performance, restore originl dataset
+            ori = self.dataset_change(c)
+            loss = self.loss()
+            self.dataset_restore(c, ori)
+            # Performance is the loss difference respect to self.loss_base
+            # (the higher the loss, the more important the variable)
+            perf_i = loss - self.loss_base
+            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', iteration {i} / {self.num_iterations}, performance {perf_i}")
+            perf.append(perf_i)
+        self.performance[c] = perf
 
     def loss(self):
         """ Train (if necesary) and calculate loss """

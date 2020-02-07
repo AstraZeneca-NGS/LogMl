@@ -15,25 +15,7 @@ dataset_preprocess:
     standard: true
 
 dataset_augment:
-  # Set to 'false' to disable this step
-  enable: true
-  # TODO: add_interactions: ['*', '-', '+', '/']
-
-  # Add principal componenets
-  # After the 'pca', you can add several "sub-sections":
-  #   name:                 # Unique name, used to add PCA fields on each sample (name_1, name_2, ... name_num)
-  #     num: 2              # Number of PCA componenets to add
-  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
-  pca:
-    pca_a:
-      num: 2
-      fields: ['x0', 'x1', 'x2']
-    pca_b:
-      num: 3
-      fields: ['x3', 'x4', 'x5']
-    pca_c:
-      num: 3
-      fields: ['x0', 'x3', 'x5']
+  enable: false
 
 dataset_explore:
   enable: false
@@ -41,7 +23,7 @@ dataset_explore:
 dataset_feature_importance:
   enable: true
   enable_na: true
-  is_fip_random_forest: true
+  is_fip_random_forest: false
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
   is_regularization_lasso: false
@@ -56,9 +38,8 @@ dataset_feature_importance:
   is_rfe_model_extra_trees: false
   is_rfe_model_gradient_boosting: false
   is_select: false
-  is_linear_pvalue: false
+  is_linear_pvalue: true
   is_tree_graph: false
-  #
   is_wilks: false
   wilks_null_model_variables: ['x4', 'x5']
 
@@ -71,7 +52,7 @@ cross_validation:
 
 model:
   enable: false
-  model_type: classification
+  model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'

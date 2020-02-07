@@ -338,6 +338,7 @@ class DataFeatureImportance(MlFiles):
         pvalue_linear = PvalueLinear(self.datasets, self.linear_pvalue_null_model_variables, self.tag)
         ok = pvalue_linear()
         if ok:
+            self._error(f"PVALUES CORR: {pvalue_linear.p_values_corrected}")
             self.results.add_col(f"linear_p_values", pvalue_linear.get_pvalues())
             self.results.add_col(f"linear_p_values_fdr", pvalue_linear.p_values_corrected)
             self.results.add_col(f"linear_significant", pvalue_linear.rejected)
