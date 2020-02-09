@@ -332,7 +332,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(is_close(np.log((x3 + 1) / (x4 + 1)), df['logep1_ratio_expr_x3_x4'][0]))
 
     def test_dataset_augment_003(self):
-        ''' Checking dataset augment: Operations '''
+        ''' Checking dataset augment: Filter results having too many zeros '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -345,6 +345,39 @@ class TestLogMl(unittest.TestCase):
         df = ds.dataset
         # Mult_1
         should_be = set(['mult_1_x1_x2', 'mult_1_x1_x3', 'mult_1_x1_x4', 'mult_1_x2_x3', 'mult_2_x1_x2', 'mult_2_x1_x3'])
+        for i in range(1, 7):
+            for j in range(i + 1, 7):
+                for m in [1, 2]:
+                    name = f"mult_{m}_x{i}_x{j}"
+                    if name in should_be:
+                        self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
+                    else:
+                        self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+
+    def test_dataset_augment_004(self):
+        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        # Add (3 fields) and Mult (4 fields)
+        should_be = set(['add_3_x3_x2_x1', 'add_3_x4_x2_x1', 'add_3_x5_x2_x1',
+                         'add_3_x6_x2_x1', 'add_3_x4_x3_x1', 'add_3_x5_x3_x1',
+                         'add_3_x6_x3_x1', 'add_3_x5_x4_x1', 'add_3_x6_x4_x1',
+                         'add_3_x6_x5_x1', 'add_3_x4_x3_x2', 'add_3_x5_x3_x2',
+                         'add_3_x6_x3_x2', 'add_3_x5_x4_x2', 'add_3_x6_x4_x2',
+                         'add_3_x6_x5_x2', 'add_3_x5_x4_x3', 'add_3_x6_x4_x3',
+                         'mult_4_x4_x3_x2_x1', 'mult_4_x5_x3_x2_x1', 'mult_4_x6_x3_x2_x1',
+                         'mult_4_x5_x4_x2_x1', 'mult_4_x6_x4_x2_x1', 'mult_4_x6_x5_x2_x1',
+                         'mult_4_x5_x4_x3_x1', 'mult_4_x6_x4_x3_x1', 'mult_4_x6_x5_x3_x1',
+                         'mult_4_x6_x5_x4_x1', 'mult_4_x5_x4_x3_x2', 'mult_4_x6_x4_x3_x2',
+                         'mult_4_x6_x5_x3_x2'])
         for i in range(1, 7):
             for j in range(i + 1, 7):
                 for m in [1, 2]:

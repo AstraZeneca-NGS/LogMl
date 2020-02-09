@@ -6,6 +6,7 @@ from sklearn.decomposition import NMF, PCA
 
 from ...core.config import CONFIG_DATASET_AUGMENT
 from ...core.log import MlLog
+from ...util.counter_dim import CounterDimIncreasing
 from .df_normalize import DfNormalize
 from .df_impute import DfImpute
 from .methods_fields import FieldsParams
@@ -274,7 +275,7 @@ class DfAugmentOpAdd(DfAugmentOpNary):
     ''' Augment dataset by adding two or more fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'add', outputs, model_type, params=['min_non_zero'])
+        super().__init__(df, config, 'add', outputs, model_type, params=['min_non_zero', 'order'])
 
     def op(self, fields):
         """ Calculate the arithmetic operation between the two or more fields """
@@ -354,7 +355,7 @@ class DfAugmentOpMult(DfAugmentOpNary):
     ''' Augment dataset by multiplying two or more fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'mult', outputs, model_type, params=['min_non_zero'])
+        super().__init__(df, config, 'mult', outputs, model_type, params=['min_non_zero', 'order'])
 
     def op(self, fields):
         """ Calculate the arithmetic operation between the two or more fields """

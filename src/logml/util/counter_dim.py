@@ -1,4 +1,7 @@
 
+import numpy as np
+
+
 class CounterDim:
     """
     Counts in 'dims' dimentions up to 'max_count' in each dimension.
@@ -38,7 +41,7 @@ class CounterDimIncreasing(CounterDim):
     not repeated)
     """
     def __init__(self, max_count, dims):
-        super().__init__(self, max_count, dims)
+        super().__init__(max_count, dims)
 
     def is_increasing(self):
         " Are numbers in the array in increasing order? "
