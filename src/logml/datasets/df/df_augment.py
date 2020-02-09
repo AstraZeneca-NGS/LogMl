@@ -12,6 +12,9 @@ from .df_impute import DfImpute
 from .methods_fields import FieldsParams
 
 
+DEFAULT_ORDER = 2
+
+
 def _parse_base(base):
     """ Initialize operations """
     if base is None:
@@ -214,7 +217,7 @@ class DfAugmentOpNary(FieldsParams):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
         self.operation_name = subsection
         self.min_non_zero_count = 1
-        self.order = 2
+        self.order = DEFAULT_ORDER
 
     def calc(self, namefieldparams, x):
         """
@@ -260,7 +263,9 @@ class DfAugmentOpNary(FieldsParams):
             else:
                 self.min_non_zero_count = int(min_non_zero)
                 self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}")
-        self.order = namefieldparams.params.get('order', 2)
+        self.order = namefieldparams.params.get('order')
+        if self.order is None:
+            self.order = DEFAULT_ORDER
 
     def should_add(self, fields, x):
         """ Should we add add these results """
