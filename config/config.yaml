@@ -195,7 +195,7 @@ dataset_augment:
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
   add:
     add_expr:
-      oreder: 2             # Number of fields combined in this operationb (can be two or more)
+      order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
   # Substract two fields
@@ -233,7 +233,7 @@ dataset_augment:
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
   mult:
     mult_expr:
-      oreder: 2             # Number of fields combined in this operationb (can be two or more)
+      order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
   # Add NMF (non-negative matrix factorization)
