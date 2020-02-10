@@ -210,7 +210,7 @@ class DfAugmentOpBinary(FieldsParams):
 
 class DfAugmentOpNary(FieldsParams):
     '''
-    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. sum, multiply)
+    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. sum)
     '''
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
@@ -284,7 +284,7 @@ class DfAugmentOpNary(FieldsParams):
 
 class DfAugmentOpNaryIncremental(FieldsParams):
     '''
-    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. sum, multiply)
+    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. multiply) in an incremental way
     '''
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
@@ -302,22 +302,8 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         results = list()
         skip_second = set()
         self._op_init(namefieldparams)
-        cols = list()
-        counter = CounterDimIncreasing(len(namefieldparams.fields), self.order)
-        count, count_added, count_skipped = 1, 0, 0
-        for nums in counter:
-            fields = [namefieldparams.fields[i] for i in nums]
-            res = self.op(fields)
-            count += 1
-            if self.should_add(fields, res):
-                count_added += 1
-                cols.append(f"{namefieldparams.name}_{'_'.join(fields)}")
-                results.append(res)
-            else:
-                count_skipped += 1
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Fields {fields}. Should add returned False, skipping")
-            if count % 100 == 0:
-                self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Minumum non-zero: {self.min_non_zero_count}, Count {count}, added {count_added}, skipped {count_skipped}")
+        for i in range(self.order):
+            self.incremental(namefieldparams)
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
         if len(results) > 0:
             x = np.concatenate(results)
@@ -326,6 +312,10 @@ class DfAugmentOpNaryIncremental(FieldsParams):
             self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
             return df
         return None
+
+    def incremental(self, namefieldparams):
+        """ Incrementally add one field at a time """
+        for n in range(self)
 
     def op(self, fields):
         """ Calculate the arithmetic operation between the two fields """
