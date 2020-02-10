@@ -6,9 +6,13 @@ from sklearn.decomposition import NMF, PCA
 
 from ...core.config import CONFIG_DATASET_AUGMENT
 from ...core.log import MlLog
+from ...util.counter_dim import CounterDimIncreasing
 from .df_normalize import DfNormalize
 from .df_impute import DfImpute
 from .methods_fields import FieldsParams
+
+
+DEFAULT_ORDER = 2
 
 
 def _parse_base(base):
@@ -116,14 +120,18 @@ class DfAugment(MlLog):
         return self.augment('PCA', self.pca_augment)
 
 
-class DfAugmentOp(FieldsParams):
-    ''' Augment dataset by adding "operations" between fields '''
+class DfAugmentOpBinary(FieldsParams):
+    '''
+    Augment dataset by adding "binary operations" between two fields (e.g. difference,
+    ratio, log ratio, etc.)
+    '''
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
         self.operation_name = subsection
         self.symmetric = True
         self.min_non_zero_count = 1
+        self.order = 2
 
     def calc(self, namefieldparams, x):
         """Calculate the operation on pairwise fields from dataframe
@@ -200,18 +208,86 @@ class DfAugmentOp(FieldsParams):
         return ok
 
 
-class DfAugmentOpAdd(DfAugmentOp):
-    ''' Augment dataset by adding two fields '''
+class DfAugmentOpNary(FieldsParams):
+    '''
+    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. sum, multiply)
+    '''
+
+    def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
+        super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
+        self.operation_name = subsection
+        self.min_non_zero_count = 1
+        self.order = DEFAULT_ORDER
+
+    def calc(self, namefieldparams, x):
+        """
+        Calculate the operation on N fields from dataframe
+        Returns: A dataframe of 'operations' (None on failure)
+        """
+        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
+        results = list()
+        skip_second = set()
+        self._op_init(namefieldparams)
+        cols = list()
+        counter = CounterDimIncreasing(len(namefieldparams.fields), self.order)
+        for nums in counter:
+            fields = [namefieldparams.fields[i] for i in nums]
+            res = self.op(fields)
+            if self.should_add(fields, res):
+                cols.append(f"{namefieldparams.name}_{'_'.join(fields)}")
+                results.append(res)
+            else:
+                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Fields {fields}. Should add returned False, skipping")
+        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
+        if len(results) > 0:
+            x = np.concatenate(results)
+            x = x.reshape(-1, len(results))
+            df = self.array_to_df(x, cols)
+            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
+            return df
+        return None
+
+    def op(self, fields):
+        """ Calculate the arithmetic operation between the two fields """
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
+    def _op_init(self, namefieldparams):
+        """ Initialize operations """
+        min_non_zero = namefieldparams.params.get('min_non_zero')
+        if min_non_zero is not None:
+            if min_non_zero < 0.0:
+                self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
+            if 0.0 < min_non_zero and min_non_zero < 1.0:
+                self.min_non_zero_count = int(min_non_zero * len(self.df))
+                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
+            else:
+                self.min_non_zero_count = int(min_non_zero)
+                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}")
+        self.order = namefieldparams.params.get('order')
+        if self.order is None:
+            self.order = DEFAULT_ORDER
+
+    def should_add(self, fields, x):
+        """ Should we add add these results """
+        count_non_zero = (x != 0.0).sum()
+        ok = count_non_zero >= self.min_non_zero_count
+        if not ok:
+            self._debug(f"Calculating {self.operation_name}, fields {fields}: Minimum number of non-zero fields is {self.min_non_zero_count}, but there are only {count_non_zero} non-zeros. Not adding column")
+        return ok
+
+
+class DfAugmentOpAdd(DfAugmentOpNary):
+    ''' Augment dataset by adding two or more fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'add', outputs, model_type, params=['min_non_zero'])
+        super().__init__(df, config, 'add', outputs, model_type, params=['min_non_zero', 'order'])
 
-    def op(self, field_i, field_j):
-        """ Calculate the arithmetic operation between the two fields """
-        return self.df[field_i] + self.df[field_j]
+    def op(self, fields):
+        """ Calculate the arithmetic operation between the two or more fields """
+        return self.df[fields].sum(axis=1)
 
 
-class DfAugmentOpDiv(DfAugmentOp):
+class DfAugmentOpDiv(DfAugmentOpBinary):
     ''' Augment dataset by dividing two fields '''
 
     def __init__(self, df, config, outputs, model_type):
@@ -226,7 +302,7 @@ class DfAugmentOpDiv(DfAugmentOp):
         return self.df[field_i] / self.df[field_j]
 
 
-class DfAugmentOpLogRatio(DfAugmentOp):
+class DfAugmentOpLogRatio(DfAugmentOpBinary):
     ''' Augment dataset by applying the log ratio of two fields '''
 
     def __init__(self, df, config, outputs, model_type):
@@ -252,7 +328,7 @@ class DfAugmentOpLogRatio(DfAugmentOp):
         self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
 
 
-class DfAugmentOpLogPlusOneRatio(DfAugmentOp):
+class DfAugmentOpLogPlusOneRatio(DfAugmentOpBinary):
     ''' Augment dataset by applying the log+1 ratio of two fields '''
 
     def __init__(self, df, config, outputs, model_type):
@@ -280,18 +356,18 @@ class DfAugmentOpLogPlusOneRatio(DfAugmentOp):
         self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
 
 
-class DfAugmentOpMult(DfAugmentOp):
-    ''' Augment dataset by multiplying two fields '''
+class DfAugmentOpMult(DfAugmentOpNary):
+    ''' Augment dataset by multiplying two or more fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'mult', outputs, model_type, params=['min_non_zero'])
+        super().__init__(df, config, 'mult', outputs, model_type, params=['min_non_zero', 'order'])
 
-    def op(self, field_i, field_j):
-        """ Calculate the arithmetic operation between the two fields """
-        return self.df[field_i] * self.df[field_j]
+    def op(self, fields):
+        """ Calculate the arithmetic operation between the two or more fields """
+        return self.df[fields].prod(axis=1)
 
 
-class DfAugmentOpSub(DfAugmentOp):
+class DfAugmentOpSub(DfAugmentOpBinary):
     ''' Augment dataset by substracting two fields '''
 
     def __init__(self, df, config, outputs, model_type):

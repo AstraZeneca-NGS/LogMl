@@ -306,10 +306,14 @@ class TestLogMl(unittest.TestCase):
         # Check augmented variables
         df = ds.dataset
         # Check that fields exists or don't exists
-        for name in ['add', 'sub', 'div', 'mult']:
+        for name in ['sub', 'div']:
             self.assertTrue(f"{name}_expr_x1_x2" in df.columns, f"Missing: {name}_expr_x1_x2")
             self.assertFalse(f"{name}_expr_x2_x1" in df.columns, f"Found {name}_expr_x2_x1")
             self.assertFalse(f"{name}_expr_n1_n2" in df.columns, f"Found {name}_expr_n1_n2")
+        for name in ['add', 'mult']:
+            self.assertTrue(f"{name}_expr_x2_x1" in df.columns, f"Missing: {name}_expr_x2_x1")
+            self.assertFalse(f"{name}_expr_x1_x2" in df.columns, f"Found {name}_expr_x1_x2")
+            self.assertFalse(f"{name}_expr_n2_n1" in df.columns, f"Found {name}_expr_n2_n1")
         # Log10
         self.assertTrue(f"log10_ratio_expr_x3_x4" in df.columns, f"Missing: log10_ratio_expr_x3_x4")
         self.assertFalse(f"log10_ratio_expr_x1_x2" in df.columns, f"Found log10_ratio_expr_x1_x2")
@@ -324,7 +328,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(f"logep1_ratio_expr_x5_x6" in df.columns, f"Missing: logep1_ratio_expr_x5_x6")
         # Check results
         x1, x2, x3, x4 = -2.3042662810235153, 0.1202582216313, 0.9588706570406521, 0.880524565094321
-        self.assertTrue(is_close(x1 + x2, df['add_expr_x1_x2'][0]))
+        self.assertTrue(is_close(x1 + x2, df['add_expr_x2_x1'][0]))
         self.assertTrue(is_close(x1 - x2, df['sub_expr_x1_x2'][0]))
         self.assertTrue(is_close(x1 / x2, df['div_expr_x1_x2'][0]))
         self.assertTrue(is_close(np.log(x3 / x4) / np.log(10), df['log10_ratio_expr_x3_x4'][0]))
@@ -332,7 +336,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(is_close(np.log((x3 + 1) / (x4 + 1)), df['logep1_ratio_expr_x3_x4'][0]))
 
     def test_dataset_augment_003(self):
-        ''' Checking dataset augment: Operations '''
+        ''' Checking dataset augment: Filter results having too many zeros '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -344,7 +348,41 @@ class TestLogMl(unittest.TestCase):
         # Check augmented variables
         df = ds.dataset
         # Mult_1
-        should_be = set(['mult_1_x1_x2', 'mult_1_x1_x3', 'mult_1_x1_x4', 'mult_1_x2_x3', 'mult_2_x1_x2', 'mult_2_x1_x3'])
+        should_be = set(['mult_1_x2_x1', 'mult_1_x3_x1', 'mult_1_x4_x1', 'mult_1_x3_x2',
+                         'mult_2_x2_x1', 'mult_2_x3_x1'])
+        for i in range(1, 7):
+            for j in range(i + 1, 7):
+                for m in [1, 2]:
+                    name = f"mult_{m}_x{i}_x{j}"
+                    if name in should_be:
+                        self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
+                    else:
+                        self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+
+    def test_dataset_augment_004(self):
+        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        # Add (3 fields) and Mult (4 fields)
+        should_be = set(['add_3_x3_x2_x1', 'add_3_x4_x2_x1', 'add_3_x5_x2_x1',
+                         'add_3_x6_x2_x1', 'add_3_x4_x3_x1', 'add_3_x5_x3_x1',
+                         'add_3_x6_x3_x1', 'add_3_x5_x4_x1', 'add_3_x6_x4_x1',
+                         'add_3_x6_x5_x1', 'add_3_x4_x3_x2', 'add_3_x5_x3_x2',
+                         'add_3_x6_x3_x2', 'add_3_x5_x4_x2', 'add_3_x6_x4_x2',
+                         'add_3_x6_x5_x2', 'add_3_x5_x4_x3', 'add_3_x6_x4_x3',
+                         'mult_4_x4_x3_x2_x1', 'mult_4_x5_x3_x2_x1', 'mult_4_x6_x3_x2_x1',
+                         'mult_4_x5_x4_x2_x1', 'mult_4_x6_x4_x2_x1', 'mult_4_x6_x5_x2_x1',
+                         'mult_4_x5_x4_x3_x1', 'mult_4_x6_x4_x3_x1', 'mult_4_x6_x5_x3_x1',
+                         'mult_4_x6_x5_x4_x1', 'mult_4_x5_x4_x3_x2', 'mult_4_x6_x4_x3_x2',
+                         'mult_4_x6_x5_x3_x2'])
         for i in range(1, 7):
             for j in range(i + 1, 7):
                 for m in [1, 2]:
