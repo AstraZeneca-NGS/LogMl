@@ -314,6 +314,9 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
         return self.get_results(namefieldparams)
 
+    def convert_result(self, x):
+        return x.astype('float')
+
     def get_augment_key(self, fieldnum_list):
         """ Get key for augment dictionary (indexed by field numbers) """
         return '\t'.join([str(i) for i in fieldnum_list])
@@ -324,7 +327,8 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         # Add all items in dict, create a list of column names
         keys = sorted(list(self.augment.keys()))
         for key in keys:
-            results.append(self.augment[key])
+            x = self.convert_result(self.augment[key])
+            results.append(x)
             fnlist = self.augment_fieldnums[key]
             fields = [namefieldparams.fields[fn] for fn in fnlist]
             cols.append(f"{namefieldparams.name}_{'_'.join(fields)}")
