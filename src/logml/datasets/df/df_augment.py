@@ -247,7 +247,7 @@ class DfAugmentOpNary(FieldsParams):
                 count_skipped += 1
                 self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Fields {fields}. Should add returned False, skipping")
             if count % 100 == 0:
-                self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Minumum non-zero: {self.min_non_zero_count}, Count {count}, added {count_added}, skipped {count_skipped}")
+                self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Minumum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}")
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
         if len(results) > 0:
             x = np.concatenate(results)
@@ -349,6 +349,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         """ Incrementally add one field at a time """
         augment = dict()
         augment_fieldnums = dict()
+        count, count_added, count_skipped = 1, 0, 0
         for key in self.augment.keys():
             value = self.augment[key]
             fnlist = self.augment_fieldnums[key]
@@ -356,15 +357,21 @@ class DfAugmentOpNaryIncremental(FieldsParams):
             fields = [namefieldparams.fields[fn] for fn in fnlist]
             # Iterate over all fields we can add. We don't want to repeat fields, so number of fields is always incrementing
             for fnum in range(fnmax + 1, len(namefieldparams.fields)):
+                count += 1
                 field = namefieldparams.fields[fnum]
                 x = self.op_inc(value, field)
                 if self.should_add(fields, field, x):
                     # Add to new entry (old list of field numbers + new field number)
+                    count_added += 1
                     fnlist_new = fnlist.copy()
                     fnlist_new.append(fnum)
                     key = self.get_augment_key(fnlist_new)
                     augment[key] = x
                     augment_fieldnums[key] = fnlist_new
+                else:
+                        count_skipped += 1
+                if count % 100 == 0:
+                    self._info(f"Incremental calculation {self.operation_name}, name: {namefieldparams.name}: Minumum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}, fields {fields} + {field}")
         # Update incremental values
         self.augment = augment
         self.augment_fieldnums = augment_fieldnums

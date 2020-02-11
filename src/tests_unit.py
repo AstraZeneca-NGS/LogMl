@@ -383,14 +383,37 @@ class TestLogMl(unittest.TestCase):
                          'mult_4_x5_x4_x3_x1', 'mult_4_x6_x4_x3_x1', 'mult_4_x6_x5_x3_x1',
                          'mult_4_x6_x5_x4_x1', 'mult_4_x5_x4_x3_x2', 'mult_4_x6_x4_x3_x2',
                          'mult_4_x6_x5_x3_x2'])
-        for i in range(1, 7):
-            for j in range(i + 1, 7):
-                for m in [1, 2]:
-                    name = f"mult_{m}_x{i}_x{j}"
+        for f1 in range(1, 7):
+            for f2 in range(f1 + 1, 7):
+                for f3 in range(f2 + 1, 7):
+                    name = f"add_3_x{f3}_x{f2}_x{f1}"
                     if name in should_be:
                         self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
                     else:
                         self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+                    for f4 in range(f3 + 1, 7):
+                        name = f"mult_4_x{f4}_x{f3}_x{f2}_x{f1}"
+                        if name in should_be:
+                            self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
+                        else:
+                            self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+
+    def test_dataset_augment_005(self):
+        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_005.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        and_3_len = len([n for n in df.columns if n.startswith('and_3')])
+        and_4_len = len([n for n in df.columns if n.startswith('and_4')])
+        self.assertEqual(20, and_3_len, f"Expecting 20 'and_3' columns, got {and_3_len}")
+        self.assertEqual(15, and_4_len, f"Expecting 15 'and_4' columns, got {and_4_len}")
 
     def test_dataset_feature_importance_001(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
