@@ -61,11 +61,12 @@ class DfAugment(MlLog):
         cols = "', '".join([c for c in self.df.columns])
         self._info(f"Augment dataframe: Start. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
         self._op_add()
-        self._op_sub()
-        self._op_mult()
+        self._op_and()
         self._op_div()
         self._op_log_ratio()
         self._op_logp1_ratio()
+        self._op_mult()
+        self._op_sub()
         self._nmf()
         self._pca()
         if len(self.dfs) > 0:
@@ -90,6 +91,10 @@ class DfAugment(MlLog):
     def _op_add(self):
         self.add_augment = DfAugmentOpAdd(self.df, self.config, self.outputs, self.model_type)
         return self.augment('add', self.add_augment)
+
+    def _op_and(self):
+        self.and_augment = DfAugmentOpAnd(self.df, self.config, self.outputs, self.model_type)
+        return self.augment('and', self.and_augment)
 
     def _op_div(self):
         self.divide_augment = DfAugmentOpDiv(self.df, self.config, self.outputs, self.model_type)
@@ -226,7 +231,6 @@ class DfAugmentOpNary(FieldsParams):
         """
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         results = list()
-        skip_second = set()
         self._op_init(namefieldparams)
         cols = list()
         counter = CounterDimIncreasing(len(namefieldparams.fields), self.order)
@@ -284,7 +288,8 @@ class DfAugmentOpNary(FieldsParams):
 
 class DfAugmentOpNaryIncremental(FieldsParams):
     '''
-    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. multiply) in an incremental way
+    Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. 'and') in an incremental way
+    This is much more efficient when there are many new values not incorporated due to having too many zeros.
     '''
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
@@ -299,23 +304,58 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         Returns: A dataframe of 'operations' (None on failure)
         """
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
-        results = list()
-        skip_second = set()
         self._op_init(namefieldparams)
+        aug_dict = self.incremental_init(namefieldparams)
         for i in range(self.order):
             self.incremental(namefieldparams)
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
-        if len(results) > 0:
-            x = np.concatenate(results)
-            x = x.reshape(-1, len(results))
-            df = self.array_to_df(x, cols)
-            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
-            return df
+        !!!!!!!!!! ADD RESULTS !!!!!!!!!!!!!!!
+        # if len(results) > 0:
+        #     x = np.concatenate(results)
+        #     x = x.reshape(-1, len(results))
+        #     df = self.array_to_df(x, cols)
+        #     self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
+        #     return df
         return None
+
+    def get_augment_key(self, fieldnum_list):
+        """ Get key for augment dictionary (indexed by field numbers) """
+        return '\t'.join([str(i) for i in fieldnum_list])
+
+    def incremental_init(self, namefieldparams):
+        """ Initialize incremental dictionaries indexed by field numbers (as strings) """
+        self.augment = dict()
+        self.augment_fieldnums = dict()
+        for fnum in range(len(namefieldparams.fields)):
+            field = namefieldparams.fields[fnum]
+            self.set_augment([fnum], self.init(field))
 
     def incremental(self, namefieldparams):
         """ Incrementally add one field at a time """
-        for n in range(self)
+        augment = dict()
+        augment_fieldnums = dict()
+        for key in self.augment.keys():
+            value = self.augment[key]
+            fnlist = self.augment_fieldnums[key]
+            fnmax = max(fnlist)
+            fields = [namefieldparams.fields[fn] for fn in fnlist]
+            # Iterate over all fields we can add. We don't want to repeat fields, so number of fields is always incrementing
+            for fnum in range(fnmax + 1, len(namefieldparams.fields)):
+                field = namefieldparams.fields[fnum]
+                x = self.op_inc(value, field)
+                if self.should_add(fields, field, x):
+                    # Add to new entry (old list of field numbers + new field number)
+                    fnlist_new = fnlist.copy()
+                    fnlist_new.append(fnum)
+                    key = self.get_augment_key(fnlist_new)
+                    augment[key] = x
+                    augment_fieldnums[key] = fnlist_new
+        # Update incremental values
+        self.augment = augment
+        self.augment_fieldnums = augment_fieldnums
+
+    def init(self, field):
+        return self.df[field]
 
     def op(self, fields):
         """ Calculate the arithmetic operation between the two fields """
@@ -337,12 +377,18 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         if self.order is None:
             self.order = DEFAULT_ORDER
 
-    def should_add(self, fields, x):
+    def set_augment(self, fieldnum_list, value):
+        """ Set an entry in augment dictionaty (indexed by field numbers) """
+        key = self.get_augment_key(fieldnum_list)
+        self.augment[key] = value
+        self.augment_fieldnums[key] = fieldnum_list
+
+    def should_add(self, fields, field, x):
         """ Should we add add these results """
         count_non_zero = (x != 0.0).sum()
         ok = count_non_zero >= self.min_non_zero_count
         if not ok:
-            self._debug(f"Calculating {self.operation_name}, fields {fields}: Minimum number of non-zero fields is {self.min_non_zero_count}, but there are only {count_non_zero} non-zeros. Not adding column")
+            self._debug(f"Calculating {self.operation_name}, fields {fields} + {field}: Minimum number of non-zero fields is {self.min_non_zero_count}, but there are only {count_non_zero} non-zeros. Not adding column")
         return ok
 
 
@@ -355,6 +401,20 @@ class DfAugmentOpAdd(DfAugmentOpNary):
     def op(self, fields):
         """ Calculate the arithmetic operation between the two or more fields """
         return self.df[fields].sum(axis=1)
+
+
+class DfAugmentOpAnd(DfAugmentOpNaryIncremental):
+    ''' Augment dataset by performing 'and' of two or more fields '''
+
+    def __init__(self, df, config, outputs, model_type):
+        super().__init__(df, config, 'and', outputs, model_type, params=['min_non_zero', 'order'])
+
+    def init(self, field):
+        return self.df[field] > 0
+
+    def op_inc(self, x, field):
+        """ Calculate the (incremental) 'and' operation between the a value and a field """
+        return x & (self.df[field] > 0)
 
 
 class DfAugmentOpDiv(DfAugmentOpBinary):
@@ -426,7 +486,7 @@ class DfAugmentOpLogPlusOneRatio(DfAugmentOpBinary):
         self._debug(f"Log base is '{base}', setting log_base={self.log_base}")
 
 
-class DfAugmentOpMult(DfAugmentOpNaryIncremental):
+class DfAugmentOpMult(DfAugmentOpNary):
     ''' Augment dataset by multiplying two or more fields '''
 
     def __init__(self, df, config, outputs, model_type):
