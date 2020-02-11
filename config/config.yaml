@@ -201,11 +201,11 @@ dataset_augment:
   # Logical 'and' of two (or more) fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
-  add:
+  and:
     add_expr:
       order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
-      fields: ['.*_EXPR']
+      fields: ['.*_DNA']
   # Substract two fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)

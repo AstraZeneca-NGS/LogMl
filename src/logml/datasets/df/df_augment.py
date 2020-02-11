@@ -312,7 +312,9 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         for i in range(1, self.order):
             self.incremental(namefieldparams)
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
-        return self.get_results(namefieldparams)
+        df = self.get_results(namefieldparams)
+        self._error(f"DF: {df.head()}\nSUM: {df.sum(axis=0)}")
+        return df
 
     def convert_result(self, x):
         return x.astype('float')
