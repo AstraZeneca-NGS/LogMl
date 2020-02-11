@@ -306,21 +306,36 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         self._op_init(namefieldparams)
         aug_dict = self.incremental_init(namefieldparams)
-        for i in range(self.order):
+        if self.order < 2:
+            self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Order is less than 2 (order='{self.order}')")
+            return None
+        for i in range(1, self.order):
             self.incremental(namefieldparams)
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
-        !!!!!!!!!! ADD RESULTS !!!!!!!!!!!!!!!
-        # if len(results) > 0:
-        #     x = np.concatenate(results)
-        #     x = x.reshape(-1, len(results))
-        #     df = self.array_to_df(x, cols)
-        #     self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
-        #     return df
-        return None
+        return self.get_results(namefieldparams)
 
     def get_augment_key(self, fieldnum_list):
         """ Get key for augment dictionary (indexed by field numbers) """
         return '\t'.join([str(i) for i in fieldnum_list])
+
+    def get_results(self, namefieldparams):
+        """ Get all results frmo self.augment dictionary into a dataframe """
+        results, cols = list(), list()
+        # Add all items in dict, create a list of column names
+        keys = sorted(list(self.augment.keys()))
+        for key in keys:
+            results.append(self.augment[key])
+            fnlist = self.augment_fieldnums[key]
+            fields = [namefieldparams.fields[fn] for fn in fnlist]
+            cols.append(f"{namefieldparams.name}_{'_'.join(fields)}")
+        # Merge into a dataframe
+        if len(results) > 0:
+            x = np.concatenate(results)
+            x = x.reshape(-1, len(results))
+            df = self.array_to_df(x, cols)
+            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
+            return df
+        return None
 
     def incremental_init(self, namefieldparams):
         """ Initialize incremental dictionaries indexed by field numbers (as strings) """
