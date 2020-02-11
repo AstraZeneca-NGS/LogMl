@@ -204,11 +204,9 @@ class LogisticRegressionWilks(PvalueFdr):
                 res = logit_model.fit(method=method, disp=False)
                 return res
             except np.linalg.LinAlgError as e:
-                self._warning(f"{self.algorithm}, method '{method}': Linear Algebra exception")
-                self._debug(f"LinAlgError Exception: {e}\n{traceback.format_exc()}")
+                self._debug(f"{self.algorithm}, method '{method}': Linear Algebra exception {e}\n{traceback.format_exc()}")
             except ValueError as e:
-                self._warning(f"{self.algorithm}: ValueError {e}")
-                self._debug(f"ValueError Exception: {e}\n{traceback.format_exc()}")
+                self._warning(f"{self.algorithm}: ValueError {e}\n{traceback.format_exc()}")
         raise np.linalg.LinAlgError("Could not fit logistic regression using any method")
 
     def p_value(self, col):
