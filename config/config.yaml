@@ -190,12 +190,20 @@ dataset_preprocess:
 dataset_augment:
   # Set to 'false' to disable this step
   enable: true
-  # Add two fields
+  # Add two (or more) fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
   add:
     add_expr:
-      oreder: 2             # Number of fields combined in this operationb (can be two or more)
+      order: 2             # Number of fields combined in this operationb (can be two or more)
+      min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
+      fields: ['.*_EXPR']
+  # Logical 'and' of two (or more) fields
+  #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  add:
+    add_expr:
+      order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
   # Substract two fields
@@ -228,12 +236,12 @@ dataset_augment:
       base: 2               # Logarithm base: Can be any number or 'e' for natural logarithm
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
-  # Divide two fields (only if the divisor is never zero)
+  # Multiply two  (or more) fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
   mult:
     mult_expr:
-      oreder: 2             # Number of fields combined in this operationb (can be two or more)
+      order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
   # Add NMF (non-negative matrix factorization)
