@@ -247,7 +247,7 @@ class DfAugmentOpNary(FieldsParams):
                 count_skipped += 1
                 self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Fields {fields}. Should add returned False, skipping")
             if count % 100 == 0:
-                self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Minumum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}")
+                self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}")
         self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
         if len(results) > 0:
             x = np.concatenate(results)
@@ -303,7 +303,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         Calculate the operation on N fields from dataframe
         Returns: A dataframe of 'operations' (None on failure)
         """
-        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
+        self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         self._op_init(namefieldparams)
         aug_dict = self.incremental_init(namefieldparams)
         if self.order < 2:
@@ -311,9 +311,8 @@ class DfAugmentOpNaryIncremental(FieldsParams):
             return None
         for i in range(1, self.order):
             self.incremental(namefieldparams)
-        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
         df = self.get_results(namefieldparams)
-        self._error(f"DF: {df.head()}\nSUM: {df.sum(axis=0)}")
+        self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End, dataframe.shape: {df.shape}")
         return df
 
     def convert_result(self, x):
@@ -377,7 +376,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
                 else:
                         count_skipped += 1
                 if count % 100 == 0:
-                    self._info(f"Incremental calculation {self.operation_name}, name: {namefieldparams.name}: Minumum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}, fields {fields} + {field}")
+                    self._info(f"Incremental calculation {self.operation_name}, name: {namefieldparams.name}: Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}, fields {fields} + {field}")
         # Update incremental values
         self.augment = augment
         self.augment_fieldnums = augment_fieldnums

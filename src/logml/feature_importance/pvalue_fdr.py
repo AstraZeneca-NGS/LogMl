@@ -102,7 +102,7 @@ class PvalueFdr(MlFiles):
 
     def get_pvalues(self):
         """ Get all p-values as a vector """
-        return np.array([self.p_values.get(c, 1.0) for c in self.columns])
+        return np.array([self.p_values.get(c, np.nan) for c in self.columns])
 
     def p_value(self, col):
         """ Calculate the p-value using column 'col' """
@@ -116,7 +116,7 @@ class PvalueFdr(MlFiles):
         If 'probs' contains values out of [0, 1] interval, an error
         is produced.
         If 'probs' contains 0.0 values, they are replaced by the minimum
-        non-zero value in probs, or 0.1/len(probs) (whichever is smaller)
+        non-zero value in probs, or 0.01/len(probs) (whichever is smaller)
         """
         probs = self.get_pvalues()
         count_oor = ((probs < 0.0) | (probs > 1.0)).sum()
@@ -126,7 +126,7 @@ class PvalueFdr(MlFiles):
         count_zero = (probs == 0.0).sum()
         if count_zero > 0:
             min_val = probs[probs > 0.0].min()
-            epsilon = 0.1 / len(probs)
+            epsilon = 0.01 / len(probs)
             min_val = min(min_val, epsilon)
             self._warning(f"QQ-plot:There are {count_zero} values equal to zero, replacing them by with {min_val}")
             probs[probs == 0.0] = min_val
@@ -194,7 +194,6 @@ class LogisticRegressionWilks(PvalueFdr):
         except np.linalg.LinAlgError as e:
             self._error(f"{self.algorithm}: Could not fit logistic regression model")
             return None, None
-            return None, None
 
     def _model_fit(self, logit_model):
         """ Try to fit the model using different methods """
@@ -202,9 +201,12 @@ class LogisticRegressionWilks(PvalueFdr):
         for method in methods:
             try:
                 res = logit_model.fit(method=method, disp=False)
-                return res
+                if math.isfinite(res.llf):
+                    return res
+                else:
+                    self._debug(f"{self.algorithm}, method '{method}': Log-likekelihood is not a finite number {res.llf} for method {method}.")
             except np.linalg.LinAlgError as e:
-                self._debug(f"{self.algorithm}, method '{method}': Linear Algebra exception {e}\n{traceback.format_exc()}")
+                self._debug(f"{self.algorithm}, method '{method}': Linear Algebra exception {e}")  # "\n{traceback.format_exc()}"
             except ValueError as e:
                 self._warning(f"{self.algorithm}: ValueError {e}\n{traceback.format_exc()}")
         raise np.linalg.LinAlgError("Could not fit logistic regression using any method")
@@ -214,7 +216,7 @@ class LogisticRegressionWilks(PvalueFdr):
         model_alt, model_alt_res = self.model_fit(col)
         if model_alt is None:
             self._error(f"{self.algorithm} ({self.tag}): Could not fit alt model for column/s {col}, returning p-value=1.0")
-            return 1.0
+            return np.nan
         d = 2.0 * (model_alt_res.llf - self.model_null_results.llf)
         p_value = chi2.sf(d, 1)
         self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")
