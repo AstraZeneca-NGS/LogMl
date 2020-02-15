@@ -68,7 +68,19 @@ class PvalueFdr(MlFiles):
 
     def fdr(self):
         """ Perform multiple testing correction using FDR """
-        self.rejected, self.p_values_corrected = fdrcorrection(self.get_pvalues())
+        # Don't use 'nan' values from FDR correction
+        pvals = self.get_pvalues()
+        isna = np.isnan(pvals)
+        # FDR on non-nan values
+        p_no_nan = pvals[~isna]
+        rej, pvc = fdrcorrection(p_no_nan)
+        # Set 'pvalues_corrected' (use 1 for all nan values)
+        pvalues_corrected = np.ones(pvals.shape)
+        pvalues_corrected[~isna] = pvc
+        # Set 'reject' (use 'True' for all nan values)
+        reject = np.ones(pvals.shape).astype(bool)
+        reject[~isna] = rej
+        self.rejected, self.p_values_corrected = reject, pvalues_corrected
 
     def filter_null_variables(self):
         '''
@@ -93,7 +105,7 @@ class PvalueFdr(MlFiles):
         ''' Remove 'na' and 'inf' values from x '''
         x_cols = self.x[cols]
         keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
-        x, y = x_cols[keep].copy(), self.y[keep].copy()
+        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
         return x, y
 
     def fit_null_model(self):
@@ -152,6 +164,9 @@ class LogisticRegressionWilks(PvalueFdr):
         self.algorithm = 'Logistic regression Wilks'
         self.class_to_analyze = class_to_analyze
         self.null_model_required = True
+        # TODO: REMOVE DEBUG CODE
+        self._error(f"SAVING DATASET TO dataset.LogisticRegressionWilks.csv: {type(self.datasets)}")
+        self.datasets.dataset.to_csv("dataset.LogisticRegressionWilks.csv")
 
     def binarize(self, y):
         """ Make sure 'y' has values in range [0, 1]
@@ -188,6 +203,11 @@ class LogisticRegressionWilks(PvalueFdr):
             y, ok = self.binarize(y)
             if not ok:
                 return None, None
+            # TODO: REMOVE DEBUGING CODE
+            dflr = x.join(y)
+            if alt_model_variables is not None:
+                dflr.to_csv(f"pvalues_fdr_logit_{alt_model_variables}.csv")
+            # TODO: REMOVE DEBUGING CODE
             logit_model = Logit(y, x, missing='drop')
             res = self._model_fit(logit_model)
             return logit_model, res
