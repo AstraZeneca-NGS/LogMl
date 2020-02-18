@@ -77,7 +77,6 @@ class DfAugment(MlLog):
             self.df = df_joined
             cols = "', '".join([c for c in self.df.columns])
             self._info(f"Augment dataframe: End. Shape: {self.df.shape}. Fields ({len(self.df.columns)}): ['{cols}']")
-        self._info(f"Augment dataframe: Finished")
         return self.df
 
     def __getstate__(self):

@@ -164,9 +164,9 @@ class LogisticRegressionWilks(PvalueFdr):
         self.algorithm = 'Logistic regression Wilks'
         self.class_to_analyze = class_to_analyze
         self.null_model_required = True
-        # TODO: REMOVE DEBUG CODE
-        self._error(f"SAVING DATASET TO dataset.LogisticRegressionWilks.csv: {type(self.datasets)}")
-        self.datasets.dataset.to_csv("dataset.LogisticRegressionWilks.csv")
+        # TODO: REMOVE DEBUGGING CODE
+        self._error("SAVE DATASET")
+        self.datasets.dataset.to_csv(f"dataset.LogisticRegressionWilks.{tag}.csv")
 
     def binarize(self, y):
         """ Make sure 'y' has values in range [0, 1]
@@ -204,8 +204,9 @@ class LogisticRegressionWilks(PvalueFdr):
             if not ok:
                 return None, None
             # TODO: REMOVE DEBUGING CODE
-            dflr = x.join(y)
             if alt_model_variables is not None:
+                self._error(f"SAVE DATAFRAME: LOGIT MODEL FIT {alt_model_variables}")
+                dflr = x.join(y)
                 dflr.to_csv(f"pvalues_fdr_logit_{alt_model_variables}.csv")
             # TODO: REMOVE DEBUGING CODE
             logit_model = Logit(y, x, missing='drop')
