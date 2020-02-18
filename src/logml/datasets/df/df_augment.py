@@ -141,7 +141,7 @@ class DfAugmentOpBinary(FieldsParams):
         """Calculate the operation on pairwise fields from dataframe
         Returns: A dataframe of 'operations' (None on failure)
         """
-        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
+        self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         results = list()
         skip_second = set()
         self._op_init(namefieldparams)
@@ -149,7 +149,7 @@ class DfAugmentOpBinary(FieldsParams):
         for i in range(len(namefieldparams.fields)):
             field_i = namefieldparams.fields[i]
             if not self.can_apply_first(field_i):
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Cannot apply operation '{self.operation_name}' to first field '{field_i}', skipping")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Cannot apply operation '{self.operation_name}' to first field '{field_i}', skipping")
                 continue
             for j in range(len(namefieldparams.fields)):
                 if i == j:
@@ -160,7 +160,7 @@ class DfAugmentOpBinary(FieldsParams):
                 if field_j in skip_second:
                     continue
                 if not self.can_apply_second(field_j):
-                    self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Cannot apply operation '{self.operation_name}' to second field '{field_j}', skipping")
+                    self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Cannot apply operation '{self.operation_name}' to second field '{field_j}', skipping")
                     skip_second.add(field_j)
                     continue
                 res = self.op(field_i, field_j)
@@ -168,13 +168,13 @@ class DfAugmentOpBinary(FieldsParams):
                     cols.append(f"{namefieldparams.name}_{field_i}_{field_j}")
                     results.append(res)
                 else:
-                    self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Should add returned False, skipping")
-        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
+                    self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Should add returned False, skipping")
+        self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': End")
         if len(results) > 0:
             x = np.concatenate(results)
             x = x.reshape(-1, len(results))
             df = self.array_to_df(x, cols)
-            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
+            self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': DataFrame joined shape {df.shape}")
             return df
         return None
 
@@ -195,13 +195,13 @@ class DfAugmentOpBinary(FieldsParams):
         min_non_zero = namefieldparams.params.get('min_non_zero')
         if min_non_zero is not None:
             if min_non_zero < 0.0:
-                self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
+                self._error(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
             if 0.0 < min_non_zero and min_non_zero < 1.0:
                 self.min_non_zero_count = int(min_non_zero * len(self.df))
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
             else:
                 self.min_non_zero_count = int(min_non_zero)
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Setting min_non_zero_count={self.min_non_zero_count}")
 
     def should_add(self, field_i, field_j, x):
         """ Should we add add these results """
@@ -228,7 +228,7 @@ class DfAugmentOpNary(FieldsParams):
         Calculate the operation on N fields from dataframe
         Returns: A dataframe of 'operations' (None on failure)
         """
-        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
+        self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         results = list()
         self._op_init(namefieldparams)
         cols = list()
@@ -244,15 +244,15 @@ class DfAugmentOpNary(FieldsParams):
                 results.append(res)
             else:
                 count_skipped += 1
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Fields {fields}. Should add returned False, skipping")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Fields {fields}. Should add returned False, skipping")
             if count % 100 == 0:
-                self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}")
-        self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End")
+                self._info(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}")
+        self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': End")
         if len(results) > 0:
             x = np.concatenate(results)
             x = x.reshape(-1, len(results))
             df = self.array_to_df(x, cols)
-            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
+            self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': DataFrame joined shape {df.shape}")
             return df
         return None
 
@@ -265,13 +265,13 @@ class DfAugmentOpNary(FieldsParams):
         min_non_zero = namefieldparams.params.get('min_non_zero')
         if min_non_zero is not None:
             if min_non_zero < 0.0:
-                self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
+                self._error(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
             if 0.0 < min_non_zero and min_non_zero < 1.0:
                 self.min_non_zero_count = int(min_non_zero * len(self.df))
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
             else:
                 self.min_non_zero_count = int(min_non_zero)
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Setting min_non_zero_count={self.min_non_zero_count}")
         self.order = namefieldparams.params.get('order')
         if self.order is None:
             self.order = DEFAULT_ORDER
@@ -302,20 +302,25 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         Calculate the operation on N fields from dataframe
         Returns: A dataframe of 'operations' (None on failure)
         """
-        self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
+        self._info(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Start, name={namefieldparams.name}, params={namefieldparams.params}, fields:{namefieldparams.fields}")
         self._op_init(namefieldparams)
         aug_dict = self.incremental_init(namefieldparams)
         if self.order < 2:
-            self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Order is less than 2 (order='{self.order}')")
+            self._error(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Order is less than 2 (order='{self.order}')")
             return None
         for i in range(1, self.order):
             self.incremental(namefieldparams)
         df = self.get_results(namefieldparams)
-        self._info(f"Calculating {self.operation_name}, name: {namefieldparams.name}: End, dataframe.shape: {df.shape}")
+        self._info(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': End, dataframe.shape: {df.shape}")
         return df
 
     def convert_result(self, x):
         return x.astype('float')
+
+    def field_nums_to_name(self, namefieldparams, field_nums):
+        """ Convert a list of field numbers to field names """
+        fields = [namefieldparams.fields[fn] for fn in field_nums]
+        return f"{namefieldparams.name}_{'_'.join(fields)}"
 
     def get_augment_key(self, fieldnum_list):
         """ Get key for augment dictionary (indexed by field numbers) """
@@ -323,21 +328,19 @@ class DfAugmentOpNaryIncremental(FieldsParams):
 
     def get_results(self, namefieldparams):
         """ Get all results frmo self.augment dictionary into a dataframe """
-        results, cols = list(), list()
+        results, col_names = list(), list()
         # Add all items in dict, create a list of column names
         keys = sorted(list(self.augment.keys()))
         for key in keys:
             x = self.convert_result(self.augment[key])
             results.append(x)
-            fnlist = self.augment_fieldnums[key]
-            fields = [namefieldparams.fields[fn] for fn in fnlist]
-            cols.append(f"{namefieldparams.name}_{'_'.join(fields)}")
+            col_name = self.field_nums_to_name(namefieldparams, self.augment_fieldnums[key])
+            col_names.append(col_name)
         # Merge into a dataframe
         if len(results) > 0:
-            x = np.concatenate(results)
-            x = x.reshape(-1, len(results))
-            df = self.array_to_df(x, cols)
-            self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: DataFrame joined shape {df.shape}")
+            df = pd.concat(results, axis=1)
+            df.columns = col_names
+            self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': DataFrame joined shape {df.shape}")
             return df
         return None
 
@@ -375,7 +378,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
                 else:
                         count_skipped += 1
                 if count % 100 == 0:
-                    self._info(f"Incremental calculation {self.operation_name}, name: {namefieldparams.name}: Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}, fields {fields} + {field}")
+                    self._info(f"Incremental calculation {self.operation_name}, name: '{namefieldparams.name}': Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}, fields {fields} + {field}")
         # Update incremental values
         self.augment = augment
         self.augment_fieldnums = augment_fieldnums
@@ -384,7 +387,10 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         return self.df[field]
 
     def op(self, fields):
-        """ Calculate the arithmetic operation between the two fields """
+        """
+        Calculate the arithmetic operation between the two fields
+        @returns A Pandas Series
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def _op_init(self, namefieldparams):
@@ -392,13 +398,13 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         min_non_zero = namefieldparams.params.get('min_non_zero')
         if min_non_zero is not None:
             if min_non_zero < 0.0:
-                self._error(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
+                self._error(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Illegal value for 'min_non_zero'={min_non_zero}, ignoring")
             if 0.0 < min_non_zero and min_non_zero < 1.0:
                 self.min_non_zero_count = int(min_non_zero * len(self.df))
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Setting min_non_zero_count={self.min_non_zero_count}, min_non_zero: {min_non_zero}, len(df): {len(self.df)}")
             else:
                 self.min_non_zero_count = int(min_non_zero)
-                self._debug(f"Calculating {self.operation_name}, name: {namefieldparams.name}: Setting min_non_zero_count={self.min_non_zero_count}")
+                self._debug(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': Setting min_non_zero_count={self.min_non_zero_count}")
         self.order = namefieldparams.params.get('order')
         if self.order is None:
             self.order = DEFAULT_ORDER
@@ -413,7 +419,9 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         """ Should we add add these results """
         count_non_zero = (x != 0.0).sum()
         ok = count_non_zero >= self.min_non_zero_count
-        if not ok:
+        if ok:
+            self._debug(f"Calculating {self.operation_name}, fields {fields} + {field}: Number of non-zero fields {count_non_zero} >= {self.min_non_zero_count}, OK")
+        else:
             self._debug(f"Calculating {self.operation_name}, fields {fields} + {field}: Minimum number of non-zero fields is {self.min_non_zero_count}, but there are only {count_non_zero} non-zeros. Not adding column")
         return ok
 
