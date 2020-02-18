@@ -311,7 +311,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
         for i in range(1, self.order):
             self.incremental(namefieldparams)
         df = self.get_results(namefieldparams)
-        self._info(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': End, dataframe.shape: {df.shape}")
+        self._info(f"Calculating {self.operation_name}, name: '{namefieldparams.name}': End, dataframe.shape: {df.shape if df is not None else '-'}")
         return df
 
     def convert_result(self, x):
