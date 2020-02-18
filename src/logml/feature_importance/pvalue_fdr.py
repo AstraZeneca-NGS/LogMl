@@ -164,9 +164,6 @@ class LogisticRegressionWilks(PvalueFdr):
         self.algorithm = 'Logistic regression Wilks'
         self.class_to_analyze = class_to_analyze
         self.null_model_required = True
-        # TODO: REMOVE DEBUGGING CODE
-        self._error("SAVE DATASET")
-        self.datasets.dataset.to_csv(f"dataset.LogisticRegressionWilks.{tag}.csv")
 
     def binarize(self, y):
         """ Make sure 'y' has values in range [0, 1]
