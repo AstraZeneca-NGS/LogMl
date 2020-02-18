@@ -207,12 +207,6 @@ class LogisticRegressionWilks(PvalueFdr):
             y, ok = self.binarize(y)
             if not ok:
                 return None, None
-            # TODO: REMOVE DEBUGING CODE
-            if alt_model_variable is not None:
-                self._error(f"SAVE DATAFRAME: LOGIT MODEL FIT {alt_model_variable}")
-                dflr = x.join(y)
-                dflr.to_csv(f"pvalues_fdr_logit_{alt_model_variable}.csv")
-            # TODO: REMOVE DEBUGING CODE
             logit_model = Logit(y, x, missing='drop')
             res = self._model_fit(logit_model)
             return logit_model, res
