@@ -68,7 +68,19 @@ class PvalueFdr(MlFiles):
 
     def fdr(self):
         """ Perform multiple testing correction using FDR """
-        self.rejected, self.p_values_corrected = fdrcorrection(self.get_pvalues())
+        # Don't use 'nan' values from FDR correction
+        pvals = self.get_pvalues()
+        isna = np.isnan(pvals)
+        # FDR on non-nan values
+        p_no_nan = pvals[~isna]
+        rej, pvc = fdrcorrection(p_no_nan)
+        # Set 'pvalues_corrected' (use 1 for all nan values)
+        pvalues_corrected = np.ones(pvals.shape)
+        pvalues_corrected[~isna] = pvc
+        # Set 'reject' (use 'True' for all nan values)
+        reject = np.ones(pvals.shape).astype(bool)
+        reject[~isna] = rej
+        self.rejected, self.p_values_corrected = reject, pvalues_corrected
 
     def filter_null_variables(self):
         '''
@@ -93,7 +105,7 @@ class PvalueFdr(MlFiles):
         ''' Remove 'na' and 'inf' values from x '''
         x_cols = self.x[cols]
         keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
-        x, y = x_cols[keep].copy(), self.y[keep].copy()
+        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
         return x, y
 
     def fit_null_model(self):
@@ -178,12 +190,16 @@ class LogisticRegressionWilks(PvalueFdr):
             return False
         return True
 
-    def model_fit(self, alt_model_variables=None):
-        """ Fit a model using 'null_model_variables' + 'alt_model_variables' """
+    def model_fit(self, alt_model_variable=None):
+        """
+        Fit a model using 'null_model_variables' + 'alt_model_variable'
+        Note: Currently we assume only one 'alt' variable, but we could extend
+              it to a list of variables
+        """
         try:
             cols = list(self.null_model_variables)
-            if alt_model_variables:
-                cols.append(alt_model_variables)
+            if alt_model_variable:
+                cols.append(alt_model_variable)
             x, y = self._drop_na_inf(cols)
             y, ok = self.binarize(y)
             if not ok:

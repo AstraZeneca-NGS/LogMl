@@ -123,7 +123,7 @@ class DataFeatureImportance(MlFiles):
         self.recursive_feature_elimination()
         self.pvalue_linear()
         self.wilks()
-        # Show a decition tree of the most important variables (first levels)
+        # Show a decision tree of the most important variables (first levels)
         self.tree_graph()
         # Perform re-weighting, then display and save results
         loss_ori = self.reweight_results()
