@@ -28,10 +28,12 @@ class PvalueFdr(MlFiles):
         self.tag = tag
         self.x, self.y = datasets.get_xy()  # Note: We use the full dataset
         self.columns = list(self.x.columns)
+        self.enable_qqplot = True
         self.loss_base = None
         self.model_null = None
         self.model_null_results = None
         self.null_model_required = False
+        self.coefficients = dict()  # Dictionary of 'raw' p-values
         self.p_values = dict()  # Dictionary of 'raw' p-values
         self.p_values_corrected = None  # Array of FDR-corrected p-values (sorted by 'columns')
         self.rejected = None  # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
@@ -60,11 +62,18 @@ class PvalueFdr(MlFiles):
             if c in self.datasets.outputs:
                 self._debug(f"{self.algorithm} ({self.tag}): Output variable '{c}', skipped")
                 continue
-            self.p_values[c] = self.p_value(c)
+            self.p_values[c], self.coefficients[c] = self.p_value(c)
             self._info(f"{self.algorithm} ({self.tag}): Column {i} / {cols_count}, '{c}', pvalue: {self.p_values[c]}")
         self.fdr()
         self.qq_log_plot()
         return len(self.p_values) > 0
+
+    def _drop_na_inf(self, cols):
+        ''' Remove 'na' and 'inf' values from x '''
+        x_cols = self.x[cols]
+        keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
+        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
+        return x, y
 
     def fdr(self):
         """ Perform multiple testing correction using FDR """
@@ -101,13 +110,6 @@ class PvalueFdr(MlFiles):
         self.null_model_variables = null_vars
         return len(null_vars) > 0
 
-    def _drop_na_inf(self, cols):
-        ''' Remove 'na' and 'inf' values from x '''
-        x_cols = self.x[cols]
-        keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
-        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
-        return x, y
-
     def fit_null_model(self):
         ''' Fit null model '''
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
@@ -116,8 +118,14 @@ class PvalueFdr(MlFiles):
         """ Get all p-values as a vector """
         return np.array([self.p_values.get(c, np.nan) for c in self.columns])
 
+    def get_coefficients(self):
+        """ Get coefficients as a vector """
+        return np.array([self.coefficients.get(c, np.nan) for c in self.columns])
+
     def p_value(self, col):
-        """ Calculate the p-value using column 'col' """
+        """ Calculate the p-value using column 'col'
+        Returns: Tuple <p_value, coefficient>
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def qq_log_plot(self):
@@ -130,7 +138,10 @@ class PvalueFdr(MlFiles):
         If 'probs' contains 0.0 values, they are replaced by the minimum
         non-zero value in probs, or 0.01/len(probs) (whichever is smaller)
         """
+        if not self.enable_qqplot:
+            return
         probs = self.get_pvalues()
+        probs = probs[~np.isnan(probs)]
         count_oor = ((probs < 0.0) | (probs > 1.0)).sum()
         if count_oor > 0:
             self._error(f"QQ-plot:There are {count_oor} values out of range (less than 0.0 or more than 1.0)")
@@ -228,15 +239,18 @@ class LogisticRegressionWilks(PvalueFdr):
         raise np.linalg.LinAlgError("Could not fit logistic regression using any method")
 
     def p_value(self, col):
-        """ Calculate the p-value using column 'col' """
+        """ Calculate the p-value using column 'col'
+        Returns: Tuple <p_value, coefficient>
+        """
         model_alt, model_alt_res = self.model_fit(col)
         if model_alt is None:
             self._error(f"{self.algorithm} ({self.tag}): Could not fit alt model for column/s {col}, returning p-value=1.0")
             return np.nan
         d = 2.0 * (model_alt_res.llf - self.model_null_results.llf)
         p_value = chi2.sf(d, 1)
-        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")
-        return p_value
+        coef_str = ', '.join([str(k) + ': ' + str(v) for k, v in model_alt_res.params.items()])
+        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}, coefficients: [{coef_str}]")
+        return p_value, model_alt_res.params.get(col, np.nan)
 
 
 class MultipleLogisticRegressionWilks(PvalueFdr):
@@ -302,4 +316,4 @@ class PvalueLinear(PvalueFdr):
         cols.append(col)
         x, y = self._drop_na_inf(cols)
         res = OLS(endog=y, exog=x).fit()
-        return res.pvalues.loc[col]
+        return res.pvalues.loc[col], res.params.get(col, np.nan)

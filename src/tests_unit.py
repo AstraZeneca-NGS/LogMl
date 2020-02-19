@@ -510,8 +510,8 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")
         self.assertTrue(lrw.p_values['x2'] < 0.05, f"p-value = {lrw.p_values['x2']}")
         self.assertTrue(lrw.p_values['x3'] < 0.05, f"p-value = {lrw.p_values['x3']}")
-        self.assertTrue(lrw.p_values['x4'] > 0.1, f"p-value = {lrw.p_values['x4']}")
-        self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
+        self.assertTrue(np.isnan(lrw.p_values['x4']), f"p-value = {lrw.p_values['x4']}")
+        self.assertTrue(np.isnan(lrw.p_values['x5']), f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''
