@@ -28,6 +28,7 @@ class PvalueFdr(MlFiles):
         self.tag = tag
         self.x, self.y = datasets.get_xy()  # Note: We use the full dataset
         self.columns = list(self.x.columns)
+        self.enable_qqplot = True
         self.loss_base = None
         self.model_null = None
         self.model_null_results = None
@@ -137,7 +138,10 @@ class PvalueFdr(MlFiles):
         If 'probs' contains 0.0 values, they are replaced by the minimum
         non-zero value in probs, or 0.01/len(probs) (whichever is smaller)
         """
+        if not self.enable_qqplot:
+            return
         probs = self.get_pvalues()
+        probs = probs[~np.isnan(probs)]
         count_oor = ((probs < 0.0) | (probs > 1.0)).sum()
         if count_oor > 0:
             self._error(f"QQ-plot:There are {count_oor} values out of range (less than 0.0 or more than 1.0)")
