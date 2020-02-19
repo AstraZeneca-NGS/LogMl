@@ -545,6 +545,7 @@ class DataFeatureImportance(MlFiles):
         wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
         ok = wilks()
         if ok:
+            self.results.add_col(f"wilks_coefficient", wilks.get_coefficients())
             self.results.add_col(f"wilks_p_values", wilks.get_pvalues())
             self.results.add_col(f"wilks_p_values_fdr", wilks.p_values_corrected)
             self.results.add_col(f"wilks_significant", wilks.rejected)

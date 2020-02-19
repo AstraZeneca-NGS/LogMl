@@ -32,6 +32,7 @@ class PvalueFdr(MlFiles):
         self.model_null = None
         self.model_null_results = None
         self.null_model_required = False
+        self.coefficients = dict()  # Dictionary of 'raw' p-values
         self.p_values = dict()  # Dictionary of 'raw' p-values
         self.p_values_corrected = None  # Array of FDR-corrected p-values (sorted by 'columns')
         self.rejected = None  # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
@@ -65,6 +66,13 @@ class PvalueFdr(MlFiles):
         self.fdr()
         self.qq_log_plot()
         return len(self.p_values) > 0
+
+    def _drop_na_inf(self, cols):
+        ''' Remove 'na' and 'inf' values from x '''
+        x_cols = self.x[cols]
+        keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
+        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
+        return x, y
 
     def fdr(self):
         """ Perform multiple testing correction using FDR """
@@ -101,13 +109,6 @@ class PvalueFdr(MlFiles):
         self.null_model_variables = null_vars
         return len(null_vars) > 0
 
-    def _drop_na_inf(self, cols):
-        ''' Remove 'na' and 'inf' values from x '''
-        x_cols = self.x[cols]
-        keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
-        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
-        return x, y
-
     def fit_null_model(self):
         ''' Fit null model '''
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
@@ -115,6 +116,10 @@ class PvalueFdr(MlFiles):
     def get_pvalues(self):
         """ Get all p-values as a vector """
         return np.array([self.p_values.get(c, np.nan) for c in self.columns])
+
+    def get_coefficients(self):
+        """ Get coefficients as a vector """
+        return np.array([self.coefficients.get(c, np.nan) for c in self.columns])
 
     def p_value(self, col):
         """ Calculate the p-value using column 'col' """
