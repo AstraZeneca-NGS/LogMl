@@ -61,7 +61,7 @@ class PvalueFdr(MlFiles):
             if c in self.datasets.outputs:
                 self._debug(f"{self.algorithm} ({self.tag}): Output variable '{c}', skipped")
                 continue
-            self.p_values[c] = self.p_value(c)
+            self.p_values[c], self.coefficients[c] = self.p_value(c)
             self._info(f"{self.algorithm} ({self.tag}): Column {i} / {cols_count}, '{c}', pvalue: {self.p_values[c]}")
         self.fdr()
         self.qq_log_plot()
@@ -122,7 +122,9 @@ class PvalueFdr(MlFiles):
         return np.array([self.coefficients.get(c, np.nan) for c in self.columns])
 
     def p_value(self, col):
-        """ Calculate the p-value using column 'col' """
+        """ Calculate the p-value using column 'col'
+        Returns: Tuple <p_value, coefficient>
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def qq_log_plot(self):
@@ -233,15 +235,18 @@ class LogisticRegressionWilks(PvalueFdr):
         raise np.linalg.LinAlgError("Could not fit logistic regression using any method")
 
     def p_value(self, col):
-        """ Calculate the p-value using column 'col' """
+        """ Calculate the p-value using column 'col'
+        Returns: Tuple <p_value, coefficient>
+        """
         model_alt, model_alt_res = self.model_fit(col)
         if model_alt is None:
             self._error(f"{self.algorithm} ({self.tag}): Could not fit alt model for column/s {col}, returning p-value=1.0")
             return np.nan
         d = 2.0 * (model_alt_res.llf - self.model_null_results.llf)
         p_value = chi2.sf(d, 1)
-        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")
-        return p_value
+        coef_str = ', '.join([str(k) + ': ' + str(v) for k, v in model_alt_res.params.items()])
+        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}, coefficients: [{coef_str}]")
+        return p_value, model_alt_res.params.get(col, np.nan)
 
 
 class MultipleLogisticRegressionWilks(PvalueFdr):
@@ -307,4 +312,4 @@ class PvalueLinear(PvalueFdr):
         cols.append(col)
         x, y = self._drop_na_inf(cols)
         res = OLS(endog=y, exog=x).fit()
-        return res.pvalues.loc[col]
+        return res.pvalues.loc[col], res.params.get(col, np.nan)

@@ -15,13 +15,7 @@ dataset_preprocess:
     standard: true
 
 dataset_augment:
-  # Set to 'false' to disable this step
-  enable: true
-  and:
-    and_3:
-      order: 4             # Number of fields combined in this operationb (can be two or more)
-      min_non_zero: 50       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
-      fields: ['x.*']
+  enable: false
 
 dataset_explore:
   enable: false
@@ -56,18 +50,12 @@ dataset_feature_importance:
   is_linear_pvalue: false
   is_tree_graph: false
   #
-  is_wilks: false
-  wilks_null_model_variables: ['x4', 'x5']
-
-cross_validation:
-    # Set to 'false' to disable cross validation
-    enable: false
-    KFold:
-        n_splits: 5
+  is_wilks: true
+  wilks_null_model_variables: ['x3']
 
 model:
   enable: false
-  model_type: regression
+  model_type: classification
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'
