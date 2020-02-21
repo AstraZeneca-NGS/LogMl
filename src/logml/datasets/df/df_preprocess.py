@@ -172,12 +172,12 @@ class DfPreprocess(MlLog):
             elif field_name in self.one_hot or self.should_be_one_hot(field_name):
                 self._create_one_hot(field_name)
             else:
-                self._create_category(field_name, self.categories.get(field_name))
+                self._create_category(field_name)
         self._debug(f"Converting to categorical: End")
 
     def _create_category(self, field_name):
         " Convert field to category numbers "
-        cat_values = self.categories[field_name]
+        cat_values = self.categories.get(field_name)
         categories, na_as_zero = None, True
         if isinstance(cat_values, list):
             categories = cat_values
