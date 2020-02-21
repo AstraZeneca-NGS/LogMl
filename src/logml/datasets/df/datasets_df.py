@@ -121,6 +121,13 @@ class DatasetsDf(Datasets):
         self._debug(f"Dataset preprocess: End")
         return True
 
+    def default_save(self):
+        ''' Default implementation of '@dataset_save' '''
+        super().default_save()
+        filename = self.get_file_name(ext='preproc_augment.csv')
+        self._info(f"Saving dataframe to '{filename}'")
+        return self._save_csv(filename, "Save as CSV", self.dataset, save_index=True)
+
     def get_input_names(self):
         """ Get dataset's input names """
         return self.dataset.columns
