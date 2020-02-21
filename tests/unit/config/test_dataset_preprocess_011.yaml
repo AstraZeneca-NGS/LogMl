@@ -12,7 +12,7 @@ dataset_preprocess:
   categories:
     'x.*':
         values: ['WT', 'MUT']
-        na_as_zero: False
+        one_based: False
         scale: false
     'z.*':
         values: ['WT', 'MUT']

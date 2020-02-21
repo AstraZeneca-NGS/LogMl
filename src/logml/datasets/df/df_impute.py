@@ -10,7 +10,7 @@ from ...core.log import MlLog
 from .methods_fields import MethodsFields
 
 # Method names
-IMPUTATION_METHODS = ['mean', 'median', 'most_frequent', 'one', 'skip', 'zero']
+IMPUTATION_METHODS = ['mean', 'median', 'minus_one', 'most_frequent', 'one', 'skip', 'zero']
 
 
 class DfImpute(MethodsFields):
@@ -40,7 +40,7 @@ class DfImpute(MethodsFields):
         self._debug("Imputing dataframe: End")
         return self.df
 
-    def is_numertic(self, col_name):
+    def is_numeric(self, col_name):
         return np.issubdtype(self.df[col_name].dtype, np.number)
 
     def _impute(self):
@@ -48,7 +48,7 @@ class DfImpute(MethodsFields):
         self._debug("Imputing dataset (dataframe): Start")
         fields_to_impute = list(self.df.columns)
         for c in fields_to_impute:
-            if not self.is_numertic(c):
+            if not self.is_numeric(c):
                 self._debug(f"Impute: Variable '{c}' is not numeric, skipping")
                 continue
             if self.is_skip(c):
@@ -76,6 +76,10 @@ class DfImpute(MethodsFields):
     def _impute_median(self, xi):
         ''' Impute using 'median' method '''
         return np.median(xi[~np.isnan(xi)])
+
+    def _impute_minus_one(self, xi):
+        ''' Impute using 'minus_one' method '''
+        return -1
 
     def _impute_most_frequent(self, xi):
         ''' Impute using 'most_frequent' method '''
