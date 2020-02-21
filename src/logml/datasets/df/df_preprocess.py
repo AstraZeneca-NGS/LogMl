@@ -177,8 +177,9 @@ class DfPreprocess(MlLog):
 
     def _create_category(self, field_name):
         " Convert field to category numbers "
+        is_input = field_name not in self.outputs
         cat_values = self.categories.get(field_name)
-        categories, na_as_zero, scale = None, True, True
+        categories, na_as_zero, scale = None, True, is_input
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
