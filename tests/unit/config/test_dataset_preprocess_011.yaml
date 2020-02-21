@@ -13,9 +13,16 @@ dataset_preprocess:
     'x.*':
         values: ['WT', 'MUT']
         na_as_zero: False
-    'z.*': ['WT', 'MUT']
-    'a.*': ['WT', 'UNK', 'MUT']
-    y: ['WT', 'UNK', 'MUT']
+        scale: false
+    'z.*':
+        values: ['WT', 'MUT']
+        scale: false
+    'a.*':
+        values: ['WT', 'UNK', 'MUT']
+        scale: false
+    y:
+        values: ['WT', 'UNK', 'MUT']
+        scale: false
   impute:
     median: true
   normalize:

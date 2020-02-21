@@ -177,13 +177,15 @@ class DfPreprocess(MlLog):
 
     def _create_category(self, field_name):
         " Convert field to category numbers "
+        is_input = field_name not in self.outputs
         cat_values = self.categories.get(field_name)
-        categories, na_as_zero = None, True
+        categories, na_as_zero, scale = None, True, is_input
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
             categories = cat_values.get('values')
             na_as_zero = cat_values.get('na_as_zero', True)
+            scale = cat_values.get('scale', True)
         self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
         xi_cat = xi.astype('category').cat.as_ordered()
@@ -207,8 +209,20 @@ class DfPreprocess(MlLog):
             else:
                 # Note: Add one so that "missing" is zero instead of "-1"
                 add_to_codes = 1 if na_as_zero else 0
-                self._debug(f"Converting to category: field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if na_as_zero else -1}'")
-        df_cat[field_name] = codes + add_to_codes
+                self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if na_as_zero else -1}'")
+        # Offset codes
+        codes += add_to_codes
+        # Scale values to range [0, 1]
+        if scale:
+            scale_factor = len(xi_cat.cat.categories) - 1 + add_to_codes
+            codes /= scale_factor
+            self._debug(f"Scaling to category field '{field_name}' by {scale_factor}")
+        # Fix missing values (the -1 might have been scaled)
+        if na_as_zero:
+            codes[missing_values] = 0
+        else:
+            codes[missing_values] = -1
+        df_cat[field_name] = codes
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df_cat
         self.columns_to_remove.add(field_name)

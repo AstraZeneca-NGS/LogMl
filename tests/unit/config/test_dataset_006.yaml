@@ -9,7 +9,9 @@ dataset:
 dataset_preprocess:
   enable: true
   categories:
-    UsageBand: ['Low', 'Medium', 'High']
+    UsageBand:
+        values: ['Low', 'Medium', 'High']
+        scale: false
     ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
   dates: ['saledate']
 

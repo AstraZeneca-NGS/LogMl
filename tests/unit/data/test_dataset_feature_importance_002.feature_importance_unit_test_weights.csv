@@ -1,4 +1,4 @@
 ,weights,loss
-importance_dropcol_rank_RandomForest,1.051948051948052,0.4139784946236559
-importance_skmodel_rank_RandomForest,1.012987012987013,0.4301075268817204
-importance_permutation_rank_RandomForest,1.0,0.4354838709677419
+importance_dropcol_rank_RandomForest,1.0370370370370372,0.4354838709677419
+importance_skmodel_rank_RandomForest,1.0370370370370372,0.4354838709677419
+importance_permutation_rank_RandomForest,1.0,0.4516129032258065
