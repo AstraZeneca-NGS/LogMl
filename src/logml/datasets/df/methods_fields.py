@@ -86,7 +86,8 @@ class MethodsFields(MatchFields):
 
     def is_skip(self, name):
         ''' Is 'name' in the list of fields to skip? '''
-        return name in self.get_fields(METHOD_SKIP_NAME)
+        skip = self.get_fields(METHOD_SKIP_NAME)
+        return True if skip is True else name in skip
 
     def _populate_fields_by_method(self):
         """ Set values in 'self.fields_by_method' from the data in config.

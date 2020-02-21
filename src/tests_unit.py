@@ -703,7 +703,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x3r' in cols)
 
     def test_dataset_preprocess_010(self):
-        ''' Checking dataset preprocess: Remove duplicate inputs '''
+        ''' Checking dataset preprocess: Shuffle data '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_010.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -715,6 +715,32 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse(is_sorted(df.x1.to_numpy()), f"Data should not be sorted:\ndf.x1={df.x1}")
         self.assertFalse(is_sorted(df.x2.to_numpy()), f"Data should not be sorted:\ndf.x2={df.x2}")
         self.assertFalse(is_sorted(df.y.to_numpy()), f"Data should not be sorted:\ndf.y={df.y}")
+
+    def test_dataset_preprocess_011(self):
+        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_011.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        col, c_min, c_max = 'x1', -1, 0
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        col, c_min, c_max = 'z2', 0, 2
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        col, c_min, c_max = 'x3', -1, 1
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        col, c_min, c_max = 'a4', 0, 3
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        col, c_min, c_max = 'y', 0, 2
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
 
     def test_files_001(self):
         mf = MlFiles()

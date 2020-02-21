@@ -9,10 +9,12 @@ dataset:
 
 dataset_preprocess:
   enable: true
+  categories:
+    'x.*': ['WT', 'MUT']
   impute:
     median: true
   normalize:
-    standard: true
+    minmax_neg: true
 
 dataset_augment:
   enable: false
@@ -62,7 +64,7 @@ model:
 
 functions:
     dataset_split:
-        split_validate: 0.2
+        split_validate: 0.0
         split_test: 0.0
     model_create:
       n_estimators: 30
