@@ -441,14 +441,18 @@ class DfAugmentOpAnd(DfAugmentOpNaryIncremental):
     ''' Augment dataset by performing 'and' of two or more fields '''
 
     def __init__(self, df, config, outputs, model_type):
-        super().__init__(df, config, 'and', outputs, model_type, params=['min_non_zero', 'order'])
+        super().__init__(df, config, 'and', outputs, model_type, params=['min_non_zero', 'order', 'threshold'])
 
     def init(self, field):
-        return self.df[field] > 0
+        return self.df[field] >= self.threshold
+
+    def _op_init(self, namefieldparams):
+        super()._op_init(namefieldparams)
+        self.threshold = namefieldparams.params.get('threshold', 0.0)
 
     def op_inc(self, x, field):
         """ Calculate the (incremental) 'and' operation between the a value and a field """
-        return x & (self.df[field] > 0)
+        return x & (self.df[field] >= self.threshold)
 
 
 class DfAugmentOpDiv(DfAugmentOpBinary):
