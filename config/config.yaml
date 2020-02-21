@@ -72,20 +72,25 @@ dataset_preprocess:
   balance: false
 
   # Categorical data
-  # A list of categorical input variables
-  # Can be followed by a list of categories to enforce some type of categorical
-  # order in the codes
+  # A list of categorical input variables, or regex matching the names
+  # Possible formats:
+  #   1) Name/Regex followed by 'true' to denote the varaibles are categorical
+  #      (categories are inferred from values)
+  #   2) Name/Regex followed by a list of categories to enforce categorical
+  #      type (values missing from the list are treated as missing data)
+  #   3) Name/Regex followed by a options
+  #      3.a) Option 'values' is a list of categories (same as in 2)
+  #      3.a) Option 'na_as_zero' specify behaviour for coding missing values: use '0' if true, '-1' if false (default: true)
   categories:
-    UsageBand: ['Low', 'Medium', 'High']
-    ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
-
-  # Categorical data: Match field names using regular expressions
-  # A list of categorical input variables
-  # Can be followed by a list of categories to enforce some type of categorical
-  # order in the codes
-  categories_regex:
-    - 'zzz_.*': ['low', 'mid', 'high']
-    - 'yyy_.*': True
+    usage: ['Low', 'Medium', 'High']
+    size: ['Mini', 'Small', 'Medium', 'Large', 'XLarge']
+    'zzz_.*': ['low', 'mid', 'high']
+    'yyy_.*': True
+    'dna_.*':
+        values: ['WT', 'MUT']  # Values to use (optional)
+        na_as_zero: true       # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
+    'var_.*':
+        na_as_zero: true       # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
 
   # List of data columns that are transformed into 'date/time'
   # These columns are also split into 'date parts' (year, month, day,

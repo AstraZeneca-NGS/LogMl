@@ -4,6 +4,7 @@ import hashlib
 import numpy as np
 import pandas as pd
 import re
+import traceback
 
 from collections import namedtuple
 from ...core.config import CONFIG_DATASET_PREPROCESS
@@ -30,7 +31,6 @@ class DfPreprocess(MlLog):
         self.balance = False
         self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
         self.category_column = dict()  # Store Pandas categorical definition
-        self.categories_regex = dict()  # Fields to be converted to categorical if names match a regex. Entries are list of categories_regex
         self.columns_to_add = dict()
         self.columns_to_remove = set()
         self.na_columns = set()     # Columns added as 'missing data' indicators
@@ -163,28 +163,31 @@ class DfPreprocess(MlLog):
         '''
         # Forced categories from YAML config
         self._debug(f"Converting to categorical: Start")
+        self.category_re_expand()
         for field_name in self.df.columns:
             if not self.is_categorical_column(field_name):
                 continue
-            match_re_cats = self.match_category_re(field_name)
-            if match_re_cats is not None:
-                self._create_category(field_name, match_re_cats)
-            elif field_name in self.categories.keys():
-                self._create_category(field_name, self.categories.get(field_name))
+            if field_name in self.categories:
+                self._create_category(field_name)
             elif field_name in self.one_hot or self.should_be_one_hot(field_name):
                 self._create_one_hot(field_name)
             else:
                 self._create_category(field_name, self.categories.get(field_name))
         self._debug(f"Converting to categorical: End")
 
-    def _create_category(self, field_name, categories=None):
+    def _create_category(self, field_name):
         " Convert field to category numbers "
+        cat_values = self.categories[field_name]
+        categories, na_as_zero = None, True
+        if isinstance(cat_values, list):
+            categories = cat_values
+        elif isinstance(cat_values, dict):
+            categories = cat_values.get('values')
+            na_as_zero = cat_values.get('na_as_zero', True)
         self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
         xi_cat = xi.astype('category').cat.as_ordered()
-        # Categories can be either 'True' or a list
-        if categories is True:
-            categories = None
+        # Categories can be either 'None' or a list
         if categories:
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
@@ -203,8 +206,8 @@ class DfPreprocess(MlLog):
                 add_to_codes = 0
             else:
                 # Note: Add one so that "missing" is zero instead of "-1"
-                self._debug(f"Converting to category: field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding 1 to convert missing values to '0'")
-                add_to_codes = 1
+                add_to_codes = 1 if na_as_zero else 0
+                self._debug(f"Converting to category: field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if na_as_zero else -1}'")
         df_cat[field_name] = codes + add_to_codes
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df_cat
@@ -279,23 +282,24 @@ class DfPreprocess(MlLog):
         if not np.issubdtype(field_dtype, np.datetime64):
             df[date_field] = pd.to_datetime(df[date_field], infer_datetime_format=True)
 
-    def match_category_re(self, fname):
+    def category_re_expand(self):
         """
-        Find the fisrt match for 'fname' matching a category 'regex'
-        Return the categories list on success, None on failure
+        Find all matches for regular expressions and update self.categories with matched values
         """
-        for re_entry in self.categories_regex:
-            if len(re_entry) < 1:
-                self._debug(f"Bad entry for 'categories_regex': {re_entry}")
+        categories_add = dict()
+        for regex in self.categories:
+            if len(regex) < 1:
+                self._debug(f"Bad entry for 'categories': {regex}")
                 continue
-            regex = list(re_entry.keys())[0]
-            try:
-                if re.match(regex, fname) is not None:
-                    self._debug(f"Field name '{fname}' matches regular expression '{regex}': Using categories {re_entry[regex]}")
-                    return re_entry[regex]
-            except Exception as e:
-                self._error(f"Category regex: Error trying to match regular expression: '{regex}'\nException: {e}\n{traceback.format_exc()}")
-        return None
+            for fname in self.df.columns:
+                try:
+                    if re.match(regex, fname) is not None:
+                        self._debug(f"Field name '{fname}' matches regular expression '{regex}': Using values {self.categories[regex]}")
+                        categories_add[fname] = self.categories[regex]
+                except Exception as e:
+                    self._error(f"Category regex: Error trying to match regular expression: '{regex}'\nException: {e}\n{traceback.format_exc()}")
+        # Update dictionary with regex matched values
+        self.categories.update(categories_add)
 
     def nas(self):
         " Add 'missing value' indicators (i.e. '*_na' columns) "
