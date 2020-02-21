@@ -89,6 +89,7 @@ dataset_preprocess:
     'dna_.*':
         values: ['WT', 'MUT']  # Values to use (optional)
         na_as_zero: true       # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
+        scale: true            # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If na_as_zero is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
     'var_.*':
         na_as_zero: true       # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
 
