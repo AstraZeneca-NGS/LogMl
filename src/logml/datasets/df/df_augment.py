@@ -376,7 +376,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
                     augment[key] = x
                     augment_fieldnums[key] = fnlist_new
                 else:
-                        count_skipped += 1
+                    count_skipped += 1
                 if count % 100 == 0:
                     self._info(f"Incremental calculation {self.operation_name}, name: '{namefieldparams.name}': Minimum non-zero: {self.min_non_zero_count}, count {count}, added {count_added}, skipped {count_skipped}, fields {fields} + {field}")
         # Update incremental values
@@ -444,15 +444,17 @@ class DfAugmentOpAnd(DfAugmentOpNaryIncremental):
         super().__init__(df, config, 'and', outputs, model_type, params=['min_non_zero', 'order', 'threshold'])
 
     def init(self, field):
-        return self.df[field] >= self.threshold
+        return self.df[field] > self.threshold
 
     def _op_init(self, namefieldparams):
         super()._op_init(namefieldparams)
-        self.threshold = namefieldparams.params.get('threshold', 0.0)
+        self.threshold = namefieldparams.params.get('threshold')
+        if self.threshold is None:
+            self.threshold = 0.0
 
     def op_inc(self, x, field):
         """ Calculate the (incremental) 'and' operation between the a value and a field """
-        return x & (self.df[field] >= self.threshold)
+        return x & (self.df[field] > self.threshold)
 
 
 class DfAugmentOpDiv(DfAugmentOpBinary):
