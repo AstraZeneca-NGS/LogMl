@@ -179,12 +179,12 @@ class DfPreprocess(MlLog):
         " Convert field to category numbers "
         is_input = field_name not in self.outputs
         cat_values = self.categories.get(field_name)
-        categories, na_as_zero, scale = None, True, is_input
+        categories, one_based, scale = None, True, is_input
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
             categories = cat_values.get('values')
-            na_as_zero = cat_values.get('na_as_zero', True)
+            one_based = cat_values.get('one_based', True)
             scale = cat_values.get('scale', True)
         self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
@@ -208,8 +208,8 @@ class DfPreprocess(MlLog):
                 add_to_codes = 0
             else:
                 # Note: Add one so that "missing" is zero instead of "-1"
-                add_to_codes = 1 if na_as_zero else 0
-                self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if na_as_zero else -1}'")
+                add_to_codes = 1 if one_based else 0
+                self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
         # Offset codes
         codes += add_to_codes
         # Scale values to range [0, 1]
@@ -217,11 +217,12 @@ class DfPreprocess(MlLog):
             scale_factor = len(xi_cat.cat.categories) - 1 + add_to_codes
             codes /= scale_factor
             self._debug(f"Scaling to category field '{field_name}' by {scale_factor}")
-        # Fix missing values (the -1 might have been scaled)
-        if na_as_zero:
-            codes[missing_values] = 0
+            # Fix missing values
+            codes[missing_values] = np.nan
         else:
-            codes[missing_values] = -1
+            # Fix missing values. Since NaN is only for floats, when using
+            # integer numbers for codes we map missing to 0 or -1
+            codes[missing_values] = 0 if one_based else -1
         df_cat[field_name] = codes
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df_cat

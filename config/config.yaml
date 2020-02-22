@@ -78,9 +78,10 @@ dataset_preprocess:
   #      (categories are inferred from values)
   #   2) Name/Regex followed by a list of categories to enforce categorical
   #      type (values missing from the list are treated as missing data)
-  #   3) Name/Regex followed by a options
-  #      3.a) Option 'values' is a list of categories (same as in 2)
-  #      3.a) Option 'na_as_zero' specify behaviour for coding missing values: use '0' if true, '-1' if false (default: true)
+  #   3) Name/Regex followed by a options:
+  #      3.a) 'values' is a list of categories (same as in 2)
+  #      3.b) 'one_based': Start category numbers from 1 (default: true)
+  #      3.c) 'scale': Scale values to [0, 1] interval (default: true)
   categories:
     usage: ['Low', 'Medium', 'High']
     size: ['Mini', 'Small', 'Medium', 'Large', 'XLarge']
@@ -88,10 +89,10 @@ dataset_preprocess:
     'yyy_.*': True
     'dna_.*':
         values: ['WT', 'MUT']  # Values to use (optional)
-        na_as_zero: true       # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
-        scale: true            # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If na_as_zero is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
+        one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
+        scale: true            # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If one_based is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
     'var_.*':
-        na_as_zero: true       # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
+        one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
 
   # List of data columns that are transformed into 'date/time'
   # These columns are also split into 'date parts' (year, month, day,
@@ -140,6 +141,9 @@ dataset_preprocess:
 
     # Impute using the median value
     median: true
+
+    # Impute by assigning value '-1'
+    minus_one: ['x11', 'mo.*']
 
     # Impute using the most frequent value
     most_frequent: ['x3', 'x4']
