@@ -10,3 +10,5 @@ rm -vf `find . -iname "*.stderr" -type f`
 rm -vf tests/integration/model/*
 rm -vf tests/integration/data/*.dot
 rm -vf tests/integration/data/*.png
+rm -vf tests/unit/data/*.preproc_augment.csv
+rm -vf tests/unit/data/*.feature_importance*.csv
