@@ -17,6 +17,11 @@ from ..core.files import MlFiles
 from ..datasets import InOut
 
 
+def get_categories(x):
+    cats = x.replace([np.inf, -np.inf], np.nan).unique()
+    return cats[~np.isnan(cats)]
+
+
 class PvalueFdr(MlFiles):
     '''
     Estimate p-values and correct for FDR
@@ -269,7 +274,7 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         super().__init__(datasets, null_model_variables, tag)
         self.algorithm = 'Multiple Logistic regression Wilks'
         # Find classes
-        self.classes = self.y.replace([np.inf, -np.inf], np.nan).unique()
+        self.classes = get_categories(self.y)
         # Create a logistic regression for each class
         self.logistic_regressions_by_class = {cn: LogisticRegressionWilks(datasets, null_model_variables, tag, cn) for cn in self.classes}
 

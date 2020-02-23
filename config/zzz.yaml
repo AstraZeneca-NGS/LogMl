@@ -10,11 +10,11 @@ dataset:
 dataset_preprocess:
   enable: true
   categories:
-    'x.*': ['WT', 'MUT']
+    y: true
   impute:
     median: true
   normalize:
-    minmax_neg: true
+    standard: true
 
 dataset_augment:
   enable: false

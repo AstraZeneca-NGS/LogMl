@@ -20,7 +20,7 @@ from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
-from .pvalue_fdr import LogisticRegressionWilks, PvalueLinear
+from .pvalue_fdr import get_categories, LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
 from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
 from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
 from ..models.sklearn_model import ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkRidgeCV
@@ -542,8 +542,17 @@ class DataFeatureImportance(MlFiles):
         if not self.wilks_null_model_variables:
             self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
             return False
-        self._info(f"Logistic regression, Wilks {self.tag}: Start")
-        wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
+        _, y = self.datasets.get_xy()
+        cats = get_categories(y)
+        self._info(f"Logistic regression, Wilks {self.tag}: Start. Categories: {cats}")
+        if len(cats) < 2:
+            self._error(f"Logistic regression, Wilks {self.tag}: At least two categories required. Categories: {cats}")
+            return False
+        if len(cats) == 2:
+            wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
+        else:
+            self._info(f"Logistic regression, Wilks {self.tag}: Using multiple logistic regression, {len(cats)} categories")
+            wilks = MultipleLogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
         ok = wilks()
         if ok:
             self.results.add_col(f"wilks_coefficient", wilks.get_coefficients())
