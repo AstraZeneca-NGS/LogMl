@@ -17,6 +17,26 @@ from ..core.files import MlFiles
 from ..datasets import InOut
 
 
+def get_categories(x):
+    cats = x.replace([np.inf, -np.inf], np.nan).unique()
+    return cats[~np.isnan(cats)]
+
+
+def fdr_with_nas(pvals):
+    """ Perform FDR correction in an array having missing data """
+    isna = np.isnan(pvals)
+    # FDR on non-nan values
+    p_no_nan = pvals[~isna]
+    rej, pvc = fdrcorrection(p_no_nan)
+    # Set 'pvalues_corrected'. Use 'p-value=1.0' for all nan values)
+    pvalues_corrected = np.ones(pvals.shape)
+    pvalues_corrected[~isna] = pvc
+    # Set 'reject' (use 'reject=False' for all nan values)
+    reject = np.zeros(pvals.shape).astype(bool)
+    reject[~isna] = rej
+    return reject, pvalues_corrected
+
+
 class PvalueFdr(MlFiles):
     '''
     Estimate p-values and correct for FDR
@@ -77,19 +97,7 @@ class PvalueFdr(MlFiles):
 
     def fdr(self):
         """ Perform multiple testing correction using FDR """
-        # Don't use 'nan' values from FDR correction
-        pvals = self.get_pvalues()
-        isna = np.isnan(pvals)
-        # FDR on non-nan values
-        p_no_nan = pvals[~isna]
-        rej, pvc = fdrcorrection(p_no_nan)
-        # Set 'pvalues_corrected' (use 1 for all nan values)
-        pvalues_corrected = np.ones(pvals.shape)
-        pvalues_corrected[~isna] = pvc
-        # Set 'reject' (use 'True' for all nan values)
-        reject = np.ones(pvals.shape).astype(bool)
-        reject[~isna] = rej
-        self.rejected, self.p_values_corrected = reject, pvalues_corrected
+        self.rejected, self.p_values_corrected = fdr_with_nas(self.get_pvalues())
 
     def filter_null_variables(self):
         '''
@@ -269,7 +277,7 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         super().__init__(datasets, null_model_variables, tag)
         self.algorithm = 'Multiple Logistic regression Wilks'
         # Find classes
-        self.classes = self.y.replace([np.inf, -np.inf], np.nan).unique()
+        self.classes = get_categories(self.y)
         # Create a logistic regression for each class
         self.logistic_regressions_by_class = {cn: LogisticRegressionWilks(datasets, null_model_variables, tag, cn) for cn in self.classes}
 
@@ -284,18 +292,34 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         for each 'comparisson')
         """
         # FDR Correction using all comparissons
+        num_categories = len(self.classes)
         pvals = [pval for cn in self.classes for pval in self.logistic_regressions_by_class[cn].get_pvalues()]
         pvals = np.array(pvals)
-        rejected, pvals_corr = fdrcorrection(pvals)
+        rejected, pvals_corr = fdr_with_nas(pvals)
         # Assign 'raw' p_values: Use across comparissons
-        pvals = pvals.reshape((len(self.classes), -1))
+        pvals = pvals.reshape((num_categories, -1))
         self.p_values = {self.columns[i]: pvals[:, i].min() for i in range(len(self.columns))}
         # Assign FDR corected values: Use minimum across comparissons
-        pvals_corr = pvals_corr.reshape((len(self.classes), -1))
-        self.p_values_corrected = np.array([pvals_corr[:, i].min() for i in range(len(self.columns))])
+        pvals_corr = pvals_corr.reshape((num_categories, -1))
+        self.p_values_corrected = pvals_corr.min(axis=0)
+        # Add 'best class'. Get best index, map to category number, then map categoy number to category name
+        best_category_idx = pvals_corr.argmin(axis=0)
+        category_number = np.array(self.classes)
+        self.best_category_num = category_number[best_category_idx]
+        output_name = self.datasets.outputs[0]  # We assume that there is only one output for this analysis
+        output_category = self.datasets.dataset_preprocess.category_column.get(output_name)
+        if output_category is not None:
+            category_name = output_category.cat.categories
+            self.best_category = category_name[self.best_category_num]
+        else:
+            self.best_category = self.best_category_num
         # Assign 'rejected': Use 'or' across comparissons (i.e. 'any')
-        rejected = rejected.reshape((len(self.classes), -1))
+        rejected = rejected.reshape((num_categories, -1))
         self.rejected = np.array([rejected[:, i].any() for i in range(len(self.columns))])
+        # Get coefficients for selected classes
+        coef = [pval for cn in self.classes for pval in self.logistic_regressions_by_class[cn].get_coefficients()]
+        coef = np.array(coef).reshape((num_categories, -1))
+        self.coefficients = {self.columns[i]: coef[best_category_idx[i], i] for i in range(len(self.columns))}
 
 
 class PvalueLinear(PvalueFdr):

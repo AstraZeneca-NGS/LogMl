@@ -523,6 +523,34 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(np.isnan(lrw.p_values['x4']), f"p-value = {lrw.p_values['x4']}")
         self.assertTrue(np.isnan(lrw.p_values['x5']), f"p-value = {lrw.p_values['x5']}")
 
+    def test_dataset_feature_importance_006(self):
+        ''' Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_006.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        lrw = MultipleLogisticRegressionWilks(ds, ['x3'], 'test_dataset_feature_importance_005')
+        ret = lrw()
+        self.assertTrue(ret)
+        # P-values
+        self.assertTrue(lrw.p_values_corrected[0] < 1e-160, f"p-value = {lrw.p_values_corrected[0]}")
+        self.assertTrue(lrw.p_values_corrected[1] < 1e-50, f"p-value = {lrw.p_values_corrected[1]}")
+        self.assertTrue(lrw.p_values_corrected[2] == 1.0, f"p-value = {lrw.p_values_corrected[2]}")  # This one is 'x3' which is part of the null model
+        self.assertTrue(lrw.p_values_corrected[3] > 0.1, f"p-value = {lrw.p_values_corrected[3]}")
+        # Coefficients
+        self.assertTrue(lrw.coefficients['x1'] > 3.5, f"coefficients = {lrw.coefficients['x1']}")
+        self.assertTrue(lrw.coefficients['x2'] < -1.3, f"coefficients = {lrw.coefficients['x2']}")
+        # Best p-vlues referes to categories...
+        self.assertTrue(lrw.best_category[0] == 'large', f"coefficients = {lrw.best_category[0]}")
+        self.assertTrue(lrw.best_category[1] == 'med', f"coefficients = {lrw.best_category[1]}")
+        # self.assertTrue(lrw.best_category[2] == 'med', f"coefficients = {lrw.best_category[2]}")  # This one is 'x3' which is part of the null model
+        self.assertTrue(lrw.best_category[3] == 'med', f"coefficients = {lrw.best_category[3]}")
+
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_001.yaml')
