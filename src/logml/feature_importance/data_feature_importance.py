@@ -548,11 +548,12 @@ class DataFeatureImportance(MlFiles):
         if len(cats) < 2:
             self._error(f"Logistic regression, Wilks {self.tag}: At least two categories required. Categories: {cats}")
             return False
-        if len(cats) == 2:
-            wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
-        else:
+        is_multiclass = len(cats) > 2
+        if is_multiclass:
             self._info(f"Logistic regression, Wilks {self.tag}: Using multiple logistic regression, {len(cats)} categories")
             wilks = MultipleLogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
+        else:
+            wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
         ok = wilks()
         if ok:
             self.results.add_col(f"wilks_coefficient", wilks.get_coefficients())
@@ -560,5 +561,7 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col(f"wilks_p_values_fdr", wilks.p_values_corrected)
             self.results.add_col(f"wilks_significant", wilks.rejected)
             self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
+            if is_multiclass:
+                self.results.add_col(f"wilks_best_category_number", wilks.best_category)
         self._info(f"Logistic regression, Wilks {self.tag}: End")
         return ok

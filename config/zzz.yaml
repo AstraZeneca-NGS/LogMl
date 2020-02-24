@@ -10,7 +10,7 @@ dataset:
 dataset_preprocess:
   enable: true
   categories:
-    y: true
+    y: ['small', 'med', 'large']
   impute:
     median: true
   normalize:
