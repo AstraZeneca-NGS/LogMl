@@ -308,7 +308,7 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         self.best_category_num = category_number[best_category_idx]
         output_name = self.datasets.outputs[0]  # We assume that there is only one output for this analysis
         output_category = self.datasets.dataset_preprocess.category_column.get(output_name)
-        if output_category:
+        if output_category is not None:
             category_name = output_category.cat.categories
             self.best_category = category_name[self.best_category_num]
         else:

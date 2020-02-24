@@ -1,0 +1,62 @@
+logger:
+
+dataset:
+  dataset_name: 'test_dataset_feature_importance_006'
+  dataset_path: 'tests/unit/data'
+  dataset_type: 'df'
+  outputs: ['y']
+
+dataset_preprocess:
+  enable: true
+  categories:
+    y: ['small', 'med', 'large']
+  impute:
+    median: true
+  normalize:
+    standard: true
+    skip: ['y']
+
+dataset_feature_importance:
+  enable: true
+  enable_na: false
+  is_dropcol_extra_trees: false
+  is_dropcol_gradient_boosting: false
+  is_dropcol_random_forest: false
+  is_fip_random_forest: false
+  is_fip_extra_trees: false
+  is_fip_gradient_boosting: false
+  is_permutation_extra_trees: false
+  is_permutation_gradient_boosting: false
+  is_permutation_random_forest: false
+  is_regularization_lasso: false
+  is_regularization_ridge: false
+  is_regularization_lars: false
+  is_rfe_model: false
+  is_rfe_model_lasso: false
+  is_rfe_model_ridge: false
+  is_rfe_model_lars_aic: false
+  is_rfe_model_lars_bic: false
+  is_rfe_model_random_forest: false
+  is_rfe_model_extra_trees: false
+  is_rfe_model_gradient_boosting: false
+  is_skmodel_extra_trees: false
+  is_skmodel_gradient_boosting: false
+  is_skmodel_random_forest: false
+  is_select: false
+  is_linear_pvalue: false
+  is_tree_graph: false
+  #
+  is_wilks: true
+  wilks_null_model_variables: ['x3']
+
+model:
+  enable: false
+  model_type: classification
+  model_name: 'test_model_dataset_feature_importance_006'
+  model_class: sklearn.ensemble.RandomForestRegressor
+  model_path: 'data/zzz/model'
+
+functions:
+    dataset_split:
+        split_validate: 0.0
+        split_test: 0.0
