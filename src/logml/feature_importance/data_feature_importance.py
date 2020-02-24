@@ -562,6 +562,6 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col(f"wilks_significant", wilks.rejected)
             self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
             if is_multiclass:
-                self.results.add_col(f"wilks_best_category_number", wilks.best_category)
+                self.results.add_col(f"wilks_best_category", wilks.best_category)
         self._info(f"Logistic regression, Wilks {self.tag}: End")
         return ok
