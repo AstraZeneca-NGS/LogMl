@@ -49,7 +49,7 @@ dataset_feature_importance:
   is_skmodel_gradient_boosting: false
   is_skmodel_random_forest: false
   is_select: false
-  is_linear_pvalue: true
+  is_linear_pvalue: false
   is_tree_graph: false
   is_wilks: false
   wilks_null_model_variables: ['x4', 'x5']

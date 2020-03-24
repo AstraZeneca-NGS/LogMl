@@ -79,9 +79,9 @@ class DataFeatureImportance(MlFiles):
         self.is_wilks = True
         self.linear_pvalue_null_model_variables = list()
         self.model_type = model_type
-        self.permutation_iterations_gradient_boosting: 10
-        self.permutation_iterations_extra_trees: 10
-        self.permutation_iterations_random_forest: 10
+        self.permutation_iterations_gradient_boosting = 10
+        self.permutation_iterations_extra_trees = 10
+        self.permutation_iterations_random_forest = 10
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
         self.tree_graph_max_depth = 4
