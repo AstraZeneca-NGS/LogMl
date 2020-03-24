@@ -28,7 +28,7 @@ dataset_feature_importance:
   is_dropcol_extra_trees: false
   is_dropcol_gradient_boosting: false
   is_dropcol_random_forest: false
-  is_fip_random_forest: false
+  is_fip_random_forest: true
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
   is_permutation_extra_trees: false
