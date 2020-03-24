@@ -17,6 +17,26 @@ from ..core.files import MlFiles
 from ..datasets import InOut
 
 
+def get_categories(x):
+    cats = x.replace([np.inf, -np.inf], np.nan).unique()
+    return cats[~np.isnan(cats)]
+
+
+def fdr_with_nas(pvals):
+    """ Perform FDR correction in an array having missing data """
+    isna = np.isnan(pvals)
+    # FDR on non-nan values
+    p_no_nan = pvals[~isna]
+    rej, pvc = fdrcorrection(p_no_nan)
+    # Set 'pvalues_corrected'. Use 'p-value=1.0' for all nan values)
+    pvalues_corrected = np.ones(pvals.shape)
+    pvalues_corrected[~isna] = pvc
+    # Set 'reject' (use 'reject=False' for all nan values)
+    reject = np.zeros(pvals.shape).astype(bool)
+    reject[~isna] = rej
+    return reject, pvalues_corrected
+
+
 class PvalueFdr(MlFiles):
     '''
     Estimate p-values and correct for FDR
@@ -28,10 +48,12 @@ class PvalueFdr(MlFiles):
         self.tag = tag
         self.x, self.y = datasets.get_xy()  # Note: We use the full dataset
         self.columns = list(self.x.columns)
+        self.enable_qqplot = True
         self.loss_base = None
         self.model_null = None
         self.model_null_results = None
         self.null_model_required = False
+        self.coefficients = dict()  # Dictionary of 'raw' p-values
         self.p_values = dict()  # Dictionary of 'raw' p-values
         self.p_values_corrected = None  # Array of FDR-corrected p-values (sorted by 'columns')
         self.rejected = None  # Arrays of bool signaling 'rejected' null hypothesis for FDR-corrected p-values
@@ -60,15 +82,22 @@ class PvalueFdr(MlFiles):
             if c in self.datasets.outputs:
                 self._debug(f"{self.algorithm} ({self.tag}): Output variable '{c}', skipped")
                 continue
-            self.p_values[c] = self.p_value(c)
+            self.p_values[c], self.coefficients[c] = self.p_value(c)
             self._info(f"{self.algorithm} ({self.tag}): Column {i} / {cols_count}, '{c}', pvalue: {self.p_values[c]}")
         self.fdr()
         self.qq_log_plot()
         return len(self.p_values) > 0
 
+    def _drop_na_inf(self, cols):
+        ''' Remove 'na' and 'inf' values from x '''
+        x_cols = self.x[cols]
+        keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
+        x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
+        return x, y
+
     def fdr(self):
         """ Perform multiple testing correction using FDR """
-        self.rejected, self.p_values_corrected = fdrcorrection(self.get_pvalues())
+        self.rejected, self.p_values_corrected = fdr_with_nas(self.get_pvalues())
 
     def filter_null_variables(self):
         '''
@@ -89,23 +118,22 @@ class PvalueFdr(MlFiles):
         self.null_model_variables = null_vars
         return len(null_vars) > 0
 
-    def _drop_na_inf(self, cols):
-        ''' Remove 'na' and 'inf' values from x '''
-        x_cols = self.x[cols]
-        keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
-        x, y = x_cols[keep].copy(), self.y[keep].copy()
-        return x, y
-
     def fit_null_model(self):
         ''' Fit null model '''
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_pvalues(self):
         """ Get all p-values as a vector """
-        return np.array([self.p_values.get(c, 1.0) for c in self.columns])
+        return np.array([self.p_values.get(c, np.nan) for c in self.columns])
+
+    def get_coefficients(self):
+        """ Get coefficients as a vector """
+        return np.array([self.coefficients.get(c, np.nan) for c in self.columns])
 
     def p_value(self, col):
-        """ Calculate the p-value using column 'col' """
+        """ Calculate the p-value using column 'col'
+        Returns: Tuple <p_value, coefficient>
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def qq_log_plot(self):
@@ -116,9 +144,12 @@ class PvalueFdr(MlFiles):
         If 'probs' contains values out of [0, 1] interval, an error
         is produced.
         If 'probs' contains 0.0 values, they are replaced by the minimum
-        non-zero value in probs, or 0.1/len(probs) (whichever is smaller)
+        non-zero value in probs, or 0.01/len(probs) (whichever is smaller)
         """
+        if not self.enable_qqplot:
+            return
         probs = self.get_pvalues()
+        probs = probs[~np.isnan(probs)]
         count_oor = ((probs < 0.0) | (probs > 1.0)).sum()
         if count_oor > 0:
             self._error(f"QQ-plot:There are {count_oor} values out of range (less than 0.0 or more than 1.0)")
@@ -126,7 +157,7 @@ class PvalueFdr(MlFiles):
         count_zero = (probs == 0.0).sum()
         if count_zero > 0:
             min_val = probs[probs > 0.0].min()
-            epsilon = 0.1 / len(probs)
+            epsilon = 0.01 / len(probs)
             min_val = min(min_val, epsilon)
             self._warning(f"QQ-plot:There are {count_zero} values equal to zero, replacing them by with {min_val}")
             probs[probs == 0.0] = min_val
@@ -178,12 +209,16 @@ class LogisticRegressionWilks(PvalueFdr):
             return False
         return True
 
-    def model_fit(self, alt_model_variables=None):
-        """ Fit a model using 'null_model_variables' + 'alt_model_variables' """
+    def model_fit(self, alt_model_variable=None):
+        """
+        Fit a model using 'null_model_variables' + 'alt_model_variable'
+        Note: Currently we assume only one 'alt' variable, but we could extend
+              it to a list of variables
+        """
         try:
             cols = list(self.null_model_variables)
-            if alt_model_variables:
-                cols.append(alt_model_variables)
+            if alt_model_variable:
+                cols.append(alt_model_variable)
             x, y = self._drop_na_inf(cols)
             y, ok = self.binarize(y)
             if not ok:
@@ -201,22 +236,29 @@ class LogisticRegressionWilks(PvalueFdr):
         for method in methods:
             try:
                 res = logit_model.fit(method=method, disp=False)
-                return res
+                if math.isfinite(res.llf):
+                    return res
+                else:
+                    self._debug(f"{self.algorithm}, method '{method}': Log-likekelihood is not a finite number {res.llf} for method {method}.")
             except np.linalg.LinAlgError as e:
-                self._warning(f"{self.algorithm}, method '{method}': Linear Algebra exception")
-                self._debug(f"Exception: {e}\n{traceback.format_exc()}")
+                self._debug(f"{self.algorithm}, method '{method}': Linear Algebra exception {e}")  # "\n{traceback.format_exc()}"
+            except ValueError as e:
+                self._warning(f"{self.algorithm}: ValueError {e}\n{traceback.format_exc()}")
         raise np.linalg.LinAlgError("Could not fit logistic regression using any method")
 
     def p_value(self, col):
-        """ Calculate the p-value using column 'col' """
+        """ Calculate the p-value using column 'col'
+        Returns: Tuple <p_value, coefficient>
+        """
         model_alt, model_alt_res = self.model_fit(col)
         if model_alt is None:
             self._error(f"{self.algorithm} ({self.tag}): Could not fit alt model for column/s {col}, returning p-value=1.0")
-            return 1.0
+            return np.nan
         d = 2.0 * (model_alt_res.llf - self.model_null_results.llf)
         p_value = chi2.sf(d, 1)
-        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}")
-        return p_value
+        coef_str = ', '.join([str(k) + ': ' + str(v) for k, v in model_alt_res.params.items()])
+        self._debug(f"{self.algorithm} ({self.tag}): Columns {col}, class={self.class_to_analyze}, log-likelihood null: {self.model_null_results.llf}, log-likelihood alt: {model_alt_res.llf}, p_value: {p_value}, coefficients: [{coef_str}]")
+        return p_value, model_alt_res.params.get(col, np.nan)
 
 
 class MultipleLogisticRegressionWilks(PvalueFdr):
@@ -235,7 +277,7 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         super().__init__(datasets, null_model_variables, tag)
         self.algorithm = 'Multiple Logistic regression Wilks'
         # Find classes
-        self.classes = self.y.replace([np.inf, -np.inf], np.nan).unique()
+        self.classes = get_categories(self.y)
         # Create a logistic regression for each class
         self.logistic_regressions_by_class = {cn: LogisticRegressionWilks(datasets, null_model_variables, tag, cn) for cn in self.classes}
 
@@ -250,18 +292,34 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         for each 'comparisson')
         """
         # FDR Correction using all comparissons
+        num_categories = len(self.classes)
         pvals = [pval for cn in self.classes for pval in self.logistic_regressions_by_class[cn].get_pvalues()]
         pvals = np.array(pvals)
-        rejected, pvals_corr = fdrcorrection(pvals)
+        rejected, pvals_corr = fdr_with_nas(pvals)
         # Assign 'raw' p_values: Use across comparissons
-        pvals = pvals.reshape((len(self.classes), -1))
+        pvals = pvals.reshape((num_categories, -1))
         self.p_values = {self.columns[i]: pvals[:, i].min() for i in range(len(self.columns))}
         # Assign FDR corected values: Use minimum across comparissons
-        pvals_corr = pvals_corr.reshape((len(self.classes), -1))
-        self.p_values_corrected = np.array([pvals_corr[:, i].min() for i in range(len(self.columns))])
+        pvals_corr = pvals_corr.reshape((num_categories, -1))
+        self.p_values_corrected = pvals_corr.min(axis=0)
+        # Add 'best class'. Get best index, map to category number, then map categoy number to category name
+        best_category_idx = pvals_corr.argmin(axis=0)
+        category_number = np.array(self.classes)
+        self.best_category_num = category_number[best_category_idx]
+        output_name = self.datasets.outputs[0]  # We assume that there is only one output for this analysis
+        output_category = self.datasets.dataset_preprocess.category_column.get(output_name)
+        if output_category is not None:
+            category_name = output_category.cat.categories
+            self.best_category = category_name[self.best_category_num]
+        else:
+            self.best_category = self.best_category_num
         # Assign 'rejected': Use 'or' across comparissons (i.e. 'any')
-        rejected = rejected.reshape((len(self.classes), -1))
+        rejected = rejected.reshape((num_categories, -1))
         self.rejected = np.array([rejected[:, i].any() for i in range(len(self.columns))])
+        # Get coefficients for selected classes
+        coef = [pval for cn in self.classes for pval in self.logistic_regressions_by_class[cn].get_coefficients()]
+        coef = np.array(coef).reshape((num_categories, -1))
+        self.coefficients = {self.columns[i]: coef[best_category_idx[i], i] for i in range(len(self.columns))}
 
 
 class PvalueLinear(PvalueFdr):
@@ -282,4 +340,4 @@ class PvalueLinear(PvalueFdr):
         cols.append(col)
         x, y = self._drop_na_inf(cols)
         res = OLS(endog=y, exog=x).fit()
-        return res.pvalues.loc[col]
+        return res.pvalues.loc[col], res.params.get(col, np.nan)

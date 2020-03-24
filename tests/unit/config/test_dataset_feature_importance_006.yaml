@@ -1,10 +1,9 @@
 logger:
-  plots_path: 'logml_plots/zzz'
 
 dataset:
+  dataset_name: 'test_dataset_feature_importance_006'
+  dataset_path: 'tests/unit/data'
   dataset_type: 'df'
-  dataset_name: 'zzz'
-  dataset_path: 'data/zzz'
   outputs: ['y']
 
 dataset_preprocess:
@@ -15,12 +14,7 @@ dataset_preprocess:
     median: true
   normalize:
     standard: true
-
-dataset_augment:
-  enable: false
-
-dataset_explore:
-  enable: false
+    skip: ['y']
 
 dataset_feature_importance:
   enable: true
@@ -49,22 +43,16 @@ dataset_feature_importance:
   is_skmodel_gradient_boosting: false
   is_skmodel_random_forest: false
   is_select: false
-  is_linear_pvalue: true
+  is_linear_pvalue: false
   is_tree_graph: false
-  is_wilks: false
-  wilks_null_model_variables: ['x4', 'x5']
-
-
-cross_validation:
-    # Set to 'false' to disable cross validation
-    enable: false
-    KFold:
-        n_splits: 5
+  #
+  is_wilks: true
+  wilks_null_model_variables: ['x3']
 
 model:
   enable: false
-  model_type: regression
-  model_name: 'zzz'
+  model_type: classification
+  model_name: 'test_model_dataset_feature_importance_006'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'
 
@@ -72,11 +60,3 @@ functions:
     dataset_split:
         split_validate: 0.0
         split_test: 0.0
-    model_create:
-      n_estimators: 30
-      min_samples_leaf: 3
-      max_features: 0.7
-
-model_search:
-  enable: false
-  models: !include models_search/*.yaml

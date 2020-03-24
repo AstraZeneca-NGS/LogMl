@@ -72,20 +72,27 @@ dataset_preprocess:
   balance: false
 
   # Categorical data
-  # A list of categorical input variables
-  # Can be followed by a list of categories to enforce some type of categorical
-  # order in the codes
+  # A list of categorical input variables, or regex matching the names
+  # Possible formats:
+  #   1) Name/Regex followed by 'true' to denote the varaibles are categorical
+  #      (categories are inferred from values)
+  #   2) Name/Regex followed by a list of categories to enforce categorical
+  #      type (values missing from the list are treated as missing data)
+  #   3) Name/Regex followed by a options:
+  #      3.a) 'values' is a list of categories (same as in 2)
+  #      3.b) 'one_based': Start category numbers from 1 (default: true)
+  #      3.c) 'scale': Scale values to [0, 1] interval (default: true)
   categories:
-    UsageBand: ['Low', 'Medium', 'High']
-    ProductSize: ['Mini', 'Small', 'Compact', 'Medium', 'Large / Medium', 'Large']
-
-  # Categorical data: Match field names using regular expressions
-  # A list of categorical input variables
-  # Can be followed by a list of categories to enforce some type of categorical
-  # order in the codes
-  categories_regex:
-    - 'zzz_.*': ['low', 'mid', 'high']
-    - 'yyy_.*': True
+    usage: ['Low', 'Medium', 'High']
+    size: ['Mini', 'Small', 'Medium', 'Large', 'XLarge']
+    'zzz_.*': ['low', 'mid', 'high']
+    'yyy_.*': True
+    'dna_.*':
+        values: ['WT', 'MUT']  # Values to use (optional)
+        one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
+        scale: true            # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If one_based is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
+    'var_.*':
+        one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
 
   # List of data columns that are transformed into 'date/time'
   # These columns are also split into 'date parts' (year, month, day,
@@ -134,6 +141,9 @@ dataset_preprocess:
 
     # Impute using the median value
     median: true
+
+    # Impute by assigning value '-1'
+    minus_one: ['x11', 'mo.*']
 
     # Impute using the most frequent value
     most_frequent: ['x3', 'x4']
@@ -190,13 +200,23 @@ dataset_preprocess:
 dataset_augment:
   # Set to 'false' to disable this step
   enable: true
-  # Add two fields
+  # Add two (or more) fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
   add:
     add_expr:
+      order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
+  # Logical 'and' of two (or more) fields
+  #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
+  #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
+  and:
+    add_expr:
+      order: 2              # Number of fields combined in this operationb (can be two or more)
+      min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
+      threshold: 0.0        # Compare to 'threshold' to get {0, 1} numbers (value >= threshold ? 1 : 0)
+      fields: ['.*_DNA']
   # Substract two fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
@@ -227,13 +247,14 @@ dataset_augment:
       base: 2               # Logarithm base: Can be any number or 'e' for natural logarithm
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
       fields: ['.*_EXPR']
-  # Divide two fields (only if the divisor is never zero)
+  # Multiply two  (or more) fields
   #   name:                 # Unique name, used to prepend to new fields (name_field1_field2, ...)
   #     fields: ['x.*']     # List of regular expression to match field names (only fields matching this list will be used)
   mult:
     mult_expr:
+      order: 2             # Number of fields combined in this operationb (can be two or more)
       min_non_zero: 1       # Min number of non-zero fields when adding this new column, If more than 1.0, then count_non_zero >= min_non_zero. If < 1.0 then it's a percentage, i.e (count_non_zero/total) >= min_non_zero
-      fields: ['.*_EXPR']
+      fields: ['.*_DNA']
   # Add NMF (non-negative matrix factorization)
   # After the 'nmf', you can add several "sub-sections":
   #   name:                 # Unique name, used to add NMF fields on each sample (name_1, name_2, ... name_num)

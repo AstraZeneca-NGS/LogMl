@@ -9,9 +9,9 @@ dataset:
 
 dataset_preprocess:
   enable: true
-  categories_regex:
-    - 'zzz_.*': ['low', 'mid', 'high']
-    - 'zzzz_.*': True
+  categories:
+    'zzz_.*': ['low', 'mid', 'high']
+    'zzzz_.*': True
   normalize:
     standard: true
 

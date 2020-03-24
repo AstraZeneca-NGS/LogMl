@@ -22,6 +22,16 @@ DEBUG = os.getenv('TEST_UNIT_DEBUG', False)
 # DEBUG = True
 
 
+def array_equal(a1, a2):
+    a1 = np.array(a1)
+    a2 = np.array(a2)
+    a1_nan_idx = np.isnan(a1)
+    a2_nan_idx = np.isnan(a2)
+    if not np.array_equal(a1_nan_idx, a2_nan_idx):
+        return False
+    return np.array_equal(a1[~a1_nan_idx], a2[~a2_nan_idx])
+
+
 def is_close(x, y, epsilon=0.000001):
     return abs(x - y) < epsilon
 
@@ -306,10 +316,14 @@ class TestLogMl(unittest.TestCase):
         # Check augmented variables
         df = ds.dataset
         # Check that fields exists or don't exists
-        for name in ['add', 'sub', 'div', 'mult']:
+        for name in ['sub', 'div']:
             self.assertTrue(f"{name}_expr_x1_x2" in df.columns, f"Missing: {name}_expr_x1_x2")
             self.assertFalse(f"{name}_expr_x2_x1" in df.columns, f"Found {name}_expr_x2_x1")
             self.assertFalse(f"{name}_expr_n1_n2" in df.columns, f"Found {name}_expr_n1_n2")
+        for name in ['add', 'mult']:
+            self.assertTrue(f"{name}_expr_x2_x1" in df.columns, f"Missing: {name}_expr_x2_x1")
+            self.assertFalse(f"{name}_expr_x1_x2" in df.columns, f"Found {name}_expr_x1_x2")
+            self.assertFalse(f"{name}_expr_n2_n1" in df.columns, f"Found {name}_expr_n2_n1")
         # Log10
         self.assertTrue(f"log10_ratio_expr_x3_x4" in df.columns, f"Missing: log10_ratio_expr_x3_x4")
         self.assertFalse(f"log10_ratio_expr_x1_x2" in df.columns, f"Found log10_ratio_expr_x1_x2")
@@ -324,7 +338,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(f"logep1_ratio_expr_x5_x6" in df.columns, f"Missing: logep1_ratio_expr_x5_x6")
         # Check results
         x1, x2, x3, x4 = -2.3042662810235153, 0.1202582216313, 0.9588706570406521, 0.880524565094321
-        self.assertTrue(is_close(x1 + x2, df['add_expr_x1_x2'][0]))
+        self.assertTrue(is_close(x1 + x2, df['add_expr_x2_x1'][0]))
         self.assertTrue(is_close(x1 - x2, df['sub_expr_x1_x2'][0]))
         self.assertTrue(is_close(x1 / x2, df['div_expr_x1_x2'][0]))
         self.assertTrue(is_close(np.log(x3 / x4) / np.log(10), df['log10_ratio_expr_x3_x4'][0]))
@@ -332,7 +346,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(is_close(np.log((x3 + 1) / (x4 + 1)), df['logep1_ratio_expr_x3_x4'][0]))
 
     def test_dataset_augment_003(self):
-        ''' Checking dataset augment: Operations '''
+        ''' Checking dataset augment: Filter results having too many zeros '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -344,7 +358,8 @@ class TestLogMl(unittest.TestCase):
         # Check augmented variables
         df = ds.dataset
         # Mult_1
-        should_be = set(['mult_1_x1_x2', 'mult_1_x1_x3', 'mult_1_x1_x4', 'mult_1_x2_x3', 'mult_2_x1_x2', 'mult_2_x1_x3'])
+        should_be = set(['mult_1_x2_x1', 'mult_1_x3_x1', 'mult_1_x4_x1', 'mult_1_x3_x2',
+                         'mult_2_x2_x1', 'mult_2_x3_x1'])
         for i in range(1, 7):
             for j in range(i + 1, 7):
                 for m in [1, 2]:
@@ -353,6 +368,62 @@ class TestLogMl(unittest.TestCase):
                         self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
                     else:
                         self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+
+    def test_dataset_augment_004(self):
+        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_004.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        # Add (3 fields) and Mult (4 fields)
+        should_be = set(['add_3_x3_x2_x1', 'add_3_x4_x2_x1', 'add_3_x5_x2_x1',
+                         'add_3_x6_x2_x1', 'add_3_x4_x3_x1', 'add_3_x5_x3_x1',
+                         'add_3_x6_x3_x1', 'add_3_x5_x4_x1', 'add_3_x6_x4_x1',
+                         'add_3_x6_x5_x1', 'add_3_x4_x3_x2', 'add_3_x5_x3_x2',
+                         'add_3_x6_x3_x2', 'add_3_x5_x4_x2', 'add_3_x6_x4_x2',
+                         'add_3_x6_x5_x2', 'add_3_x5_x4_x3', 'add_3_x6_x4_x3',
+                         'mult_4_x4_x3_x2_x1', 'mult_4_x5_x3_x2_x1', 'mult_4_x6_x3_x2_x1',
+                         'mult_4_x5_x4_x2_x1', 'mult_4_x6_x4_x2_x1', 'mult_4_x6_x5_x2_x1',
+                         'mult_4_x5_x4_x3_x1', 'mult_4_x6_x4_x3_x1', 'mult_4_x6_x5_x3_x1',
+                         'mult_4_x6_x5_x4_x1', 'mult_4_x5_x4_x3_x2', 'mult_4_x6_x4_x3_x2',
+                         'mult_4_x6_x5_x3_x2'])
+        for f1 in range(1, 7):
+            for f2 in range(f1 + 1, 7):
+                for f3 in range(f2 + 1, 7):
+                    name = f"add_3_x{f3}_x{f2}_x{f1}"
+                    if name in should_be:
+                        self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
+                    else:
+                        self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+                    for f4 in range(f3 + 1, 7):
+                        name = f"mult_4_x{f4}_x{f3}_x{f2}_x{f1}"
+                        if name in should_be:
+                            self.assertTrue(name in df.columns, f"Missing augmented column: {name}")
+                        else:
+                            self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
+
+    def test_dataset_augment_005(self):
+        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_005.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and augment dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        self.assertTrue(ret)
+        # Check augmented variables
+        df = ds.dataset
+        and_3_len = len([n for n in df.columns if n.startswith('and_3')])
+        and_4_len = len([n for n in df.columns if n.startswith('and_4')])
+        self.assertEqual(20, and_3_len, f"Expecting 20 'and_3' columns, got {and_3_len}")
+        self.assertEqual(15, and_4_len, f"Expecting 15 'and_4' columns, got {and_4_len}")
 
     def test_dataset_feature_importance_001(self):
         ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
@@ -449,8 +520,36 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.p_values['x1'] < 0.05, f"p-value = {lrw.p_values['x1']}")
         self.assertTrue(lrw.p_values['x2'] < 0.05, f"p-value = {lrw.p_values['x2']}")
         self.assertTrue(lrw.p_values['x3'] < 0.05, f"p-value = {lrw.p_values['x3']}")
-        self.assertTrue(lrw.p_values['x4'] > 0.1, f"p-value = {lrw.p_values['x4']}")
-        self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
+        self.assertTrue(np.isnan(lrw.p_values['x4']), f"p-value = {lrw.p_values['x4']}")
+        self.assertTrue(np.isnan(lrw.p_values['x5']), f"p-value = {lrw.p_values['x5']}")
+
+    def test_dataset_feature_importance_006(self):
+        ''' Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_006.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        lrw = MultipleLogisticRegressionWilks(ds, ['x3'], 'test_dataset_feature_importance_005')
+        ret = lrw()
+        self.assertTrue(ret)
+        # P-values
+        self.assertTrue(lrw.p_values_corrected[0] < 1e-160, f"p-value = {lrw.p_values_corrected[0]}")
+        self.assertTrue(lrw.p_values_corrected[1] < 1e-50, f"p-value = {lrw.p_values_corrected[1]}")
+        self.assertTrue(lrw.p_values_corrected[2] == 1.0, f"p-value = {lrw.p_values_corrected[2]}")  # This one is 'x3' which is part of the null model
+        self.assertTrue(lrw.p_values_corrected[3] > 0.1, f"p-value = {lrw.p_values_corrected[3]}")
+        # Coefficients
+        self.assertTrue(lrw.coefficients['x1'] > 3.5, f"coefficients = {lrw.coefficients['x1']}")
+        self.assertTrue(lrw.coefficients['x2'] < -1.3, f"coefficients = {lrw.coefficients['x2']}")
+        # Best p-vlues referes to categories...
+        self.assertTrue(lrw.best_category[0] == 'large', f"coefficients = {lrw.best_category[0]}")
+        self.assertTrue(lrw.best_category[1] == 'med', f"coefficients = {lrw.best_category[1]}")
+        # self.assertTrue(lrw.best_category[2] == 'med', f"coefficients = {lrw.best_category[2]}")  # This one is 'x3' which is part of the null model
+        self.assertTrue(lrw.best_category[3] == 'med', f"coefficients = {lrw.best_category[3]}")
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''
@@ -642,7 +741,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x3r' in cols)
 
     def test_dataset_preprocess_010(self):
-        ''' Checking dataset preprocess: Remove duplicate inputs '''
+        ''' Checking dataset preprocess: Shuffle data '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_010.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -654,6 +753,114 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse(is_sorted(df.x1.to_numpy()), f"Data should not be sorted:\ndf.x1={df.x1}")
         self.assertFalse(is_sorted(df.x2.to_numpy()), f"Data should not be sorted:\ndf.x2={df.x2}")
         self.assertFalse(is_sorted(df.y.to_numpy()), f"Data should not be sorted:\ndf.y={df.y}")
+
+    def test_dataset_preprocess_011(self):
+        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_011.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        col, c_min, c_max, unique_expected = 'x1', -1, 0, [-1, 0]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'z2', 0, 2, [0, 1, 2]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'x3', -1, 1, [-1, 0, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'a4', 0, 3, [0, 1, 2, 3]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+
+    def test_dataset_preprocess_012(self):
+        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_012.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        col, c_min, c_max, unique_expected = 'x1', 0, 0, [0, np.nan]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'z2', 0.5, 1, [0.5, 1, np.nan]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'x3', 0, 1, [0, 1, np.nan]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'a4', 1 / 3, 1, [1 / 3, 2 / 3, 3 / 3, np.nan]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+
+    def test_dataset_preprocess_013(self):
+        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_013.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        col, c_min, c_max, unique_expected = 'x1', -1, 0, [-1, 0]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'z2', 0, 1, [0, 0.5, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'x3', -1, 1, [-1, 0, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'a4', 0, 1, [0, 1 / 3, 2 / 3, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
 
     def test_files_001(self):
         mf = MlFiles()

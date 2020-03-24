@@ -51,7 +51,7 @@ class MlFiles(MlLog):
         return min(PLOTS_FIGSIZE_MAX, size * count_vars / PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS)
 
     def _display(self, obj):
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', None):
             display(obj)
 
     def _get_file_name(self, path, name, file_type=None, ext='pkl', _id=None):

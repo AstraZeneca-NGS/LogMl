@@ -1,0 +1,30 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_preprocess_013'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    is_use_default_split: False
+    outputs: ['y']
+
+dataset_preprocess:
+  enable: true
+  categories:
+    'x.*':
+        values: ['WT', 'MUT']
+        one_based: False
+    'z.*': ['WT', 'MUT']
+    'a.*': ['WT', 'UNK', 'MUT']
+    y: ['WT', 'UNK', 'MUT']
+  impute:
+    minus_one: ['x.*']
+    zero: ['a.*', 'z.*']
+    skip: true
+  normalize:
+    skip: true
+  std_threshold: -1
+
+model:
+  enable: false
+  model_name: 'test_model_dataset_preprocess_013'
+  model_path: 'tests/tmp/test_model_dataset_preprocess_013'

@@ -85,8 +85,12 @@ class MethodsFields(MatchFields):
         self._set_default_method()
 
     def is_skip(self, name):
-        ''' Is 'name' in the list of fields to skip? '''
-        return name in self.get_fields(METHOD_SKIP_NAME)
+        '''
+        Is 'name' in the list of fields to skip?
+        Return: True if skip is a list and 'name' is in the list, False otherwise (even if skip=True, i.e. defined as default method)
+        '''
+        skip = self.get_fields(METHOD_SKIP_NAME)
+        return False if skip is True else name in skip
 
     def _populate_fields_by_method(self):
         """ Set values in 'self.fields_by_method' from the data in config.

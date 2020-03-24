@@ -52,7 +52,7 @@ class ResultsDf:
     def print(self, msg=None):
         if msg is not None:
             print(msg)
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', None):
             display(self.df)
 
     def sort(self, col_names, ascending=True):
