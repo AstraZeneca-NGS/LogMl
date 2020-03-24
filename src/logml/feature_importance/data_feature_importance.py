@@ -156,10 +156,16 @@ class DataFeatureImportance(MlFiles):
         ''' Feature importance using several models '''
         if self.is_fip_random_forest:
             self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        else:
+            self._debug(f"Feature importance 'Random forest': is_fip_random_forest={self.is_fip_random_forest}, skipping")
         if self.is_fip_extra_trees:
             self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        else:
+            self._debug(f"Feature importance 'Extra trees': is_fip_extra_trees={self.is_fip_extra_trees}, skipping")
         if self.is_fip_gradient_boosting:
             self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+        else:
+            self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
 
     def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """

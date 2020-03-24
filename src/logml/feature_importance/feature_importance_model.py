@@ -42,7 +42,7 @@ class FeatureImportanceModel(MlFiles):
             # Only estimate importance of input variables
             if c in self.datasets.outputs:
                 continue
-            # Change dataset, evaluate performance, restore originla dataset
+            # Change dataset, evaluate performance, restore originl dataset
             ori = self.dataset_change(c)
             loss_c = self.loss()
             self.dataset_restore(c, ori)
