@@ -357,6 +357,11 @@ dataset_feature_importance:
   is_permutation_gradient_boosting: true
   is_permutation_random_forest: true
 
+  # Number of iterations (per CV) in permutation method
+  permutation_iterations_extra_trees: 10
+  permutation_iterations_gradient_boosting: 10
+  permutation_iterations_random_forest: 10
+
   # Regularization methods
   # Enable regularization methods (for different models)
   is_regularization_lasso: true

@@ -79,6 +79,9 @@ class DataFeatureImportance(MlFiles):
         self.is_wilks = True
         self.linear_pvalue_null_model_variables = list()
         self.model_type = model_type
+        self.permutation_iterations_gradient_boosting: 10
+        self.permutation_iterations_extra_trees: 10
+        self.permutation_iterations_random_forest: 10
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
         self.tree_graph_max_depth = 4
@@ -184,8 +187,9 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
+        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
         try:
-            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}")
+            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", num_iterations=num_iterations)
             if not fi():
                 self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
