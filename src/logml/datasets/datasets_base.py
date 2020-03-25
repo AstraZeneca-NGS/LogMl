@@ -347,7 +347,7 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
-    def shuffle_input(self, name, restore=None):
+    def shuffle_input(self, name, restore=None, col_new_name=None):
         """
         Shuffle input 'name' from a dataset.
         For instance, shuffle column 'name' from a dataframe.
@@ -355,6 +355,7 @@ class DatasetsBase(MlFiles):
         Args:
             name: Input variable name
             restore: If not None, the input should be restored from this object's data
+            col_new_name: If not None, create a new column with that name instead of replacing the original column.
         Return:
             The original values om that column
         """

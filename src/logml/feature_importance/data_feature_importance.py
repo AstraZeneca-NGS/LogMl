@@ -79,6 +79,7 @@ class DataFeatureImportance(MlFiles):
         self.is_wilks = True
         self.linear_pvalue_null_model_variables = list()
         self.model_type = model_type
+        self.random_columns_ratio = 1.0  # Add one rand column for each real column
         self.permutation_iterations_gradient_boosting = 10
         self.permutation_iterations_extra_trees = 10
         self.permutation_iterations_random_forest = 10
@@ -115,6 +116,7 @@ class DataFeatureImportance(MlFiles):
         if self.tag == 'na' and not self.enable_na:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
             return True
+        self.random_columns = self.random_columns_add()
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
@@ -131,6 +133,7 @@ class DataFeatureImportance(MlFiles):
         # Perform re-weighting, then display and save results
         loss_ori = self.reweight_results()
         self.show_and_save_results(loss_ori)
+        self.random_columns_remove()
         self._info(f"Feature importance {self.tag}: End")
         return True
 
@@ -355,6 +358,19 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col_rank(f"linear_p_values_rank", pvalue_linear.get_pvalues(), reversed=False)
         self._info(f"Linear regression (p-value) {self.tag}: End")
         return ok
+
+    def random_columns_add(self):
+        '''
+        Add random columns to a dataset
+        Return list of names of columns added
+        '''
+        if self.random_columns_ratio <= 0:
+            return list()
+        for c in self.datasets.get_input_names():
+            if c not in self.datasets.outputs:
+                self.datasets.
+
+        pass
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''

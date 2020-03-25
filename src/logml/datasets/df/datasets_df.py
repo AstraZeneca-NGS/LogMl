@@ -191,10 +191,11 @@ class DatasetsDf(Datasets):
     def set_column(self, col_name, values):
         self.dataset[col_name] = values
 
-    def shuffle_input(self, name, restore=None):
+    def shuffle_input(self, name, restore=None, col_new_name=None):
         """
         Shuffle input variable 'name' (in all datasets)
         If 'restore' is assigned, use that data to restore the original values
+        If 'col_new_name' is assigned, create a new column with that name instead of replacing the original column.
         Return: the original column values
         """
         dfs = [self.dataset, self.dataset_train, self.dataset_validate, self.dataset_test, self.dataset_xy.x, self.dataset_train_xy.x, self.dataset_validate_xy.x, self.dataset_test_xy.x]
@@ -203,9 +204,9 @@ class DatasetsDf(Datasets):
         if restore is None:
             restore = [None] * len(dfs)
         dfs = zip(dfs, restore, dfs_names)
-        return [self._shuffle_input(df, name, res, df_name) for df, res, df_name in dfs]
+        return [self._shuffle_input(df, name, res, col_new_name, df_name) for df, res, df_name in dfs]
 
-    def _shuffle_input(self, df, col_name, restore, df_name=None):
+    def _shuffle_input(self, df, col_name, restore, col_new_name, df_name):
         """
         Shuffle column 'name' from dataframe df and return the original values
         If 'restore' is assigned, use that data to restore the original values
@@ -213,8 +214,10 @@ class DatasetsDf(Datasets):
             df: DataFrame to shuffle
             name: Columna name to shuffle
             restore: Use this values, instead of shuffling
+            col_new_name: If not None, create a new column with that name. If None, replace original column
             df_name: DataFrame name (used for debugging)
         """
+        self._debug(f"Shuffling column '{col_name}, df_name={df_name}, restore={restore is not None}')
         if df is None:
             return None
         if restore is not None:
@@ -224,7 +227,8 @@ class DatasetsDf(Datasets):
         else:
             # Shuffle column
             x_col = df[col_name].copy()
-            df[col_name] = np.random.permutation(x_col)
+            c = col_name if col_new_name is None else col_new_name
+            df[c] = np.random.permutation(x_col)
             return x_col
 
     def __str__(self):
