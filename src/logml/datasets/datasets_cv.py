@@ -115,6 +115,9 @@ class DatasetsCv(DatasetsBase):
     def get_input_names(self):
         return self.datasets.get_input_names()
 
+    def get_output_names(self):
+        return self.datasets.get_output_names()
+
     def __getitem__(self, key):
         """ Get item/s from the dataset.
         Key could be an int, a list or a slice.
@@ -159,16 +162,19 @@ class DatasetsCv(DatasetsBase):
     def __len__(self):
         return len(self.datasets)
 
+    def remove_inputs(self, names):
+        [d.remove_inputs(names) for d in self]
+
     def reset(self, soft=False):
         return all([d.reset(soft) for d in self])
 
     def split_idx(self, idx_train, idx_validate, idx_test=None) -> bool:
         [d.split_idx(idx_train, idx_validate, idx_test) for d in self]
 
-    def shuffle_input(self, name, restore=None):
+    def shuffle_input(self, name, restore=None, new_name=None):
         if restore is None:
             restore = [None] * self.cv_count
-        return [d.shuffle_input(name, r) for d, r in zip(self, restore)]
+        return [d.shuffle_input(name, r, new_name=new_name) for d, r in zip(self, restore)]
 
     def zero_input(self, name, restore=None):
         if restore is None:

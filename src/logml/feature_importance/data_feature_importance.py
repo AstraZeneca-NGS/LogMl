@@ -79,7 +79,7 @@ class DataFeatureImportance(MlFiles):
         self.is_wilks = True
         self.linear_pvalue_null_model_variables = list()
         self.model_type = model_type
-        self.random_columns_ratio = 1.0  # Add one rand column for each real column
+        self.random_inputs_ratio = 1.0  # Add one rand column for each real column
         self.permutation_iterations_gradient_boosting = 10
         self.permutation_iterations_extra_trees = 10
         self.permutation_iterations_random_forest = 10
@@ -116,7 +116,8 @@ class DataFeatureImportance(MlFiles):
         if self.tag == 'na' and not self.enable_na:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
             return True
-        self.random_columns = self.random_columns_add()
+        # Add random inputs (shuffled columns)
+        self.random_inputs_added = self.random_inputs_add()
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
@@ -133,7 +134,9 @@ class DataFeatureImportance(MlFiles):
         # Perform re-weighting, then display and save results
         loss_ori = self.reweight_results()
         self.show_and_save_results(loss_ori)
-        self.random_columns_remove()
+        # Restore dataset (remove added random inputs)
+        if self.random_inputs_added:
+            self.datasets.remove_inputs(self.random_inputs_added)
         self._info(f"Feature importance {self.tag}: End")
         return True
 
@@ -192,7 +195,7 @@ class DataFeatureImportance(MlFiles):
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
         num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
         try:
-            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", num_iterations=num_iterations)
+            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations=num_iterations)
             if not fi():
                 self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
@@ -359,18 +362,27 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Linear regression (p-value) {self.tag}: End")
         return ok
 
-    def random_columns_add(self):
+    def random_inputs_add(self):
         '''
         Add random columns to a dataset
         Return list of names of columns added
         '''
-        if self.random_columns_ratio <= 0:
-            return list()
+        added_columns = list()
+        if self.random_inputs_ratio <= 0.0:
+            return added_columns
         for c in self.datasets.get_input_names():
-            if c not in self.datasets.outputs:
-                self.datasets.
-
-        pass
+            if self.random_inputs_ratio < 1.0:
+                # Add shuffled column with probability 'random_inputs_ratio'
+                if np.random.rand() <= self.random_inputs_ratio:
+                    c_new = f"__rand_{c}"  # New input name starts with '__rand_'
+                    self.datasets.shuffle_input(c, new_name=c_new)
+                    added_columns.append(c_new)
+            if self.random_inputs_ratio >= 1.0:
+                for i in range(int(self.random_inputs_ratio)):
+                    c_new = f"__rand_{c}_{i+1}"
+                    self.datasets.shuffle_input(c, new_name=c_new)
+                    added_columns.append(c_new)
+        return added_columns
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''

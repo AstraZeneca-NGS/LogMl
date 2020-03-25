@@ -17,12 +17,15 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     How it works: Suffle a column and analyze how model performance is
     degraded. Most important features will make the model perform much
     worse when shuffled, unimportant features will not affect performance
+
+    To estimate a p-value, it uses a ranked test by comparing to resutls from
+    randomly shuffled columns
     '''
 
-    def __init__(self, model, model_name, num_iterations=1, rand_cols=5):
+    def __init__(self, model, model_name, rand_columns, num_iterations=1):
         super().__init__(model, model_name, num_iterations)
-        self.rand_cols = rand_cols
         self.importance_name = 'permutation'
+        self.rand_columns = rand_columns
 
     def dataset_change(self, col_name):
         """ Change datasets for column 'col_name' """

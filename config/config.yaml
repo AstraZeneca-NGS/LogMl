@@ -362,6 +362,12 @@ dataset_feature_importance:
   permutation_iterations_gradient_boosting: 10
   permutation_iterations_random_forest: 10
 
+  # Number of 'random' inputs to add for each input in the dataset
+  # If less than 1.0: For each input, a new randomized input is added with probability 'random_inputs_ratio'
+  # If 1.0 or more: For each input, int(random_inputs_ratio) new inputs are added
+  # The new inputs are shuffled copies of the original inputs
+  random_inputs_ratio: 1.0
+
   # Regularization methods
   # Enable regularization methods (for different models)
   is_regularization_lasso: true
