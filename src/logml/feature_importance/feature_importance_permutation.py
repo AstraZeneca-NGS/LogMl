@@ -2,6 +2,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 import traceback
 
@@ -17,10 +18,13 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     How it works: Suffle a column and analyze how model performance is
     degraded. Most important features will make the model perform much
     worse when shuffled, unimportant features will not affect performance
+
+    To estimate a p-value, it uses a ranked test by comparing to resutls from
+    randomly shuffled columns
     '''
 
-    def __init__(self, model, model_name):
-        super().__init__(model, model_name)
+    def __init__(self, model, model_name, rand_columns, num_iterations):
+        super().__init__(model, model_name, rand_columns, num_iterations)
         self.importance_name = 'permutation'
 
     def dataset_change(self, col_name):
@@ -43,4 +47,4 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         In this case, there is no training, just evaluate the loss
         """
         self.model.model_eval_validate()
-        return self.model.eval_validate
+        return self.model.eval_validate_values if self.is_cv else self.model.eval_validate

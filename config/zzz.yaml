@@ -28,12 +28,12 @@ dataset_feature_importance:
   is_dropcol_extra_trees: false
   is_dropcol_gradient_boosting: false
   is_dropcol_random_forest: false
-  is_fip_random_forest: false
+  is_fip_random_forest: true
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
   is_permutation_extra_trees: false
   is_permutation_gradient_boosting: false
-  is_permutation_random_forest: false
+  is_permutation_random_forest: true
   is_regularization_lasso: false
   is_regularization_ridge: false
   is_regularization_lars: false
@@ -51,13 +51,24 @@ dataset_feature_importance:
   is_select: false
   is_linear_pvalue: false
   is_tree_graph: false
-  #
-  is_wilks: true
-  wilks_null_model_variables: ['x3']
+  is_wilks: false
+
+  permutation_iterations_gradient_boosting: 3
+  permutation_iterations_extra_trees: 3
+  permutation_iterations_random_forest: 3
+
+  wilks_null_model_variables: ['x4', 'x5']
+
+
+cross_validation:
+    # Set to 'false' to disable cross validation
+    enable: true
+    KFold:
+        n_splits: 2
 
 model:
   enable: false
-  model_type: classification
+  model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
   model_path: 'data/zzz/model'

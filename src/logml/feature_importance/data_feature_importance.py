@@ -47,6 +47,9 @@ class DataFeatureImportance(MlFiles):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
         self.enable_na = True
+        self.dropcol_iterations_extra_trees = 1
+        self.dropcol_iterations_gradient_boosting = 1
+        self.dropcol_iterations_random_forest = 1
         self.is_dropcol_extra_trees = True
         self.is_dropcol_gradient_boosting = True
         self.is_dropcol_random_forest = True
@@ -54,9 +57,9 @@ class DataFeatureImportance(MlFiles):
         self.is_fip_gradient_boosting = True
         self.is_fip_random_forest = True
         self.is_linear_pvalue = True
-        self.is_model_extra_trees = True
-        self.is_model_gradient_boosting = True
-        self.is_model_random_forest = True
+        self.is_model_dropcol = True
+        self.is_model_permutation = True
+        self.is_model_skmodel = True
         self.is_permutation_extra_trees = True
         self.is_permutation_gradient_boosting = True
         self.is_permutation_random_forest = True
@@ -79,6 +82,10 @@ class DataFeatureImportance(MlFiles):
         self.is_wilks = True
         self.linear_pvalue_null_model_variables = list()
         self.model_type = model_type
+        self.random_inputs_ratio = 1.0  # Add one rand column for each real column
+        self.permutation_iterations_extra_trees = 10
+        self.permutation_iterations_gradient_boosting = 3
+        self.permutation_iterations_random_forest = 10
         self.regularization_model_cv = 10
         self.rfe_model_cv = 0
         self.tree_graph_max_depth = 4
@@ -112,6 +119,8 @@ class DataFeatureImportance(MlFiles):
         if self.tag == 'na' and not self.enable_na:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
             return True
+        # Add random inputs (shuffled columns)
+        self.random_inputs_added = self.random_inputs_add()
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_train_xy()
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
@@ -128,6 +137,10 @@ class DataFeatureImportance(MlFiles):
         # Perform re-weighting, then display and save results
         loss_ori = self.reweight_results()
         self.show_and_save_results(loss_ori)
+        # Restore dataset (remove added random inputs)
+        if self.random_inputs_added:
+            self._debug(f"Removing shuffled inputs: {self.random_inputs_added}")
+            self.datasets.remove_inputs(self.random_inputs_added)
         self._info(f"Feature importance {self.tag}: End")
         return True
 
@@ -138,38 +151,50 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
-        try:
-            fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}")
-            if not fi():
-                self._info(f"Could not analyze feature importance (drop column) using {model_name}")
-                return
-            self._info(f"Feature importance (drop column), {model_name} , weight {fi.loss_base}")
-            self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
-            fi.plot()
-        except Exception as e:
-            self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
-            return False
+        # try:
+        num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
+        fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        if not fi():
+            self._info(f"Could not analyze feature importance (drop column) using {model_name}")
+            return
+        self._info(f"Feature importance (drop column), {model_name} , weight {fi.get_weight()}")
+        imp = fi.get_importances()
+        self.results.add_col(f"importance_dropcol_{model_name}", imp)
+        self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+        self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
+        fi.plot()
+        # except Exception as e:
+        #     self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
+        #     return False
         return True
 
     def feature_importance_models(self):
         ''' Feature importance using several models '''
         if self.is_fip_random_forest:
             self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+        else:
+            self._debug(f"Feature importance 'Random forest': is_fip_random_forest={self.is_fip_random_forest}, skipping")
         if self.is_fip_extra_trees:
             self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+        else:
+            self._debug(f"Feature importance 'Extra trees': is_fip_extra_trees={self.is_fip_extra_trees}, skipping")
         if self.is_fip_gradient_boosting:
             self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+        else:
+            self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
 
     def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
-        conf = f"is_model_{config_tag}"
+        conf = f"is_fip_{config_tag}"
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self.feature_importance_permutation(model, model_name, config_tag)
-        self.feature_importance_drop_column(model, model_name, config_tag)
-        self.feature_importance_skmodel(model, model_name, config_tag)
+        if self.is_model_permutation:
+            self.feature_importance_permutation(model, model_name, config_tag)
+        if self.is_model_dropcol:
+            self.feature_importance_drop_column(model, model_name, config_tag)
+        if self.is_model_skmodel:
+            self.feature_importance_skmodel(model, model_name, config_tag)
 
     def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
@@ -178,18 +203,21 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
-        try:
-            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}")
-            if not fi():
-                self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
-                return
-            self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
-            self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
-            fi.plot()
-        except Exception as e:
-            self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
-            return False
+        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
+        # try:
+        fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        if not fi():
+            self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
+            return
+        self._info(f"Feature importance (permutation), {model_name} , weight {fi.get_weight()}")
+        imp = fi.get_importances()
+        self.results.add_col(f"importance_permutation_{model_name}", imp)
+        self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+        self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
+        fi.plot()
+        # except Exception as e:
+        #     self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
+        #     return False
         return True
 
     def feature_importance_skmodel(self, model, model_name, config_tag):
@@ -345,6 +373,30 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col_rank(f"linear_p_values_rank", pvalue_linear.get_pvalues(), reversed=False)
         self._info(f"Linear regression (p-value) {self.tag}: End")
         return ok
+
+    def random_inputs_add(self):
+        '''
+        Add random columns to a dataset
+        Return list of names of columns added
+        '''
+        added_columns = list()
+        if self.random_inputs_ratio <= 0.0:
+            return added_columns
+        for c in self.datasets.get_input_names():
+            if self.random_inputs_ratio < 1.0:
+                # Add shuffled column with probability 'random_inputs_ratio'
+                if np.random.rand() <= self.random_inputs_ratio:
+                    c_new = f"__rand_{c}"  # New input name starts with '__rand_'
+                    self._debug(f"Adding shuffled input from '{c}': '{c_new}'")
+                    self.datasets.shuffle_input(c, new_name=c_new)
+                    added_columns.append(c_new)
+            if self.random_inputs_ratio >= 1.0:
+                for i in range(int(self.random_inputs_ratio)):
+                    c_new = f"__rand_{c}_{i+1}"
+                    self._debug(f"Adding shuffled input from '{c}': '{c_new}'")
+                    self.datasets.shuffle_input(c, new_name=c_new)
+                    added_columns.append(c_new)
+        return added_columns
 
     def recursive_feature_elimination(self):
         ''' Use RFE to estimate parameter importance based on model '''

@@ -13,7 +13,7 @@ from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, C
 from logml.core.files import set_plots, MlFiles
 from logml.core.log import MlLog
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
-from logml.datasets import Datasets, DatasetsDf
+from logml.datasets import Datasets, DatasetsDf, DatasetsCv, DatasetsDf
 from logml.feature_importance.data_feature_importance import DataFeatureImportance
 from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
 from logml.models import Model
@@ -446,7 +446,15 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_feature_importance_002(self):
-        ''' Checking feature importance on dataset (dataframe): Clasification test (random forest) '''
+        ''' Checking feature importance on dataset (dataframe)
+        Model type: clasification
+        Feature importance method:
+            - Permutation
+            - random forest
+            - Single iteration
+            - No p-value
+            - No cross-validation
+        '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -550,6 +558,89 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.best_category[1] == 'med', f"coefficients = {lrw.best_category[1]}")
         # self.assertTrue(lrw.best_category[2] == 'med', f"coefficients = {lrw.best_category[2]}")  # This one is 'x3' which is part of the null model
         self.assertTrue(lrw.best_category[3] == 'med', f"coefficients = {lrw.best_category[3]}")
+
+    def test_dataset_feature_importance_007(self):
+        '''
+        Checking feature importance on dataset (dataframe)
+        Model type: clasification
+        Feature importance method:
+            - Permutation
+            - random forest
+            - Multiple-iterations
+            - Calculate p-value
+            - No cross-validation
+        '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_007.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+
+    def test_dataset_feature_importance_008(self):
+        '''
+        Checking feature importance on dataset (dataframe)
+        Model type: classification
+        Feature importance method:
+            - Permutation
+            - random forest
+            - Multiple-iterations
+            - Calculate p-value
+            - Use cross-validation
+        '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_008.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        ds = DatasetsCv(config, ds)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+
+    def test_dataset_feature_importance_009(self):
+        '''
+        Checking feature importance on dataset (dataframe)
+        Model type: classification
+        Feature importance method:
+            - drop-column
+            - random forest
+            - Multiple-iterations
+            - Calculate p-value
+            - Use cross-validation
+        '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_009.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        ds = DatasetsCv(config, ds)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''

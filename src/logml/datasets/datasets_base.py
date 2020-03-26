@@ -18,7 +18,7 @@ class DatasetsBase(MlFiles):
     train models, perform data exploration, feature importance, etc.
 
     The 'raw dataset' is stored in `self.dataset` and there are no
-    restrictions, it could be any kind of object. Typicalle, you may want
+    restrictions, it could be any kind of object. Typically, you may want
     to use a Pandas Dataframe, Numpy array, Pytorch tensor, etc.
 
     The 'raw dataset' is split into train, validate and test datasets. Then
@@ -39,8 +39,8 @@ class DatasetsBase(MlFiles):
     `invoke_split()`, ``invoke_preprocess()`, etc. If there is no user defined
     function defeined then a default implementation is used, for example methods
     `default_preprocess()`, `default_split()`, `default_preprocess()`, etc.
-
     """
+
     def __init__(self, config, set_config=True):
         super().__init__(config, CONFIG_DATASET)
         self.dataset_path = None
@@ -163,6 +163,10 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
+    def get_names(self):
+        """ Returns: A list of dataset's inputs and outputs names """
+        raise self.get_input_names().extend(self.get_output_names())
+
     def get_input_names(self):
         """ Returns: A list of dataset's input names """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
@@ -170,6 +174,10 @@ class DatasetsBase(MlFiles):
     def get_ori(self):
         """ Get the 'raw' dataset (original) """
         return self.dataset_ori
+
+    def get_output_names(self):
+        """ Returns: A list of dataset's output names """
+        return self.outputs
 
     def get_test(self):
         """ Get the 'raw' test dataset """
@@ -324,8 +332,19 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
+    def remove_inputs(self, names):
+        """
+        Remove a list of inputs from the dataset, e.g. remove columns from a dataframe
+        """
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
     def reset(self, soft=False):
-        ''' Reset fields '''
+        """
+        Reset all datasets (train, test, validate), by setting them to None
+        If this is a 'hard' reset (i.e. soft=False), then all x/y partitions
+        (dataset_train_xy, dataset_test_xy and dataset_validate_xy) are set
+        to None as well.
+        """
         self.dataset = None
         self.dataset_test = None
         self.dataset_train = None
@@ -347,7 +366,7 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
-    def shuffle_input(self, name, restore=None):
+    def shuffle_input(self, name, restore=None, new_name=None):
         """
         Shuffle input 'name' from a dataset.
         For instance, shuffle column 'name' from a dataframe.
@@ -355,8 +374,9 @@ class DatasetsBase(MlFiles):
         Args:
             name: Input variable name
             restore: If not None, the input should be restored from this object's data
+            new_name: If None, replace original values. If not None, create a new column with that name
         Return:
-            The original values om that column
+            The original (unshuffled) values from that column
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 

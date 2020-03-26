@@ -20,8 +20,8 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
     not affect performance
     '''
 
-    def __init__(self, model, model_name):
-        super().__init__(model, model_name)
+    def __init__(self, model, model_name, rand_columns, num_iterations):
+        super().__init__(model, model_name, rand_columns, num_iterations)
         self.importance_name = 'drop column'
 
     def dataset_change(self, col_name):
@@ -39,3 +39,4 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
         model_clone.model_train()
         model_clone.model_eval_validate()
         return model_clone.eval_validate
+        return model_clone.eval_validate_values if self.is_cv else model_clone.eval_validate

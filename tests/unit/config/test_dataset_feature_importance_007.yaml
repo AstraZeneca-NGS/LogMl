@@ -1,7 +1,7 @@
 logger:
 
 dataset:
-    dataset_name: 'test_dataset_feature_importance_004'
+    dataset_name: 'test_dataset_feature_importance_002'
     dataset_path: 'tests/unit/data'
     dataset_type: 'df'
     is_use_default_split: true
@@ -18,9 +18,13 @@ dataset_feature_importance:
   enable_na: false
 
   # Enable "Feature Importance using Permutations" (for different models)
-  is_fip_random_forest: false
+  is_fip_random_forest: true
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
+
+  is_model_dropcol: false
+  is_model_permutation: true
+  is_model_skmodel: false
 
   # Regularization methods
   # Enable regularization methods (for different models)
@@ -48,8 +52,13 @@ dataset_feature_importance:
   is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
-  is_linear_pvalue: false
-  linear_pvalue_null_model_variables: []
+  random_inputs_ratio: 1
+  dropcol_iterations_extra_trees: 1
+  dropcol_iterations_gradient_boosting: 1
+  dropcol_iterations_random_forest: 1
+  permutation_iterations_gradient_boosting: 1
+  permutation_iterations_extra_trees: 1
+  permutation_iterations_random_forest: 10
 
   # Range to use when expanding weights
   # Note: Weights are converted to an interval [weight_min, weight_max]
@@ -57,16 +66,16 @@ dataset_feature_importance:
   weight_min: 1.0
 
   # Logistic regression p-value (Wilks)
-  is_wilks: true
+  is_wilks: false
   # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
 
 model:
   enable: false
-  model_name: 'test_model_dataset_feature_importance_004'
-  model_path: 'tests/tmp/test_model_dataset_feature_importance_004'
+  model_name: 'test_model_dataset_feature_importance_002'
+  model_path: 'tests/tmp/test_model_dataset_feature_importance_002'
 
 functions:
   dataset_split:
     split_test: 0.0
-    split_validate: 0.1
+    split_validate: 0.2
