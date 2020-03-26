@@ -14,10 +14,10 @@ def _id(obj):
 def mean_std(losses):
     '''  Calculat the mean and stdev for a loist of values '''
     losses = [l for l in losses if l is not None]
+    losses = np.array(losses)
     if not losses:
-        return np.nan, np.nan
-    losses = np.array([l for l in losses if l is not None])
-    return losses.mean(), losses.std()
+        return np.nan, np.nan, losses
+    return losses.mean(), losses.std(), losses
 
 
 class ModelCv(Model):
@@ -37,6 +37,7 @@ class ModelCv(Model):
         if self.cv_enable:
             self.cv_count = self.datasets_cv.cv_count
             self.datasets_cv = datasets
+        self.is_cv = False  # This is a cross-validation model
 
     def _cross_validate_f(self, f, collect_name=None, args=None):
         """
@@ -50,10 +51,12 @@ class ModelCv(Model):
         # Initialize
         rets = list()
         collect = list()
+        count, count_max = 0, self.datasets_cv.cv_count
         for d, m in zip(self.datasets_cv, self):
+            count += 1
             # Evaluate model (without cross-validation) on cv_dataset[i]
             self.datasets, self.model = d, m
-            self._debug(f"Cross-validation: Invoking function '{f.__name__}', dataset.id={_id(self.datasets)}, model.id={_id(self.model)}")
+            self._debug(f"Cross-validation: Invoking function '{f.__name__}', cv={count}/{count_max}, dataset.id={_id(self.datasets)}, model.id={_id(self.model)}")
             if args is None:
                 rets.append(f())
             else:
@@ -81,7 +84,7 @@ class ModelCv(Model):
         if not self.cv_enable:
             return super().model_eval_test()
         rets, losses = self._cross_validate_f(super().model_eval_test, 'eval_test')
-        self.eval_test, self.eval_test_std = mean_std(losses)
+        self.eval_test, self.eval_test_std, self.eval_test_values = mean_std(losses)
         self._show_losses('test', losses)
         return all(rets)
 
@@ -91,7 +94,7 @@ class ModelCv(Model):
             return super().model_eval_train()
         rets, losses = self._cross_validate_f(super().model_eval_train, 'eval_train')
         losses = np.array(losses)
-        self.eval_train, self.eval_train_std = mean_std(losses)
+        self.eval_train, self.eval_train_std, self.eval_train_values = mean_std(losses)
         self._show_losses('train', losses)
         return all(rets)
 
@@ -101,7 +104,7 @@ class ModelCv(Model):
             return super().model_eval_validate()
         rets, losses = self._cross_validate_f(super().model_eval_validate, 'eval_validate')
         losses = np.array(losses)
-        self.eval_validate, self.eval_validate_std = mean_std(losses)
+        self.eval_validate, self.eval_validate_std, self.eval_validate_values = mean_std(losses)
         self._show_losses('validate', losses)
         return all(rets)
 

@@ -28,6 +28,7 @@ class FeatureImportanceModel(MlFiles):
         self.importance_name = ''
         self.importances = None
         self.verbose = False
+        self.is_cv = self.model.is_cv
 
     def calc_importances(self):
         """
@@ -101,7 +102,6 @@ class FeatureImportanceModel(MlFiles):
         " Plot importance distributions "
         names = np.array([self.columns])
         imp = np.array(self.importances)
-        self._error(f"IMP: {imp}\nNAMES: {names}")
         # Show bar plot
         fig = plt.figure()
         y_pos = np.arange(len(imp))

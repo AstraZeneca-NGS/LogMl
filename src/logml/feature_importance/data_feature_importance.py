@@ -203,6 +203,7 @@ class DataFeatureImportance(MlFiles):
             imp = fi.get_importances()
             self.results.add_col(f"importance_permutation_{model_name}", imp)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.loss_base, reversed=True)
+            self.results.add_col(f"importance_permutation_{model_name}_pvalue", fi.get_pvalues())
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")

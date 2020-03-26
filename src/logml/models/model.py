@@ -52,6 +52,7 @@ class Model(MlFiles):
         if set_config:
             self._set_from_config()
         self.model_results = ResultsDf()
+        self.is_cv = False  # This is not a cross-validation model
 
     def __call__(self):
         ''' Execute model trainig '''

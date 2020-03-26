@@ -62,9 +62,9 @@ dataset_feature_importance:
 
 cross_validation:
     # Set to 'false' to disable cross validation
-    enable: false
+    enable: true
     KFold:
-        n_splits: 5
+        n_splits: 2
 
 model:
   enable: false

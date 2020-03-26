@@ -61,6 +61,12 @@ class DatasetsCv(DatasetsBase):
             self._create_cv_datasets()
         return ok
 
+    def all(self):
+        " All datasets, includng the original one and cross validations "
+        ds_all = [self.datasets]
+        ds_all.extend(self.cv_datasets)
+        return ds_all
+
     def clone(self, deep=False):
         ds_clone = copy.copy(self)
         if deep:
@@ -163,20 +169,20 @@ class DatasetsCv(DatasetsBase):
         return len(self.datasets)
 
     def remove_inputs(self, names):
-        [d.remove_inputs(names) for d in self]
+        [d.remove_inputs(names) for d in self.all()]
 
     def reset(self, soft=False):
-        return all([d.reset(soft) for d in self])
+        return all([d.reset(soft) for d in self.all()])
 
     def split_idx(self, idx_train, idx_validate, idx_test=None) -> bool:
         [d.split_idx(idx_train, idx_validate, idx_test) for d in self]
 
     def shuffle_input(self, name, restore=None, new_name=None):
         if restore is None:
-            restore = [None] * self.cv_count
-        return [d.shuffle_input(name, r, new_name=new_name) for d, r in zip(self, restore)]
+            restore = [None] * (self.cv_count + 1)
+        return [d.shuffle_input(name, r, new_name=new_name) for d, r in zip(self.all(), restore)]
 
     def zero_input(self, name, restore=None):
         if restore is None:
             restore = [None] * self.cv_count
-        return [d.zero_input(name, r) for d, r in zip(self, restore)]
+        return [d.zero_input(name, r) for d, r in zip(self.all(), restore)]
