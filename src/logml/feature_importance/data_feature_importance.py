@@ -200,8 +200,9 @@ class DataFeatureImportance(MlFiles):
                 self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
             self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
-            self.results.add_col(f"importance_permutation_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
+            imp = fi.get_importances()
+            self.results.add_col(f"importance_permutation_{model_name}", imp)
+            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.loss_base, reversed=True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")

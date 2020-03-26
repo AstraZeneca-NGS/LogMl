@@ -52,6 +52,11 @@ dataset_feature_importance:
   is_linear_pvalue: false
   is_tree_graph: false
   is_wilks: false
+
+  permutation_iterations_gradient_boosting: 3
+  permutation_iterations_extra_trees: 3
+  permutation_iterations_random_forest: 3
+
   wilks_null_model_variables: ['x4', 'x5']
 
 
