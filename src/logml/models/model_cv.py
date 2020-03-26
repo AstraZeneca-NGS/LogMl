@@ -37,7 +37,8 @@ class ModelCv(Model):
         if self.cv_enable:
             self.cv_count = self.datasets_cv.cv_count
             self.datasets_cv = datasets
-        self.is_cv = True  # This is a cross-validation model
+            self.cv_enable = self.cv_count > 1  # This is a cross-validation model only if enabled and cv_counts > 1
+        self.is_cv = self.cv_enable
 
     def _cross_validate_f(self, f, collect_name=None, args=None):
         """

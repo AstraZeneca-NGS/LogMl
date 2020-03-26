@@ -47,6 +47,9 @@ class DataFeatureImportance(MlFiles):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
         self.enable_na = True
+        self.dropcol_iterations_extra_trees = 1
+        self.dropcol_iterations_gradient_boosting = 1
+        self.dropcol_iterations_random_forest = 1
         self.is_dropcol_extra_trees = True
         self.is_dropcol_gradient_boosting = True
         self.is_dropcol_random_forest = True
@@ -148,18 +151,21 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
-        try:
-            fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}")
-            if not fi():
-                self._info(f"Could not analyze feature importance (drop column) using {model_name}")
-                return
-            self._info(f"Feature importance (drop column), {model_name} , weight {fi.get_weight()}")
-            self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.get_weight(), reversed=True)
-            fi.plot()
-        except Exception as e:
-            self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
-            return False
+        # try:
+        num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
+        fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        if not fi():
+            self._info(f"Could not analyze feature importance (drop column) using {model_name}")
+            return
+        self._info(f"Feature importance (drop column), {model_name} , weight {fi.get_weight()}")
+        imp = fi.get_importances()
+        self.results.add_col(f"importance_dropcol_{model_name}", imp)
+        self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+        self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
+        fi.plot()
+        # except Exception as e:
+        #     self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
+        #     return False
         return True
 
     def feature_importance_models(self):
@@ -195,20 +201,20 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
         num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
-        try:
-            fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations=num_iterations)
-            if not fi():
-                self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
-                return
-            self._info(f"Feature importance (permutation), {model_name} , weight {fi.get_weight()}")
-            imp = fi.get_importances()
-            self.results.add_col(f"importance_permutation_{model_name}", imp)
-            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
-            self.results.add_col(f"importance_permutation_{model_name}_pvalue", fi.get_pvalues())
-            fi.plot()
-        except Exception as e:
-            self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
-            return False
+        # try:
+        fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        if not fi():
+            self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
+            return
+        self._info(f"Feature importance (permutation), {model_name} , weight {fi.get_weight()}")
+        imp = fi.get_importances()
+        self.results.add_col(f"importance_permutation_{model_name}", imp)
+        self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+        self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
+        fi.plot()
+        # except Exception as e:
+        #     self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
+        #     return False
         return True
 
     def feature_importance_skmodel(self, model, model_name, config_tag):

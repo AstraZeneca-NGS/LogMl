@@ -337,6 +337,11 @@ dataset_feature_importance:
   # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
   enable_na: true
 
+  # Number of iterations (per CV) in drop-column method
+  dropcol_iterations_extra_trees: 1
+  dropcol_iterations_gradient_boosting: 1
+  dropcol_iterations_random_forest: 1
+
   # Enable feature importance using "Drop column" (for different models)
   is_dropcol_extra_trees: true
   is_dropcol_gradient_boosting: true

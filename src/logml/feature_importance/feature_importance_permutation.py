@@ -23,10 +23,9 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     randomly shuffled columns
     '''
 
-    def __init__(self, model, model_name, rand_columns, num_iterations=1):
-        super().__init__(model, model_name, num_iterations)
+    def __init__(self, model, model_name, rand_columns, num_iterations):
+        super().__init__(model, model_name, rand_columns, num_iterations)
         self.importance_name = 'permutation'
-        self.rand_columns = rand_columns
 
     def dataset_change(self, col_name):
         """ Change datasets for column 'col_name' """

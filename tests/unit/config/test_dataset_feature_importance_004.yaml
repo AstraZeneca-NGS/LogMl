@@ -48,7 +48,7 @@ dataset_feature_importance:
   is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
-  is_linear_pvalue: true
+  is_linear_pvalue: false
   linear_pvalue_null_model_variables: []
 
   # Range to use when expanding weights
@@ -57,7 +57,7 @@ dataset_feature_importance:
   weight_min: 1.0
 
   # Logistic regression p-value (Wilks)
-  is_wilks: false
+  is_wilks: true
   # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
 

@@ -48,6 +48,14 @@ dataset_feature_importance:
   is_tree_graph: false
   tree_graph_max_depth: 4  # Number of layers to show in graph
 
+  random_inputs_ratio: 0
+  dropcol_iterations_extra_trees: 1
+  dropcol_iterations_gradient_boosting: 1
+  dropcol_iterations_random_forest: 1
+  permutation_iterations_gradient_boosting: 1
+  permutation_iterations_extra_trees: 1
+  permutation_iterations_random_forest: 1
+
   # Range to use when expanding weights
   # Note: Weights are converted to an interval [weight_min, weight_max]
   weight_max: 10.0

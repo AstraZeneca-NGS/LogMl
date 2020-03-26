@@ -19,10 +19,11 @@ class FeatureImportanceModel(MlFiles):
     Estimate feature importance based on a model.
     '''
 
-    def __init__(self, model, model_type, num_iterations=1):
+    def __init__(self, model, model_type, rand_columns, num_iterations):
         self.model = model.clone()
         self.model_type = model_type
         self.datasets = model.datasets
+        self.rand_columns = rand_columns
         self.num_iterations = num_iterations
         self.loss_base = None
         self.performance = dict()
@@ -38,6 +39,7 @@ class FeatureImportanceModel(MlFiles):
         # Calculate importance based an all results
         rand_cols_set = set(self.rand_columns)
         null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
+        self._debug(f"P-value null-values (Mann-Whitney statistic): {null_values}")
         self.importances = [self._calc_importance(c) for c in self.columns]
         self.pvalues = [self.pvalue(c, null_values) for c in self.columns]
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
@@ -145,7 +147,7 @@ class FeatureImportanceModel(MlFiles):
         try:
             results = np.array(self.performance[col_name]).ravel()
             u, p = scipy.stats.mannwhitneyu(results, null_values, alternative='greater')
-            self._debug(f"Mann-Whitney statistic '{col_name}': p-value={p}, U-test={u}, results: {results}")
+            self._debug(f"P-value '{col_name}' (Mann-Whitney statistic): p-value={p}, U-test={u}, results: {results}")
             return p
         except ValueError as v:
             self._warning(f"Error calculating Mann-Whitney's U-statistic, column '{col_name}': {v}. Results: {results}")
