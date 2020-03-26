@@ -1,0 +1,77 @@
+logger:
+
+dataset:
+    dataset_name: 'test_dataset_feature_importance_002'
+    dataset_path: 'tests/unit/data'
+    dataset_type: 'df'
+    is_use_default_split: true
+    outputs: ['y']
+
+dataset_preprocess:
+  enable: false
+
+dataset_feature_importance:
+  # Set to 'false' to disable this step
+  enable: true
+
+  # Set to 'false' to disable this step for 'na' dataset (i.e. a dataset of missing data)
+  enable_na: false
+
+  # Enable "Feature Importance using Permutations" (for different models)
+  is_fip_random_forest: true
+  is_fip_extra_trees: false
+  is_fip_gradient_boosting: false
+
+  # Regularization methods
+  # Enable regularization methods (for different models)
+  is_regularization_lasso: false
+  is_regularization_ridge: false
+  is_regularization_lars: false
+  # Number of Cross-validation in regularization methods
+  regularization_model_cv: 10
+
+  # Enable Recursive Feature Elimination (for different models)
+  is_rfe_model: false
+  is_rfe_model_lasso: false
+  is_rfe_model_ridge: false
+  is_rfe_model_lars_aic: false
+  is_rfe_model_lars_bic: false
+  is_rfe_model_random_forest: false
+  is_rfe_model_extra_trees: false
+  is_rfe_model_gradient_boosting: false
+  rfe_model_cv: 0  # Number of Corss-validations in Recursive Feature Elimination methods
+
+  # Enable model selection methods (SelectFdr / SelectKBest)
+  is_select: false
+
+  # Tree graph
+  is_tree_graph: false
+  tree_graph_max_depth: 4  # Number of layers to show in graph
+
+  random_inputs_ratio: 1
+  dropcol_iterations_extra_trees: 5
+  dropcol_iterations_gradient_boosting: 5
+  dropcol_iterations_random_forest: 5
+  permutation_iterations_gradient_boosting: 5
+  permutation_iterations_extra_trees: 5
+  permutation_iterations_random_forest: 5
+
+  # Range to use when expanding weights
+  # Note: Weights are converted to an interval [weight_min, weight_max]
+  weight_max: 10.0
+  weight_min: 1.0
+
+  # Logistic regression p-value (Wilks)
+  is_wilks: false
+  # Variables used for setting the null model
+  wilks_null_model_variables: ['x3']
+
+model:
+  enable: false
+  model_name: 'test_model_dataset_feature_importance_002'
+  model_path: 'tests/tmp/test_model_dataset_feature_importance_002'
+
+functions:
+  dataset_split:
+    split_test: 0.0
+    split_validate: 0.2

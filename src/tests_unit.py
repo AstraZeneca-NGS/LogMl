@@ -551,6 +551,27 @@ class TestLogMl(unittest.TestCase):
         # self.assertTrue(lrw.best_category[2] == 'med', f"coefficients = {lrw.best_category[2]}")  # This one is 'x3' which is part of the null model
         self.assertTrue(lrw.best_category[3] == 'med', f"coefficients = {lrw.best_category[3]}")
 
+    def test_dataset_feature_importance_007(self):
+        '''
+        Checking feature importance on dataset (dataframe)
+        Clasification test (random forest) multiple iterations (pvalue MannWhitney)
+        '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_002.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        # Do feature importance using logistic regression p-values
+        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        ret = fi()
+        self.assertTrue(ret)
+        # Make sure we can select x1 and x2 as important varaibles
+        fi_vars = list(fi.results.df.index.values)
+        self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+
     def test_dataset_preprocess_001(self):
         ''' Checking dataset preprocess for dataframe: Normalization '''
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_001.yaml')
