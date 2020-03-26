@@ -58,7 +58,7 @@ dataset_feature_importance:
   dropcol_iterations_random_forest: 1
   permutation_iterations_gradient_boosting: 1
   permutation_iterations_extra_trees: 1
-  permutation_iterations_random_forest: 10
+  permutation_iterations_random_forest: 3
 
   # Range to use when expanding weights
   # Note: Weights are converted to an interval [weight_min, weight_max]
@@ -69,6 +69,12 @@ dataset_feature_importance:
   is_wilks: false
   # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
+
+cross_validation:
+    # Set to 'false' to disable cross validation
+    enable: true
+    KFold:
+        n_splits: 5
 
 model:
   enable: false

@@ -22,8 +22,8 @@ dataset_feature_importance:
   is_fip_extra_trees: false
   is_fip_gradient_boosting: false
 
-  is_model_dropcol: false
-  is_model_permutation: true
+  is_model_dropcol: true
+  is_model_permutation: false
   is_model_skmodel: false
 
   # Regularization methods
@@ -55,10 +55,10 @@ dataset_feature_importance:
   random_inputs_ratio: 1
   dropcol_iterations_extra_trees: 1
   dropcol_iterations_gradient_boosting: 1
-  dropcol_iterations_random_forest: 1
+  dropcol_iterations_random_forest: 2
   permutation_iterations_gradient_boosting: 1
   permutation_iterations_extra_trees: 1
-  permutation_iterations_random_forest: 10
+  permutation_iterations_random_forest: 1
 
   # Range to use when expanding weights
   # Note: Weights are converted to an interval [weight_min, weight_max]
@@ -69,6 +69,12 @@ dataset_feature_importance:
   is_wilks: false
   # Variables used for setting the null model
   wilks_null_model_variables: ['x3']
+
+cross_validation:
+    # Set to 'false' to disable cross validation
+    enable: true
+    KFold:
+        n_splits: 2
 
 model:
   enable: false

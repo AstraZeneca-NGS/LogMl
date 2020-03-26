@@ -347,15 +347,15 @@ dataset_feature_importance:
   is_dropcol_gradient_boosting: true
   is_dropcol_random_forest: true
 
-  # Enable model-based feature importance by method: permutataion, drop column, skleanr
+  # Enable model-based feature importance by model type: random forest, extra trees, gradient boosting
   is_fip_random_forest: true
   is_fip_extra_trees: true
   is_fip_gradient_boosting: true
 
-  # Enable model-based feature importance by model
-  is_model_extra_trees: true
-  is_model_gradient_boosting: true
-  is_model_random_forest: true
+  # Enable model-based feature importance by method: permutataion, drop column, skleanr
+  is_model_dropcol: true
+  is_model_permutation: true
+  is_model_skmodel: true
 
   # Enable feature importance using "Permutations" (for different models)
   is_permutation_extra_trees: true

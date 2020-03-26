@@ -57,9 +57,9 @@ class DataFeatureImportance(MlFiles):
         self.is_fip_gradient_boosting = True
         self.is_fip_random_forest = True
         self.is_linear_pvalue = True
-        self.is_model_extra_trees = True
-        self.is_model_gradient_boosting = True
-        self.is_model_random_forest = True
+        self.is_model_dropcol = True
+        self.is_model_permutation = True
+        self.is_model_skmodel = True
         self.is_permutation_extra_trees = True
         self.is_permutation_gradient_boosting = True
         self.is_permutation_random_forest = True
@@ -185,13 +185,16 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_model(self, model, model_name, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
-        conf = f"is_model_{config_tag}"
+        conf = f"is_fip_{config_tag}"
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self.feature_importance_permutation(model, model_name, config_tag)
-        self.feature_importance_drop_column(model, model_name, config_tag)
-        self.feature_importance_skmodel(model, model_name, config_tag)
+        if self.is_model_permutation:
+            self.feature_importance_permutation(model, model_name, config_tag)
+        if self.is_model_dropcol:
+            self.feature_importance_drop_column(model, model_name, config_tag)
+        if self.is_model_skmodel:
+            self.feature_importance_skmodel(model, model_name, config_tag)
 
     def feature_importance_permutation(self, model, model_name, config_tag):
         """ Feature importance using 'permutation' analysis """
