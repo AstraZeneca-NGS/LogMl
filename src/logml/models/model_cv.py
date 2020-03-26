@@ -15,7 +15,7 @@ def mean_std(losses):
     '''  Calculat the mean and stdev for a loist of values '''
     losses = [l for l in losses if l is not None]
     losses = np.array(losses)
-    if not losses:
+    if len(losses) == 0:
         return np.nan, np.nan, losses
     return losses.mean(), losses.std(), losses
 
@@ -37,7 +37,7 @@ class ModelCv(Model):
         if self.cv_enable:
             self.cv_count = self.datasets_cv.cv_count
             self.datasets_cv = datasets
-        self.is_cv = False  # This is a cross-validation model
+        self.is_cv = True  # This is a cross-validation model
 
     def _cross_validate_f(self, f, collect_name=None, args=None):
         """
@@ -116,6 +116,6 @@ class ModelCv(Model):
         return all(rets)
 
     def _show_losses(self, tag, losses):
-        mean, std = mean_std(losses)
+        mean, std, _ = mean_std(losses)
         losses_str = ' '.join([str(x) for x in losses])
         self._debug(f"Model eval {tag} (cross-validation): n={len(losses)}, losses=[{losses_str}], eval_{tag}={mean}, eval_{tag}_std={std}")

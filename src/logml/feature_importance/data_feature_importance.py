@@ -136,6 +136,7 @@ class DataFeatureImportance(MlFiles):
         self.show_and_save_results(loss_ori)
         # Restore dataset (remove added random inputs)
         if self.random_inputs_added:
+            self._debug(f"Removing shuffled inputs: {self.random_inputs_added}")
             self.datasets.remove_inputs(self.random_inputs_added)
         self._info(f"Feature importance {self.tag}: End")
         return True
@@ -152,9 +153,9 @@ class DataFeatureImportance(MlFiles):
             if not fi():
                 self._info(f"Could not analyze feature importance (drop column) using {model_name}")
                 return
-            self._info(f"Feature importance (drop column), {model_name} , weight {fi.loss_base}")
+            self._info(f"Feature importance (drop column), {model_name} , weight {fi.get_weight()}")
             self.results.add_col(f"importance_dropcol_{model_name}", fi.performance_norm)
-            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.loss_base, reversed=True)
+            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", fi.performance_norm, weight=fi.get_weight(), reversed=True)
             fi.plot()
         except Exception as e:
             self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
@@ -199,10 +200,10 @@ class DataFeatureImportance(MlFiles):
             if not fi():
                 self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
                 return
-            self._info(f"Feature importance (permutation), {model_name} , weight {fi.loss_base}")
+            self._info(f"Feature importance (permutation), {model_name} , weight {fi.get_weight()}")
             imp = fi.get_importances()
             self.results.add_col(f"importance_permutation_{model_name}", imp)
-            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.loss_base, reversed=True)
+            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
             self.results.add_col(f"importance_permutation_{model_name}_pvalue", fi.get_pvalues())
             fi.plot()
         except Exception as e:
@@ -377,11 +378,13 @@ class DataFeatureImportance(MlFiles):
                 # Add shuffled column with probability 'random_inputs_ratio'
                 if np.random.rand() <= self.random_inputs_ratio:
                     c_new = f"__rand_{c}"  # New input name starts with '__rand_'
+                    self._debug(f"Adding shuffled input from '{c}': '{c_new}'")
                     self.datasets.shuffle_input(c, new_name=c_new)
                     added_columns.append(c_new)
             if self.random_inputs_ratio >= 1.0:
                 for i in range(int(self.random_inputs_ratio)):
                     c_new = f"__rand_{c}_{i+1}"
+                    self._debug(f"Adding shuffled input from '{c}': '{c_new}'")
                     self.datasets.shuffle_input(c, new_name=c_new)
                     added_columns.append(c_new)
         return added_columns

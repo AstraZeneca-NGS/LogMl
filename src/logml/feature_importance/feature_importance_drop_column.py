@@ -39,3 +39,4 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
         model_clone.model_train()
         model_clone.model_eval_validate()
         return model_clone.eval_validate
+        return model_clone.eval_validate_values if self.is_cv else model_clone.eval_validate

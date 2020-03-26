@@ -3,6 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import scipy
 import seaborn as sns
 import traceback
 
@@ -35,14 +36,17 @@ class FeatureImportanceModel(MlFiles):
         Calculate all feature importances, based on performance results
         """
         # Calculate importance based an all results
+        rand_cols_set = set(self.rand_columns)
+        null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
         self.importances = [self._calc_importance(c) for c in self.columns]
+        self.pvalues = [self.pvalue(c, null_values) for c in self.columns]
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
         return True
 
     def _calc_importance(self, col_name):
         """ Calculate one feature importance, for column col_name """
-        results = self.performance[col_name]
-        return np.array(results).mean()
+        results = np.array(self.performance[col_name]).ravel()
+        return results.mean()
 
     def __call__(self):
         # Base performance
@@ -73,6 +77,13 @@ class FeatureImportanceModel(MlFiles):
     def get_importances(self):
         return pd.Series(self.importances, index=self.columns)
 
+    def get_pvalues(self):
+        return pd.Series(self.pvalues, index=self.columns)
+
+    def get_weight(self):
+        ''' Weight used when combinig different models for feature importance '''
+        return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
+
     def initialize(self):
         pass
 
@@ -89,13 +100,17 @@ class FeatureImportanceModel(MlFiles):
             self.dataset_restore(column_name, ori)
             # Performance is the loss difference respect to self.loss_base
             # (the higher the loss, the more important the variable)
+            # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
             perf_i = loss - self.loss_base
             self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i} / {self.num_iterations}, performance {perf_i}")
             perf.append(perf_i)
         self.performance[column_name] = perf
 
     def loss(self):
-        """ Calculate loss. Re-train model if necesary """
+        """
+        Calculate loss. Re-train model if necesary
+        Returns: A loss value or multiple loss values if the model uses cross-validation
+        """
         raise Exception("Unimplemented!")
 
     def plot(self, x=None):
@@ -110,6 +125,24 @@ class FeatureImportanceModel(MlFiles):
         # Plot performance histogram
         fig = plt.figure()
         values = [v for vs in self.performance.values() for v in vs]
-        values = np.array(values)
+        values = np.array(values).ravel()
         sns.distplot(values)
         self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
+
+    def pvalue(self, col_name, null_values):
+        """
+        Calculate p-values based on a Mann-Whitney U-statistic
+        Test if loss values for input 'col_name' are higher than the ones for
+        the 'null_model' (randomly shuffled variables). If the p-value is
+        low, it might indicate that the variable is 'important'
+        """
+        if col_name in self.rand_columns:
+            return 1.0
+        try:
+            results = np.array(self.performance[col_name]).ravel()
+            u, p = scipy.stats.mannwhitneyu(results, null_values, alternative='greater')
+            self._debug(f"Mann-Whitney statistic '{col_name}': p-value={p}, U-test={u}, results: {results}")
+            return p
+        except ValueError as v:
+            self._warning(f"Error calculating Mann-Whitney's U-statistic, column '{col_name}': {v}. Results: {results}")
+        return 1.0
