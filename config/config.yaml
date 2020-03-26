@@ -364,7 +364,7 @@ dataset_feature_importance:
 
   # Number of iterations (per CV) in permutation method
   permutation_iterations_extra_trees: 10
-  permutation_iterations_gradient_boosting: 10
+  permutation_iterations_gradient_boosting: 3
   permutation_iterations_random_forest: 10
 
   # Number of 'random' inputs to add for each input in the dataset
