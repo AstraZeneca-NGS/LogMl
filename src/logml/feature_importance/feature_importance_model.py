@@ -49,6 +49,8 @@ class FeatureImportanceModel(MlFiles):
         return results.mean()
 
     def __call__(self):
+        if self.num_iterations < 1:
+            self._fatal_error("Number of iterations should be an integer number greater than 0: num_iterations={self.num_iterations}")
         # Base performance
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
@@ -136,6 +138,8 @@ class FeatureImportanceModel(MlFiles):
         the 'null_model' (randomly shuffled variables). If the p-value is
         low, it might indicate that the variable is 'important'
         """
+        if len(null_values) == 0:
+            return np.nan
         if col_name in self.rand_columns:
             return 1.0
         try:
