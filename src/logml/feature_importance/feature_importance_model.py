@@ -62,7 +62,7 @@ class FeatureImportanceModel(MlFiles):
         self.columns = self.datasets.get_input_names()
         cols_count = len(self.columns)
         for i, c in enumerate(self.columns):
-            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}'")
+            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}'")
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
                 self.losses(c)
@@ -106,7 +106,7 @@ class FeatureImportanceModel(MlFiles):
             # (the higher the loss, the more important the variable)
             # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
             perf_i = loss - self.loss_base
-            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i} / {self.num_iterations}, performance {perf_i}")
+            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, performance {perf_i}")
             perf.append(perf_i)
         self.performance[column_name] = perf
 

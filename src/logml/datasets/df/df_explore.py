@@ -66,6 +66,9 @@ class DfExplore(MlFiles):
             self._debug(f"Correlation analysis {self.name}: Too many columns to compare, {len(self.df.columns)} > correlation_analysis_max ({self.correlation_analysis_max}), skipping")
             return
         corr, cols = self.rank_correlation()
+        if corr is None:
+            self._error(f"Correlation analysis {self.name}: Could not calculate correlation")
+            return
         # Sort and get index in correlation matrix
         ind = np.unravel_index(np.argsort(corr, axis=None), corr.shape)
         # Create a dataframe of high correlated / annti-correlated variables
@@ -103,6 +106,9 @@ class DfExplore(MlFiles):
             self._debug(f"Dendogram {self.name}: Too many columns to compare ({len(self.df.columns)}), skipping")
             return
         corr, cols = self.rank_correlation()
+        if corr is None:
+            self._error(f"Dendogram {self.name}: Could not calculate correlation")
+            return
         corr = np.round(corr, 4)
         # Convert to distance
         dist = 1 - corr
@@ -140,8 +146,9 @@ class DfExplore(MlFiles):
             fig = plt.figure()
             # Create histogram. Only show 'kernel density estimate' if there are more than 'self.describe_min_kde_count' unique values
             show_kde = (count_uniq >= self.describe_kde_min_uniq_values)
-            sns.distplot(xi_no_na, kde=show_kde, bins=bins)
-            self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
+            if bins > 0:
+                sns.distplot(xi_no_na, kde=show_kde, bins=bins)
+                self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
         descr.print(f"Describe variables {self.name}")
 
     def describe(self, x, field_name):
@@ -155,13 +162,17 @@ class DfExplore(MlFiles):
         df_kurt = pd.DataFrame({field_name: scipy.stats.kurtosis(x)}, index=['kurtosis'])
         # Distribution fit
         df_fit = self.distribution_fit(x, field_name)
-        # Show all information
+        # Show all information (filter out None values first)
+        dfs = [df_desc, df_uniq, df_skew, df_kurt, df_fit]
+        dfs = [df for df in dfs if df is not None]
         df_desc = pd.concat([df_desc, df_uniq, df_skew, df_kurt, df_fit])
         self.print_all(f"Summary {self.name}: {field_name}", df_desc)
         return df_desc
 
     def distribution_fit(self, x, field_name):
         " Check if a sample matches a distribution "
+        if len(x) < 3:
+            return None
         df_norm = self.distribution_fit_normal(x, field_name)
         df_log_norm = self.distribution_fit_log_normal(x, field_name)
         return pd.concat([df_norm, df_log_norm])
@@ -295,9 +306,11 @@ class DfExplore(MlFiles):
             # Drop columns having zero variance and non-numeric
             df_copy = self.remove_zero_std_cols(self.remove_non_numeric_cols(self.df))
             # Calculate spearsman's correlation
-            self._debug(f"Calculating rank correlation matrix for '{self.name}'")
-            self.rank_correlation_matrix = scipy.stats.spearmanr(df_copy, nan_policy='omit')
+            self._debug(f"Calculating rank correlation matrix for '{self.name}': shape={df_copy.shape}")
+            self.rank_correlation_matrix = self._spearmanr(df_copy)
             self.rank_correlation_colums = df_copy.columns
+        if self.rank_correlation_matrix is None:
+            return None, None
         return self.rank_correlation_matrix.correlation, self.rank_correlation_colums
 
     def remove_na_cols(self, df):
@@ -334,6 +347,17 @@ class DfExplore(MlFiles):
     def save(self):
         ''' Save as pickle file and save CSV tables '''
         self._save_pickle(f"{self.files_base}.data_explore.pkl", "Data explore", self)
+
+    def _spearmanr(self, x):
+        try:
+            return scipy.stats.spearmanr(x, nan_policy='omit')
+        except ValueError as e:
+            self._error(f"Error calculating Spearman's R, with nan_policy='omit': {e}")
+        try:
+            return scipy.stats.spearmanr(x, nan_policy='propagate')
+        except IndexError as e:
+            self._error(f"Error calculating Spearman's R, with nan_policy='propagate': {e}")
+            return None
 
     def summary(self):
         " Look into basic column statistics"

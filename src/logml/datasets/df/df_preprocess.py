@@ -124,6 +124,7 @@ class DfPreprocess(MlLog):
         self.nas()
         self.df = self.create()
         self._remove_columns_after()
+        self.drop_all_na()
         self.drop_zero_std()
         self.drop_equal_inputs()
         self.impute_df = DfImpute(self.df, self.config, self.outputs, self.model_type)
@@ -251,6 +252,17 @@ class DfPreprocess(MlLog):
         for field in self.dates:
             self._add_datepart(field)
         self._debug(f"Converting to 'date/time' values: End")
+
+    def drop_all_na(self):
+        " Drop features that have all 'na' values "
+        self._debug(f"Dropping columns with all missing values: Start")
+        to_remove = list()
+        for c in self.df.columns:
+            if self.df[c].isnull().all():
+                self._info(f"Dropping column '{c}', all values are missing, values head: {list(self.df[c].head())}")
+                to_remove.append(c)
+        self.df.drop(to_remove, axis=1, inplace=True)
+        self._debug(f"Dropping columns with all missing values: End")
 
     def drop_equal_inputs(self):
         " Remove input columns having the exact same values "
