@@ -12,6 +12,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from ..core.files import MlFiles
 from ..datasets import InOut
+from ..util.etc import array_to_str
 
 
 class FeatureImportanceModel(MlFiles):
@@ -39,7 +40,7 @@ class FeatureImportanceModel(MlFiles):
         # Calculate importance based an all results
         rand_cols_set = set(self.rand_columns)
         null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
-        self._debug(f"P-value null-values (Mann-Whitney statistic): {null_values}")
+        self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
         self.importances = [self._calc_importance(c) for c in self.columns]
         self.pvalues = [self.pvalue(c, null_values) for c in self.columns]
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
@@ -57,7 +58,7 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
         self.loss_base = self.loss()
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {self.loss_base}")
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {array_to_str(self.loss_base)}")
         # Shuffle each column
         self.columns = self.datasets.get_input_names()
         cols_count = len(self.columns)
@@ -106,9 +107,9 @@ class FeatureImportanceModel(MlFiles):
             # (the higher the loss, the more important the variable)
             # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
             perf_i = loss - self.loss_base
-            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, performance {perf_i}")
+            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, performance {array_to_str(perf_i)}")
             perf.append(perf_i)
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {np.array(perf_i).ravel()}")
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(np.array(perf))}")
         self.performance[column_name] = perf
 
     def loss(self):
@@ -148,7 +149,7 @@ class FeatureImportanceModel(MlFiles):
         try:
             results = np.array(self.performance[col_name]).ravel()
             u, p = scipy.stats.mannwhitneyu(results, null_values, alternative='greater')
-            self._debug(f"P-value '{col_name}' (Mann-Whitney statistic): p-value={p}, U-test={u}, results: {results}")
+            self._debug(f"P-value '{col_name}' (Mann-Whitney statistic): p-value={p}, U-test={u}, results: {array_to_str(results)}")
             return p
         except ValueError as v:
             self._warning(f"Error calculating Mann-Whitney's U-statistic, column '{col_name}': {v}. Results: {results}")

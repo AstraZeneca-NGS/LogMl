@@ -5,6 +5,7 @@ from ..core.config import CONFIG_CROSS_VALIDATION, CONFIG_MODEL
 from ..core.log import MlLog
 from . import Model
 from ..datasets import DatasetsCv
+from ..util.etc import array_to_str
 
 
 def _id(obj):
@@ -118,5 +119,4 @@ class ModelCv(Model):
 
     def _show_losses(self, tag, losses):
         mean, std, _ = mean_std(losses)
-        losses_str = ' '.join([str(x) for x in losses])
-        self._debug(f"Model eval {tag} (cross-validation): n={len(losses)}, losses=[{losses_str}], eval_{tag}={mean}, eval_{tag}_std={std}")
+        self._debug(f"Model eval {tag} (cross-validation): n={len(losses)}, losses=[{array_to_str(losses)}], eval_{tag}={mean}, eval_{tag}_std={std}")

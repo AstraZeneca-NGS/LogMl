@@ -151,7 +151,6 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
-        # try:
         num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
         fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
         if not fi():
@@ -163,9 +162,6 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
         self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
         fi.plot()
-        # except Exception as e:
-        #     self._error(f"Feature importance (drop column): Exception '{e}'\n{traceback.format_exc()}")
-        #     return False
         return True
 
     def feature_importance_models(self):
@@ -204,7 +200,6 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
         num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
-        # try:
         fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
         if not fi():
             self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
@@ -215,9 +210,6 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
         self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
         fi.plot()
-        # except Exception as e:
-        #     self._error(f"Feature importance (permutation): Exception '{e}'\n{traceback.format_exc()}")
-        #     return False
         return True
 
     def feature_importance_skmodel(self, model, model_name, config_tag):
