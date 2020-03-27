@@ -430,9 +430,7 @@ class DataFeatureImportance(MlFiles):
             rfe = RFE(skmodel, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
         self._info(f"Feature importance {self.tag}: Recursive Feature Elimination '{model_name}', weight {weight}")
-        name = f"rfe_rank_{model_name}"
-        self.results.add_col(name, fit.ranking_)
-        self.results.add_weight(name, weight)
+        self.results.add_col_rank(f"rfe_rank_{model_name}", fit.ranking_, weight=weight)
 
     def regularization_models(self):
         ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
@@ -477,14 +475,18 @@ class DataFeatureImportance(MlFiles):
         loss_ori = dict(self.results.weights)
         w = self.results.get_weights()
         if len(w) > 0:
-            weight_delta = self.weight_max - self.weight_min
+            weight_delta = self.weight_max - self.weight_min if self.weight_max > self.weight_min else 1.0
             # Flip weights and scale relative to the best loss (minimum weight)
-            wp = w / -w.min()
+            w_min = np.abs(w).min()
+            if w_min == 0:
+                w_min = 1.0
+            wp_adj = w / -w_min
             # Correct range using a scaling factor if weights span more than weight_delta
-            wp_delta = wp.max() - wp.min()
-            corr = weight_delta / wp_delta if wp_delta > weight_delta else 1.0
+            wp_adj_delta = wp_adj.max() - wp_adj.min()
+            corr = weight_delta / wp_adj_delta if wp_adj_delta > weight_delta else 1.0
             # New weights
-            wp = corr * (wp - wp.min()) + self.weight_min
+            wp = corr * (wp_adj - wp_adj.min()) + self.weight_min
+            self._debug(f"Feature importance {self.tag}: Re-weighting: weight_delta={weight_delta}, w_min={w_min}, wp_adj={wp_adj}, wp_adj_delta={wp_adj_delta}, corr={corr}, wp={wp}")
             # Set new weights
             for i in range(len(names)):
                 self.results.add_weight(names[i], wp[i])

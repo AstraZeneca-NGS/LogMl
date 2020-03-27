@@ -77,25 +77,9 @@ class Tee:
         self.std.flush()
 
 
-class MlLog:
-    '''
-    ML Log: Log events and redirect STDOUT/STDERR to files
-    '''
-    def __init__(self, config=None, config_section=None):
-        self.config = config
-        self.config_section = config_section
-        self.parameters = dict()
-        self.enable = False
-        self.file_stdout = None
-        self.file_stderr = None
-        self.tee_stdout = None
-        self.tee_stderr = None
-
-    def _config_sanity_check(self):
-        '''
-        Check parameters from config.
-        Return True on success, False if there are errors
-        '''
+class MlLogMessages:
+    ''' ML Log: Log events and redirect STDOUT/STDERR to files '''
+    def __init__(self):
         pass
 
     def _context(self, frame_number=2):
@@ -121,13 +105,44 @@ class MlLog:
         if self.config.exit_on_fatal_error:
             sys.exit(1)
 
-    def _html(self, msg):
-        display.HTML(msg)
-
     def _info(self, msg):
         ''' Show an INFO message '''
         logml_logger.info(f"{msg}")
         sys.stderr.flush()
+
+    def set_log_level(self, level):
+        ''' A shortcut to setting log level '''
+        logml_logger.setLevel(level)
+
+    def _warning(self, msg):
+        ''' Show a warning message '''
+        logml_logger.warning(f"{self._context()}: {msg}")
+        sys.stderr.flush()
+
+
+class MlLog(MlLogMessages):
+    '''
+    ML Log: Log events and redirect STDOUT/STDERR to files
+    '''
+    def __init__(self, config=None, config_section=None):
+        self.config = config
+        self.config_section = config_section
+        self.parameters = dict()
+        self.enable = False
+        self.file_stdout = None
+        self.file_stderr = None
+        self.tee_stdout = None
+        self.tee_stderr = None
+
+    def _config_sanity_check(self):
+        '''
+        Check parameters from config.
+        Return True on success, False if there are errors
+        '''
+        pass
+
+    def _html(self, msg):
+        display.HTML(msg)
 
     def _set_from_config(self):
         '''
@@ -161,10 +176,6 @@ class MlLog:
                     ok = True
         return ok
 
-    def set_log_level(self, level):
-        ''' A shortcut to setting log level '''
-        logml_logger.setLevel(level)
-
     def _subtitle(self, msg):
         display.HTML(f"<h3>{msg}</h3>")
 
@@ -187,8 +198,3 @@ class MlLog:
 
     def _title(self, msg):
         display.HTML(f"<h1>{msg}</h1>")
-
-    def _warning(self, msg):
-        ''' Show a warning message '''
-        logml_logger.warning(f"{self._context()}: {msg}")
-        sys.stderr.flush()

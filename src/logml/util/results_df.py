@@ -3,8 +3,10 @@ import pandas as pd
 
 from IPython.core.display import Image, display
 
+from ..core.log import MlLogMessages
 
-class ResultsDf:
+
+class ResultsDf(MlLogMessages):
     def __init__(self, index=None):
         self.index = index
         self.df = None
@@ -68,6 +70,7 @@ class ResultsRankDf(ResultsDf):
         super().__init__(index)
         self.weights = dict()
         self.weight_default = 1.0
+        self.rank_column_names = set()
 
     def add_col_rank(self, name, vals, weight=None, reversed=False):
         ''' Add a column ranked by value '''
@@ -76,19 +79,21 @@ class ResultsRankDf(ResultsDf):
         ranks = s.rank(ascending=not reversed, na_option='bottom')
         self.add_col(name, ranks)
         self.add_weight(name, weight)
+        self.rank_column_names.add(name)
 
     def add_rank_of_ranksum(self):
         '''
         Add a (weighted) column with the sum of all columns having 'rank' in the name.
         Also, add the rank of the previous column (i.e. rank of 'rank sum')
         '''
+        self._debug(f"Rank of rank sums: columns={self.rank_column_names}")
         len = self.df.shape[0]
         ranks_sum = np.zeros(len)
-        for c in self.df.columns:
-            if 'rank' in c:
-                if c not in self.weights:
-                    self.weights[c] = self.weight_default
-                ranks_sum = ranks_sum + self.weights[c] * self.df[c]
+        for c in self.rank_column_names:
+            if c not in self.weights:
+                self.weights[c] = self.weight_default
+            self._debug(f"Adding column '{c}, weight {self.weights[c]}")
+            ranks_sum = ranks_sum + self.weights[c] * self.df[c]
         self.add_col("ranks_sum", ranks_sum)
         self.add_col_rank("rank_of_ranksum", ranks_sum)
 

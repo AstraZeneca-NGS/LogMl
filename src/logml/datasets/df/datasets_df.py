@@ -213,7 +213,10 @@ class DatasetsDf(Datasets):
         If 'new_name' is assigned, create a new column with that name instead of replacing the original column.
         Return: the original column values
         """
-        self._debug(f"Shuffling column {name}, is_restore={restore is not None}, new_name={new_name}")
+        if restore is None:
+            self._debug(f"Shuffling column {name}, new_name={new_name}")
+        else:
+            self._debug(f"Restoring column {name}")
         dfs, dfs_names = self._get_dfs(names=True)
         if restore is None:
             restore = [None] * len(dfs)
@@ -231,15 +234,16 @@ class DatasetsDf(Datasets):
             new_name: If not None, create a new column with that name. If None, replace original column
             df_name: DataFrame name (used for debugging)
         """
-        self._debug(f"Shuffling column {col_name}, is_restore={restore is not None}, new_name={new_name}, df_name={df_name}")
         if df is None:
             return None
         if restore is not None:
             # Restore original data (un-shuffle)
+            self._debug(f"Restoring column {col_name}, df_name={df_name}")
             df[col_name] = restore
             return restore
         else:
             # Shuffle column
+            self._debug(f"Shuffling column {col_name}, new_name={new_name}, df_name={df_name}")
             x_col = df[col_name].copy()
             c = col_name if new_name is None else new_name
             df[c] = np.random.permutation(x_col)

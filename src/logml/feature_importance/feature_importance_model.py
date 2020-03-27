@@ -108,6 +108,7 @@ class FeatureImportanceModel(MlFiles):
             perf_i = loss - self.loss_base
             self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, performance {perf_i}")
             perf.append(perf_i)
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {np.array(perf_i).ravel()}")
         self.performance[column_name] = perf
 
     def loss(self):
