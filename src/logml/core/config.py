@@ -12,6 +12,7 @@ from .registry import MlRegistry
 DEFAULT_YAML = "config.yaml"
 
 CONFIG_CONFIG = ''
+CONFIG_ANALYSIS = 'analysis'
 CONFIG_CROSS_VALIDATION = 'cross_validation'
 CONFIG_DATASET = 'dataset'
 CONFIG_DATASET_AUGMENT = 'dataset_augment'
@@ -71,6 +72,9 @@ class Config(MlFiles):
             for sec in [CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH]:
                 conf.set_enable(sec, enable=False)
         return conf
+
+    def __getitem__(self, key):
+        return self.get_parameters(key)
 
     def get_parameters(self, section):
         ''' Get 'section' parameters '''

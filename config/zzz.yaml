@@ -23,7 +23,7 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: true
+  enable: false
   enable_na: false
   is_dropcol_extra_trees: false
   is_dropcol_gradient_boosting: false
@@ -65,6 +65,11 @@ cross_validation:
     enable: true
     KFold:
         n_splits: 2
+
+analysis:
+  enable: true
+  gene_set_enrichment:
+      enable: true
 
 model:
   enable: false

@@ -8,6 +8,7 @@ import pandas as pd
 from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
+from ..analysis import AnalysisDf
 from ..datasets import Datasets, DatasetsCv, DatasetsDf, DfExplore
 from ..feature_importance import DataFeatureImportance
 from ..models import HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
@@ -54,6 +55,14 @@ class LogMl(MlFiles):
             self.initialize()
         self.model_results = ResultsDf()
 
+    def _analysis(self):
+        ''' Perform analises '''
+        if not self.is_dataset_df():
+            self._debug("Analysis: Only available for dataset type 'df', skipping")
+            return True
+        self.analysis = AnalysisDf(self.config, self.datasets)
+        return self.analysis()
+
     def __call__(self):
         ''' Execute model trainig '''
         self._info(f"LogMl: Start")
@@ -78,6 +87,10 @@ class LogMl(MlFiles):
             self._debug("Could not perform feature importance")
         if not self._feature_importance_na():
             self._debug("Could not perform feature importance of missing data")
+        # Analysis
+        if not self._analysis():
+            self._error("Could not analyze data")
+            return False
         # Model Train
         if not self.models_train():
             self._error("Could not train model")
