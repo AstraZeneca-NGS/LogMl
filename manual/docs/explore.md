@@ -56,7 +56,7 @@ All missing values are imputed on the pre-processed dataset, so any analysis rel
 
 ![Correlation analysis](img/corr_analysis.png)
 
-## Congig YAML
+### Config YAML
 
 These are the *config_YAML* options related to dataset exploration
 
@@ -102,6 +102,6 @@ dataset_explore:
   # Do not plot pairs if there are more than 'plot_pairs_max' varaibles
   plot_pairs_max: 20
 
-  # Consider a varaible 'normal' or 'log normal' if Shapiro-Wilks test is over this threshold
+  # Consider a variable 'normal' or 'log normal' if Shapiro-Wilks test is over this threshold
   shapiro_wilks_threshold: 0.1
 ```
