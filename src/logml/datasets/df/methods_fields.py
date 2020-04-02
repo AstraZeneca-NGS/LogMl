@@ -19,10 +19,12 @@ METHOD_SKIP_NAME = 'skip'
 
 
 class MatchFields(MlLog):
-    def __init__(self, config, section, field_names, outputs):
+    def __init__(self, config, section, subsection, field_names, outputs):
         super().__init__(config, section)
         self.field_names = field_names
         self.outputs = set(outputs)
+        self.section = section
+        self.subsection = subsection
 
     def match_fields(self, regex):
         """
@@ -32,20 +34,23 @@ class MatchFields(MlLog):
         """
         matched = [fname for fname in self.field_names if re.fullmatch(regex, fname) is not None]
         self._debug(f"Regex '{regex}' matched field names: {matched}")
+        if not matched:
+            self._debug(f"Regex '{regex}' (config section '{self.section}', subsection '{self.subsection}') did not match any of the field names: {self.field_names}")
         return matched
 
     def match_input_fields(self, regex):
         """ Match a regex only against input fields """
-        return [f for f in self.match_fields(regex) if f not in self.outputs]
+        matched = [f for f in self.match_fields(regex) if f not in self.outputs]
+        if not matched:
+            self._debug(f"Regex '{regex}' (config section '{self.section}', subsection '{self.subsection}') did not match any input field names: {[f for f in self.field_names if f not in self.outputs]}")
+        return matched
 
 
 class MethodsFields(MatchFields):
     ''' A mapping from methods to fields (e.g. normalization methods applied to fields)'''
 
     def __init__(self, config, section, subsection, method_names, field_names, outputs):
-        super().__init__(config, section, field_names, outputs)
-        self.section = section
-        self.subsection = subsection
+        super().__init__(config, section, subsection, field_names, outputs)
         self.method_names = method_names
         self.fields_by_method = dict()
         self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
@@ -100,7 +105,7 @@ class MethodsFields(MatchFields):
         fields_by_method = self.__dict__[self.subsection]
         for method_name, fields in fields_by_method.items():
             if fields is True:
-                pass    # 'True' meand use as default method
+                pass    # 'True' means use as default method
             else:
                 # Resolve each item in 'fields', then flatten list
                 fields = [f for item in fields for f in self.match_fields(item)]
@@ -139,10 +144,8 @@ class FieldsParams(MatchFields):
     """
 
     def __init__(self, df, config, section, subsection, field_names, outputs, params=None, madatory_params=None):
-        super().__init__(config, section, field_names, outputs)
+        super().__init__(config, section, subsection, field_names, outputs)
         self.df = df
-        self.section = section
-        self.subsection = subsection
         self.params = params
         self.madatory_params = madatory_params
         self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
