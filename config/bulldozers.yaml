@@ -29,7 +29,7 @@ dataset:
   dates: ['saledate']
 
   # One hot encoding
-  ont_hot: ['Enclosure_Type']
+  one_hot: ['Enclosure_Type']
   one_hot_max_cardinality: 7
 
   # Output variables (what we want to predict)

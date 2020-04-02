@@ -317,7 +317,7 @@ There are several <em>named_workflow_steps</em> taking care of different aspects
 <ol>
 <li>Sanitize variables names: Convert names so that characters outside the set <code>[_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]</code> are converted to <code>_</code> (underscore)</li>
 <li>Convert to categorical: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>categories</code> are converted into categorical data and converted to a numerical (integer) representation. Category <code>0</code> represents missing values.</li>
-<li>Convert to one-hot: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>ont_hot</code> are converted into one-hot encoding. Also, any categorical field that has a cardinality (i.e. number of categories) equal or less then <code>one_hot_max_cardinality</code> is converted to one-hot encoding. If there are missing values, a column <code>*_isna</code> is added to the one-hot encoding.</li>
+<li>Convert to one-hot: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>one_hot</code> are converted into one-hot encoding. Also, any categorical field that has a cardinality (i.e. number of categories) equal or less then <code>one_hot_max_cardinality</code> is converted to one-hot encoding. If there are missing values, a column <code>*_isna</code> is added to the one-hot encoding.</li>
 <li>Missing data indicators: In any column having missing values that was not converted to date, categorical or one-hot; a new column <code>*_na</code> is created (where the value is '1' if the field has missing a value) and the missing values are replaced by the median of the non-missing values.</li>
 <li>Expand date/time features: Fields defined in the <em>config_YAML</em> file, section <code>dataset</code>, sub-section <code>dates</code> are treated as date/time when the dataFrame CSV is loaded and then expanded into several columns: <code>[Year, Month, Day, DayOfWeek, Hour, Minute, Second, etc.]</code>.</li>
 <li>Remove samples with missing outputs: Can be disables using <em>config_YAML</em> option <code>remove_missing_outputs</code></li>
@@ -355,7 +355,7 @@ There are several <em>named_workflow_steps</em> taking care of different aspects
   is_sanitize_column_names: True
 
   # One hot encoding: List of variable to transform to one_hot
-  ont_hot: ['Enclosure_Type']
+  one_hot: ['Enclosure_Type']
 
   # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
   one_hot_max_cardinality: 7

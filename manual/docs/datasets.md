@@ -148,7 +148,7 @@ The default method for DataFrame pre-processing does:
 
 1. Sanitize variables names: Convert names so that characters outside the set `[_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]` are converted to `_` (underscore)
 1. Convert to categorical: Fields defined in the *config_YAML* file, section `dataset`, sub-section `categories` are converted into categorical data and converted to a numerical (integer) representation. Category `0` represents missing values.
-1. Convert to one-hot: Fields defined in the *config_YAML* file, section `dataset`, sub-section `ont_hot` are converted into one-hot encoding. Also, any categorical field that has a cardinality (i.e. number of categories) equal or less then `one_hot_max_cardinality` is converted to one-hot encoding. If there are missing values, a column `*_isna` is added to the one-hot encoding.
+1. Convert to one-hot: Fields defined in the *config_YAML* file, section `dataset`, sub-section `one_hot` are converted into one-hot encoding. Also, any categorical field that has a cardinality (i.e. number of categories) equal or less then `one_hot_max_cardinality` is converted to one-hot encoding. If there are missing values, a column `*_isna` is added to the one-hot encoding.
 1. Missing data indicators: In any column having missing values that was not converted to date, categorical or one-hot; a new column `*_na` is created (where the value is '1' if the field has missing a value) and the missing values are replaced by the median of the non-missing values.
 1. Expand date/time features: Fields defined in the *config_YAML* file, section `dataset`, sub-section `dates` are treated as date/time when the dataFrame CSV is loaded and then expanded into several columns: `[Year, Month, Day, DayOfWeek, Hour, Minute, Second, etc.]`.
 1. Remove samples with missing outputs: Can be disables using *config_YAML* option `remove_missing_outputs`
@@ -188,7 +188,7 @@ dataset_preprocess:
   is_sanitize_column_names: True
 
   # One hot encoding: List of variable to transform to one_hot
-  ont_hot: ['Enclosure_Type']
+  one_hot: ['Enclosure_Type']
 
   # One hot encoding: Encode all variables having a cardinality less or equal to 'one_hot_max_cardinality'
   one_hot_max_cardinality: 7
