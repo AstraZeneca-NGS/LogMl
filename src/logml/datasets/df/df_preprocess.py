@@ -336,7 +336,7 @@ class DfPreprocess(MlLog):
                 continue
             for fname in self.df.columns:
                 try:
-                    if re.match(regex, fname) is not None:
+                    if re.fullmatch(regex, fname) is not None:
                         self._debug(f"Field name '{fname}' matches regular expression '{regex}': Using values {self.categories[regex]}")
                         categories_add[fname] = self.categories[regex]
                         if fname != regex:

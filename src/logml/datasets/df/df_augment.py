@@ -36,6 +36,15 @@ class DfAugment(MlLog):
         self.dfs = list()
         self.outputs = outputs
         self.model_type = model_type
+        self.add = dict()
+        self.sub = dict()
+        self.div = dict()
+        self.log_ratio = dict()
+        self.logp1_ratio = dict()
+        self.mult = dict()
+        self.nmf = dict()
+        self.pca = dict()
+        self.__dict__['and'] = dict()  # Writing 'self.and' is a sysntax error
         if set_config:
             self._set_from_config()
 

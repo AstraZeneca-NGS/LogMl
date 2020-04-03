@@ -154,9 +154,8 @@ class FieldsParams(MatchFields):
         self.df = df
         self.params = params
         self.madatory_params = madatory_params
-        self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
         self.name_fields_params = dict()
-        self._set_from_config()
+        # self._set_from_config()
         self._initialize()
 
     def array_to_df(self, x, cols):
