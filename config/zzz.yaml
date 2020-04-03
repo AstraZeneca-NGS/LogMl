@@ -16,6 +16,7 @@ dataset_preprocess:
   impute:
     median: true
   normalize:
+    enable: false
     standard: true
 
 dataset_augment:

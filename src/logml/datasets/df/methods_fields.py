@@ -5,7 +5,7 @@ import pandas as pd
 import re
 
 from collections import namedtuple
-from ...core.config import CONFIG_DATASET_PREPROCESS
+from ...core.config import CONFIG_DATASET_PREPROCESS, CONFIG_ENABLE
 from ...core.log import MlLog
 
 
@@ -26,7 +26,12 @@ class MatchFields(MlLog):
         self.section = section
         self.subsection = subsection
         # List of fields / regex, indexed by method, populated from config file
-        self.__dict__[self.subsection] = config.get_parameters(section).get(subsection, dict())
+        params = config.get_parameters(section).get(subsection, dict())
+        self.__dict__[self.subsection] = params
+        # Set 'enable' and remove from parameters
+        self.enable = params.get(CONFIG_ENABLE, True)
+        if CONFIG_ENABLE in params:
+            del params[CONFIG_ENABLE]
 
     def match_fields(self, regex):
         """
@@ -86,7 +91,6 @@ class MethodsFields(MatchFields):
             self._methods[n] = MethodAndFields(method=self.get_method(n), fields=self.get_fields(n))
 
     def _initialize(self):
-        self._error(f"INIT !!!")
         self._populate_fields_by_method()
         self._init_methods()
         self._set_default_method()

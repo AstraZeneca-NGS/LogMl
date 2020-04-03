@@ -19,6 +19,7 @@ CONFIG_DATASET_AUGMENT = 'dataset_augment'
 CONFIG_DATASET_EXPLORE = 'dataset_explore'
 CONFIG_DATASET_FEATURE_IMPORTANCE = "dataset_feature_importance"
 CONFIG_DATASET_PREPROCESS = 'dataset_preprocess'
+CONFIG_ENABLE = 'enable'
 CONFIG_FUNCTIONS = 'functions'
 CONFIG_HYPER_PARAMETER_OPTMIMIZATION = 'hyper_parameter_optimization'
 CONFIG_LOGGER = 'logger'
