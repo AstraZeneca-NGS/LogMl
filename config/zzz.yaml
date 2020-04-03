@@ -11,6 +11,8 @@ dataset_preprocess:
   enable: true
   categories:
     y: ['small', 'med', 'large']
+  one_hot: []
+  one_hot_max_cardinality: 7
   impute:
     median: true
   normalize:

@@ -25,6 +25,8 @@ class MatchFields(MlLog):
         self.outputs = set(outputs)
         self.section = section
         self.subsection = subsection
+        # List of fields / regex, indexed by method, populated from config file
+        self.__dict__[self.subsection] = config.get_parameters(section).get(subsection, dict())
 
     def match_fields(self, regex):
         """
@@ -35,14 +37,14 @@ class MatchFields(MlLog):
         matched = [fname for fname in self.field_names if re.fullmatch(regex, fname) is not None]
         self._debug(f"Regex '{regex}' matched field names: {matched}")
         if not matched:
-            self._debug(f"Regex '{regex}' (config section '{self.section}', subsection '{self.subsection}') did not match any of the field names: {self.field_names}")
+            self._fatal_error(f"Regex '{regex}' (config section '{self.section}', subsection '{self.subsection}') did not match any of the field names: {list(self.field_names)}")
         return matched
 
     def match_input_fields(self, regex):
         """ Match a regex only against input fields """
         matched = [f for f in self.match_fields(regex) if f not in self.outputs]
         if not matched:
-            self._debug(f"Regex '{regex}' (config section '{self.section}', subsection '{self.subsection}') did not match any input field names: {[f for f in self.field_names if f not in self.outputs]}")
+            self._fatal_error(f"Regex '{regex}' (config section '{self.section}', subsection '{self.subsection}') did not match any input field names: {[f for f in self.field_names if f not in self.outputs]}")
         return matched
 
 
@@ -53,7 +55,6 @@ class MethodsFields(MatchFields):
         super().__init__(config, section, subsection, field_names, outputs)
         self.method_names = method_names
         self.fields_by_method = dict()
-        self.__dict__[self.subsection] = dict()     # List of fields indexed by method (this is populated from config file)
 
     def find_method(self, name):
         '''
@@ -85,6 +86,7 @@ class MethodsFields(MatchFields):
             self._methods[n] = MethodAndFields(method=self.get_method(n), fields=self.get_fields(n))
 
     def _initialize(self):
+        self._error(f"INIT !!!")
         self._populate_fields_by_method()
         self._init_methods()
         self._set_default_method()

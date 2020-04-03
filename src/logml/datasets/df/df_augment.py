@@ -8,7 +8,6 @@ from ...core.config import CONFIG_DATASET_AUGMENT
 from ...core.log import MlLog
 from ...util.counter_dim import CounterDimIncreasing
 from .df_normalize import DfNormalize
-from .df_impute import DfImpute
 from .methods_fields import FieldsParams
 
 

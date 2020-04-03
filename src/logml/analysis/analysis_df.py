@@ -10,6 +10,7 @@ class AnalysisDf(MlFiles):
     def __init__(self, config, datasets, set_config=True):
         super().__init__(config, CONFIG_ANALYSIS)
         self.datasets = datasets
+        self.gene_set_enrichment = dict()
         if set_config:
             self._set_from_config()
         self.config_analysis = self.config[CONFIG_ANALYSIS]
