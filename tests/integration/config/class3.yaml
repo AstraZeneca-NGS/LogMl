@@ -12,7 +12,7 @@ dataset_preprocess:
   enable: true
   normalize:
     standard: true
-    minmax: ['c1', 'c2']
+    # minmax: ['c1', 'c2']
     skip: ['y']
   impute:
     median: true

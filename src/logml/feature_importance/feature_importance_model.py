@@ -119,21 +119,28 @@ class FeatureImportanceModel(MlFiles):
         """
         raise Exception("Unimplemented!")
 
-    def plot(self, x=None):
+    def plot(self):
         " Plot importance distributions "
         names = np.array([self.columns])
         imp = np.array(self.importances)
         # Show bar plot
         fig = plt.figure()
         y_pos = np.arange(len(imp))
-        plt.barh(y_pos, imp, tick_label=self.columns)
-        self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
+        try:
+            plt.barh(y_pos, imp, tick_label=self.columns)
+            self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}", 'dataset_feature_importance_dropcolumn', fig, count_vars_y=len(self.performance))
+        except Exception as e:
+            self._error(f"Feature importance {self.importance_name}, {self.model_type}: Exception trying to bar plot, exception: {e}, y_pos: {y_pos}, importances: {imp}")
         # Plot performance histogram
-        fig = plt.figure()
         values = [v for vs in self.performance.values() for v in vs]
         values = np.array(values).ravel()
-        sns.distplot(values)
-        self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
+        fig = plt.figure()
+        try:
+            # Sometimes the distribution cannot be created (e.g. an exception is thrown when calculating the kernel density)
+            sns.distplot(values)
+            self._plot_show(f"Feature importance {self.importance_name}: {self.model_type}: Performance histogram", 'dataset_feature_importance_dropcolumn_histo', fig)
+        except Exception as e:
+            self._error(f"Feature importance {self.importance_name}, {self.model_type}: Exception while trying to create distribution plot, exception: {e}, values to plot: {values}")
 
     def pvalue(self, col_name, null_values):
         """

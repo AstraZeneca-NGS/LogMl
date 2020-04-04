@@ -174,6 +174,8 @@ class MlLog(MlLogMessages):
                     self._debug(f"Setting field '{field_name}' to '{val}'")
                     self.__dict__[field_name] = val
                     ok = True
+            else:
+                self._fatal_error(f"Unknown field '{field_name}', class '{type(self).__name__}', setting from config file {self.config.config_file}, section {self.config_section}")
         return ok
 
     def _subtitle(self, msg):

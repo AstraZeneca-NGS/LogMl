@@ -23,8 +23,8 @@ class DfImpute(MethodsFields):
         self.df = df
         self.model_type = model_type
         self.outputs = set(outputs)
-        if set_config:
-            self._set_from_config()
+        # if set_config:
+        #     self._set_from_config()
         self._initialize()
 
     def __call__(self):

@@ -15,7 +15,7 @@ TEST_UNIT_NAME=""
 # TEST_UNIT_NAME="-"  # Disable Unit testing
 # TEST_UNIT_NAME="TestLogMl.test_dataset_feature_importance_009"
 TEST_INTEGRATION_NAME=""
-# TEST_INTEGRATION_NAME="TestLogMlIntegration.test_class3"
+# TEST_INTEGRATION_NAME="TestLogMlIntegration.test_linear3c"
 
 #---
 # Unit testing

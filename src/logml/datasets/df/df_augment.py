@@ -8,7 +8,6 @@ from ...core.config import CONFIG_DATASET_AUGMENT
 from ...core.log import MlLog
 from ...util.counter_dim import CounterDimIncreasing
 from .df_normalize import DfNormalize
-from .df_impute import DfImpute
 from .methods_fields import FieldsParams
 
 
@@ -37,6 +36,15 @@ class DfAugment(MlLog):
         self.dfs = list()
         self.outputs = outputs
         self.model_type = model_type
+        self.add = dict()
+        self.sub = dict()
+        self.div = dict()
+        self.log_ratio = dict()
+        self.logp1_ratio = dict()
+        self.mult = dict()
+        self.nmf = dict()
+        self.pca = dict()
+        self.__dict__['and'] = dict()  # Writing 'self.and' is a sysntax error
         if set_config:
             self._set_from_config()
 

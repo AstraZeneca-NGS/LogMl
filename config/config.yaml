@@ -105,7 +105,7 @@ dataset_preprocess:
   is_sanitize_column_names: True
 
   # One hot encoding: List of variable to transform to one_hot
-  ont_hot: ['Enclosure_Type']
+  one_hot: ['Enclosure_Type']
 
   # One hot encoding: Encode all variables having a cardinality less or equal
   # to 'one_hot_max_cardinality'
@@ -489,6 +489,8 @@ cross_validation:
     # ShuffleSplit:
     #     n_splits: 5
     #     test_size: 0.25
+
+
 #---
 # Hyper-parameter optimization.
 #---

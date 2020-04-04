@@ -33,10 +33,12 @@ class DfPreprocess(MlLog):
         self.category_column = dict()  # Store Pandas categorical definition
         self.columns_to_add = dict()
         self.columns_to_remove = set()
-        self.na_columns = set()     # Columns added as 'missing data' indicators
         self.dates = list()  # Convert these fields to dates and expand to multiple columns
+        self.impute = dict()
         self.is_sanitize_column_names = True
         self.model_type = model_type
+        self.na_columns = set()  # Columns added as 'missing data' indicators
+        self.normalize = dict()
         self.normalize_df = None
         self.one_hot = list()  # Convert these fields to 'one hot encoding'
         self.one_hot_max_cardinality = 7
@@ -165,15 +167,29 @@ class DfPreprocess(MlLog):
         # Forced categories from YAML config
         self._debug(f"Converting to categorical: Start")
         self.category_re_expand()
+        one_hot_added = set()
         for field_name in self.df.columns:
             if not self.is_categorical_column(field_name):
                 continue
             if field_name in self.categories:
                 self._create_category(field_name)
-            elif field_name in self.one_hot or self.should_be_one_hot(field_name):
+            elif field_name in self.one_hot:
+                one_hot_added.add(field_name)
+                self._create_one_hot(field_name)
+            elif self.should_be_one_hot(field_name):
                 self._create_one_hot(field_name)
             else:
                 self._create_category(field_name)
+        # Sanity check: Make sure all variables defined in 'categories' have been converted
+        categories_defined = set(self.categories.keys())
+        categories_created = set(self.category_column.keys())
+        categories_diff = categories_defined.difference(categories_created)
+        if categories_diff:
+            self._fatal_error(f"Some variables were not converted to categories: {categories_diff}. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', sub-section 'categories'.")
+        # Sanity check: Make sure all variables defined in 'one_hot' have been converted
+        one_hot_diff = [f for f in self.one_hot if f not in one_hot_added]
+        if one_hot_diff:
+            self._fatal_error(f"Some variables were not converted to one_hot: {one_hot_diff}. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', sub-section 'one_hot'.")
         self._debug(f"Converting to categorical: End")
 
     def _create_category(self, field_name):
@@ -313,19 +329,22 @@ class DfPreprocess(MlLog):
         """
         Find all matches for regular expressions and update self.categories with matched values
         """
-        categories_add = dict()
+        categories_add, categories_del = dict(), set()
         for regex in self.categories:
             if len(regex) < 1:
                 self._debug(f"Bad entry for 'categories': {regex}")
                 continue
             for fname in self.df.columns:
                 try:
-                    if re.match(regex, fname) is not None:
+                    if re.fullmatch(regex, fname) is not None:
                         self._debug(f"Field name '{fname}' matches regular expression '{regex}': Using values {self.categories[regex]}")
                         categories_add[fname] = self.categories[regex]
+                        if fname != regex:
+                            categories_del.add(regex)
                 except Exception as e:
                     self._error(f"Category regex: Error trying to match regular expression: '{regex}'\nException: {e}\n{traceback.format_exc()}")
         # Update dictionary with regex matched values
+        [self.categories.pop(k) for k in categories_del]
         self.categories.update(categories_add)
 
     def nas(self):
