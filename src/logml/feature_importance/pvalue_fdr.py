@@ -114,7 +114,7 @@ class PvalueFdr(MlFiles):
             if c in x_vars:
                 null_vars.append(c)
             else:
-                self._info(f"{self.algorithm} ({self.tag}): Variable '{c}' does not exists in dataset, ommiting")
+                self._fatal_error(f"{self.algorithm} ({self.tag}): Null model variable '{c}' does not exists in dataset!")
         self.null_model_variables = null_vars
         return len(null_vars) > 0
 
