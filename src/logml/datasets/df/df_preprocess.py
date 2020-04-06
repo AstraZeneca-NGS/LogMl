@@ -203,11 +203,13 @@ class DfPreprocess(MlLog):
             categories = cat_values.get('values')
             one_based = cat_values.get('one_based', True)
             scale = cat_values.get('scale', True)
+            strict = cat_values.get('strict', True)
         self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
         xi_cat = xi.astype('category').cat.as_ordered()
         # Categories can be either 'None' or a list
         if categories:
+            !!!!!!!!!!! CHECK IF CATEGORIES MATCH: FATAL ERROR IF 'strict' IS TRUE, INFO MESSAEG OTHERWISE !!!!!!!!
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
         df_cat = pd.DataFrame()
@@ -215,6 +217,8 @@ class DfPreprocess(MlLog):
         add_to_codes = 0
         missing_values = codes < 0
         if np.any(missing_values):
+            # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
+            add_to_codes = 1 if one_based else 0
             if field_name in self.outputs and self.remove_missing_outputs:
                 # We need to remove these missing outputs as well. These outputs
                 # might be created when we forced the cathegory values. For
@@ -222,10 +226,7 @@ class DfPreprocess(MlLog):
                 # to ['a', 'b'], all the input having values 'c' will now be 'NA'.
                 # Since 'remove_missing_outputs' optione is active, we have to remove these new 'NA' rows
                 self._remove_rows_with_missing_outputs(rows_to_remove=missing_values)
-                add_to_codes = 0
             else:
-                # Note: Add one so that "missing" is zero instead of "-1"
-                add_to_codes = 1 if one_based else 0
                 self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
         # Offset codes
         codes += add_to_codes
@@ -393,6 +394,10 @@ class DfPreprocess(MlLog):
             self._debug("Remove missing outputs disabled, skipping")
             return
         self._debug(f"Remove samples with missing outputs: Start, outputs: {self.outputs}")
+
+
+        !!!!!!!! self.datasets.remove_samples   !!!!!
+
         if rows_to_remove is None:
             rows_to_remove = self.df[self.outputs].isna().any(axis=1)
         if rows_to_remove.sum() > 0:

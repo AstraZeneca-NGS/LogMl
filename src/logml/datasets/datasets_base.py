@@ -338,6 +338,12 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
+    def remove_samples(self, idx):
+        """
+        Remove a list of samples from the dataset, e.g. remove rows from a dataframe
+        """
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
     def reset(self, soft=False):
         """
         Reset all datasets (train, test, validate), by setting them to None
