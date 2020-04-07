@@ -196,7 +196,7 @@ class DfPreprocess(MlLog):
         " Convert field to category numbers "
         is_input = field_name not in self.outputs
         cat_values = self.categories.get(field_name)
-        categories, one_based, scale = None, True, is_input
+        categories, one_based, scale, strict = None, True, is_input, True
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
@@ -209,7 +209,13 @@ class DfPreprocess(MlLog):
         xi_cat = xi.astype('category').cat.as_ordered()
         # Categories can be either 'None' or a list
         if categories:
-            !!!!!!!!!!! CHECK IF CATEGORIES MATCH: FATAL ERROR IF 'strict' IS TRUE, INFO MESSAEG OTHERWISE !!!!!!!!
+            cats_derived = set(xi_cat.cat.categories)
+            cats = set(categories)
+            if cats != cats_derived:
+                if strict:
+                    self._fatal_error(f"Field '{field_name}' categories {cats_derived} do not match the expected ones {cats} from config file.")
+                else:
+                    self._debug(f"Field '{field_name}' categories {cats_derived} do not match the expected ones {cats} from config file. Converting to 'missing' values")
             xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
         self.category_column[field_name] = xi_cat
         df_cat = pd.DataFrame()
@@ -394,10 +400,19 @@ class DfPreprocess(MlLog):
             self._debug("Remove missing outputs disabled, skipping")
             return
         self._debug(f"Remove samples with missing outputs: Start, outputs: {self.outputs}")
-
-
-        !!!!!!!! self.datasets.remove_samples   !!!!!
-
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        # TODO: !!!!!!!!!
+        self._fatal_error("!!!!!!!! self.datasets.remove_samples   !!!!!")
         if rows_to_remove is None:
             rows_to_remove = self.df[self.outputs].isna().any(axis=1)
         if rows_to_remove.sum() > 0:

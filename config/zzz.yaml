@@ -10,7 +10,7 @@ dataset:
 dataset_preprocess:
   enable: true
   categories:
-    y: ['small', 'med', 'large']
+    c1: ['small', 'mid', 'high']
   one_hot: []
   one_hot_max_cardinality: 7
   impute:
