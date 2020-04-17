@@ -98,6 +98,7 @@ class DataFeatureImportance(MlFiles):
         self.tag = tag
         self.weights = dict()
         self.x, self.y = None, None
+        self.x_train, self.y_train = None, None
 
     def boruta(self):
         ''' Calculate feature improtance using Boruta algorithm '''
@@ -107,7 +108,7 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance {self.tag}: Boruta algorithm")
         model = self.fit_random_forest()
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
-        boruta.fit(self.x, self.y)
+        boruta.fit(self.x_train, self.y_train)
         self.results.add_col('boruta_support', boruta.support_)
         self.results.add_col_rank('boruta_rank', boruta.ranking_)
 
@@ -122,7 +123,8 @@ class DataFeatureImportance(MlFiles):
         # Add random inputs (shuffled columns)
         self.random_inputs_added = self.random_inputs_add()
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
-        self.x, self.y = self.datasets.get_train_xy()
+        self.x, self.y = self.datasets.get_xy()
+        self.x_train, self.y_train = self.datasets.get_train_xy()
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
         self.results = ResultsRankDf(inputs)
         self.feature_importance_models()
@@ -355,14 +357,14 @@ class DataFeatureImportance(MlFiles):
             self._debug("Linear regression (p-value): Not a regression model, skipping")
             return True
         self._info(f"Linear regression (p-value) {self.tag}: Start")
-        pvalue_linear = PvalueLinear(self.datasets, self.linear_pvalue_null_model_variables, self.tag)
-        ok = pvalue_linear()
+        plin = PvalueLinear(self.datasets, self.linear_pvalue_null_model_variables, self.tag)
+        ok = plin()
         if ok:
-            self.results.add_col(f"linear_coefficient", pvalue_linear.get_coefficients())
-            self.results.add_col(f"linear_p_values", pvalue_linear.get_pvalues())
-            self.results.add_col(f"linear_p_values_fdr", pvalue_linear.p_values_corrected)
-            self.results.add_col(f"linear_significant", pvalue_linear.rejected)
-            self.results.add_col_rank(f"linear_p_values_rank", pvalue_linear.get_pvalues(), reversed=False)
+            self.results.add_col(f"linear_coefficient", plin.get_coefficients())
+            self.results.add_col(f"linear_p_values", plin.get_pvalues())
+            self.results.add_col(f"linear_p_values_fdr", plin.p_values_corrected)
+            self.results.add_col(f"linear_significant", plin.rejected)
+            self.results.add_col_rank(f"linear_p_values_rank", plin.get_pvalues(), reversed=False)
         self._info(f"Linear regression (p-value) {self.tag}: End")
         return ok
 
@@ -413,8 +415,8 @@ class DataFeatureImportance(MlFiles):
 
     def recursive_feature_elimination_model(self, model, model_name):
         ''' Use RFE to estimate parameter importance based on model '''
-        self._debug(f"Feature importance {self.tag}: Recursive Feature Elimination, model '{model_name}'")
         weight = model.eval_validate if model.model_eval_validate() else None
+        self._debug(f"Feature importance {self.tag}: Recursive Feature Elimination, model '{model_name}', x.shape={self.x.shape}, x.shape={self.y.shape}, weight={weight}")
         skmodel = model.model
         if self.rfe_model_cv > 1:
             rfe = RFECV(skmodel, min_features_to_select=1, cv=self.rfe_model_cv)
@@ -505,7 +507,7 @@ class DataFeatureImportance(MlFiles):
         elif self.is_classification():
             funcs = {f_classif: True, mutual_info_classif: False}
             # Chi^2 only works on non-negative values
-            if (self.x < 0).all(axis=None):
+            if (self.x_train < 0).all(axis=None):
                 funcs[chi2] = True
         else:
             raise Exception(f"Unknown model type '{self.model_type}'")
@@ -523,6 +525,7 @@ class DataFeatureImportance(MlFiles):
         else:
             self._debug(f"Select K-Best: '{fname}'")
             select = SelectKBest(score_func=score_function, k='all')
+        self._debug(f"Select '{fname}': x.shape={self.x.shape}, y.shape={self.y.shape}")
         fit = select.fit(self.x, self.y)
         keep = select.get_support()
         field_name = f"scores_{fname}"
@@ -567,7 +570,7 @@ class DataFeatureImportance(MlFiles):
         # Export the tree to a graphviz 'dot' format
         str_tree = export_graphviz(skmodel.estimators_[0],
                                    out_file=file_dot,
-                                   feature_names=self.x.columns,
+                                   feature_names=self.x_train.columns,
                                    filled=True,
                                    rounded=True)
         self._info(f"Created dot file: '{file_dot}'")
@@ -588,8 +591,7 @@ class DataFeatureImportance(MlFiles):
         if not self.wilks_null_model_variables:
             self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
             return False
-        _, y = self.datasets.get_xy()
-        cats = get_categories(y)
+        cats = get_categories(self.y)
         self._info(f"Logistic regression, Wilks {self.tag}: Start. Categories: {cats}")
         if len(cats) < 2:
             self._error(f"Logistic regression, Wilks {self.tag}: At least two categories required. Categories: {cats}")

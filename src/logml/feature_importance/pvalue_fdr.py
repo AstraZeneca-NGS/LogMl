@@ -61,7 +61,7 @@ class PvalueFdr(MlFiles):
 
     def __call__(self):
         # Base performance
-        self._debug(f"{self.algorithm} ({self.tag}): Start, null model variables {self.null_model_variables}")
+        self._debug(f"{self.algorithm} ({self.tag}): Start, null model variables {self.null_model_variables}, x.shape={self.x.shape}, y.shape={self.y.shape}")
         if not self.filter_null_variables():
             if self.null_model_required:
                 self._error(f"{self.algorithm} ({self.tag}): No variables left for null model")
