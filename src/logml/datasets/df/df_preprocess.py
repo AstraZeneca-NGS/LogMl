@@ -25,9 +25,10 @@ class DfPreprocess(MlLog):
     apply these changes to the original dataframe to create a new dataframe.
     '''
 
-    def __init__(self, df, config, outputs, model_type, set_config=True):
+    def __init__(self, datasets, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS)
-        self.df = df
+        self.datasets = datasets
+        self.df = datasets.dataset
         self.balance = False
         self.categories = dict()  # Fields to be converted to categorical. Entries are list of categories
         self.category_column = dict()  # Store Pandas categorical definition
@@ -118,13 +119,13 @@ class DfPreprocess(MlLog):
         self._debug(f"Preprocessing dataframe: Start. Shape: {self.df.shape}")
         self._sanitize_column_names()
         self._shuffle()
-        self._remove_rows_with_missing_outputs()
         self._remove_columns()
         self.convert_dates()
         self.create_categories()
-        self.df = self.create()  # We have to create the new df before replacing nas, in case the dates have missing data
+        self.set_df(self.create())  # We have to create the new df before replacing nas, in case the dates have missing data
+        self.set_df(self._remove_rows_with_missing_outputs())
         self.nas()
-        self.df = self.create()
+        self.set_df(self.create())
         self._remove_columns_after()
         self.drop_all_na()
         self.drop_zero_std()
@@ -137,6 +138,11 @@ class DfPreprocess(MlLog):
         self._debug(f"Preprocessing dataframe: End. Shape: {self.df.shape}")
         return self.df
 
+    def set_df(self, df):
+        self.df = df
+        self.datasets.dataset = self.df
+        return self.df
+
     def create(self):
         """ Create a new dataFrame based on the previously calculated conversions """
         self._debug(f"Creating transformed dataset: Start")
@@ -145,9 +151,6 @@ class DfPreprocess(MlLog):
         # Drop old columns categorical columns
         df_new.drop(list(self.columns_to_remove), axis=1, inplace=True)
         # Join new columns
-        # for c in self.columns_to_add:
-        #     self._debug(f"Creating transformed dataset: Adding columns '{c}'")
-        #     df_new = df_new.join(self.columns_to_add[c])
         if len(self.columns_to_add) > 0:
             dfs = list([df_new])
             dfs.extend(self.columns_to_add.values())
@@ -225,15 +228,7 @@ class DfPreprocess(MlLog):
         if np.any(missing_values):
             # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
             add_to_codes = 1 if one_based else 0
-            if field_name in self.outputs and self.remove_missing_outputs:
-                # We need to remove these missing outputs as well. These outputs
-                # might be created when we forced the cathegory values. For
-                # instance the real cathegories are ['a', 'b', 'c'] and we forced them
-                # to ['a', 'b'], all the input having values 'c' will now be 'NA'.
-                # Since 'remove_missing_outputs' optione is active, we have to remove these new 'NA' rows
-                self._remove_rows_with_missing_outputs(rows_to_remove=missing_values)
-            else:
-                self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
+            self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
         # Offset codes
         codes += add_to_codes
         # Scale values to range [0, 1]
@@ -394,31 +389,15 @@ class DfPreprocess(MlLog):
         self._info(f"Removing columns (after): {self.remove_columns_after}")
         self.df.drop(self.remove_columns_after, inplace=True, axis=1)
 
-    def _remove_rows_with_missing_outputs(self, rows_to_remove=None):
-        ''' Remove rows if output variable/s are missing '''
+    def _remove_rows_with_missing_outputs(self):
+        ''' Remove rows if output variable/s have missing values c'''
         if not self.remove_missing_outputs:
             self._debug("Remove missing outputs disabled, skipping")
             return
         self._debug(f"Remove samples with missing outputs: Start, outputs: {self.outputs}")
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        # TODO: !!!!!!!!!
-        self._fatal_error("!!!!!!!! self.datasets.remove_samples   !!!!!")
-        if rows_to_remove is None:
-            rows_to_remove = self.df[self.outputs].isna().any(axis=1)
-        if rows_to_remove.sum() > 0:
-            self.df_ori = self.df
-            self.df = self.df.loc[~rows_to_remove].copy()
-            self._info(f"Remove samples with missing outputs: Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {self.df_ori.shape}, new shape: {self.df.shape}")
+        for n in self.outputs:
+            self.datasets.remove_samples_if_missing(n)
+        return self.datasets.dataset
         self._debug(f"Remove samples with missing outputs: End")
 
     def rename_category_cols(self, df, prepend):

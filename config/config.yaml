@@ -15,7 +15,7 @@ logger:
 
   # Max table size to show
   display_max_columns: 1000
-  display.max_rows: 1000
+  display_max_rows: 1000
 
 #---
 # Dataset parameters

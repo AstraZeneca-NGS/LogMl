@@ -171,6 +171,9 @@ class DatasetsCv(DatasetsBase):
     def remove_inputs(self, names):
         [d.remove_inputs(names) for d in self.all()]
 
+    def remove_samples_if_missing(self, idx):
+        [d.remove_samples_if_missing(names) for d in self.all()]
+
     def reset(self, soft=False):
         return all([d.reset(soft) for d in self.all()])
 

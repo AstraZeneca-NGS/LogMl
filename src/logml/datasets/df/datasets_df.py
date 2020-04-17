@@ -28,7 +28,7 @@ def shape_or_none(df):
 class DatasetsDf(Datasets):
     '''
     A dataset based on a Pandas DataFrame
-    (i.e. Dataset.dataset must be a DataFrame)
+    (i.e. type(self.dataset) = DataFrame)
     '''
     def __init__(self, config, model_type=None, set_config=True):
         super().__init__(config, set_config=False)
@@ -116,7 +116,7 @@ class DatasetsDf(Datasets):
         if self.dataset_ori is None:
             # Keep a copy.copy of the original dataset
             self.dataset_ori = self.dataset
-        self.dataset_preprocess = DfPreprocess(self.dataset, self.config, self.outputs, self.model_type)
+        self.dataset_preprocess = DfPreprocess(self, self.config, self.outputs, self.model_type)
         self.dataset = self.dataset_preprocess()
         self._debug(f"Dataset preprocess: End")
         return True
@@ -202,6 +202,24 @@ class DatasetsDf(Datasets):
 
     def remove_inputs(self, names):
         [df.drop(columns=names, inplace=True) for df in self._get_dfs()]
+
+    def remove_samples_if_missing(self, name):
+        """
+        Remove any sample from the dataset if 'name' (an input or output) has a missing value in that sample.
+        E.g. In a dataframe, remove any row if column 'y' is NA
+        Note: This invalidates any split, so it should be performed before any split operation
+        """
+        assert(self.dataset_train is None)
+        assert(self.dataset_validate is None)
+        assert(self.dataset_test is None)
+        rows_to_remove = self.dataset[name].isna()
+        if rows_to_remove.sum() > 0:
+            self._debug(f"Remove samples with missing '{name}': {rows_to_remove.sum()} rows to remove")
+            orishape - self.dataset.shape
+            self.dataset = self.dataset.loc[~rows_to_remove].copy()
+            self._info(f"Remove samples with missing '{names}': Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {orishape}, new shape: {self.dataset.shape}")
+        else:
+            self._debug(f"Remove samples with missing '{name}': Nothing to remove")
 
     def set_column(self, col_name, values):
         self.dataset[col_name] = values
