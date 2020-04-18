@@ -445,7 +445,7 @@ class DataFeatureImportance(MlFiles):
             self.plot_lars(lars_aic, lars_bic)
 
     def regularization_model(self, model, model_name=None):
-        ''' Fit a modelularization model and show non-zero coefficients '''
+        ''' Fit a modularization model and show non-zero coefficients '''
         skmodel = model.model
         weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:

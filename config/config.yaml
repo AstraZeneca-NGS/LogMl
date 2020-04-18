@@ -490,7 +490,11 @@ cross_validation:
     # ShuffleSplit:
     #     n_splits: 5
     #     test_size: 0.25
-
+    # StratifiedKFold:
+    #     n_splits: 5
+    #     shuffle: false
+    # StratifiedShuffleSplit:
+    #     n_splits: 10
 
 #---
 # Hyper-parameter optimization.

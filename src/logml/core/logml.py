@@ -237,7 +237,7 @@ class LogMl(MlFiles):
         # Cross-validation enabled? Then we should wrap the dataset using a DatasetCv
         if self.cv_enable:
             self._debug(f"Using dataset class 'DatasetCv'")
-            ds = DatasetsCv(self.config, ds)
+            ds = DatasetsCv(self.config, ds, model_type)
         return ds
 
     def _new_model(self, config=None, datasets=None):
