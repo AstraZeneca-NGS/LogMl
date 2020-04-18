@@ -62,8 +62,9 @@ class FeatureImportanceModel(MlFiles):
         # Shuffle each column
         self.columns = self.datasets.get_input_names()
         cols_count = len(self.columns)
+        fi_sk = self.model.get_feature_importances()
         for i, c in enumerate(self.columns):
-            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}'")
+            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', raw importance: {fi_sk[i]}")
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
                 self.losses(c)
