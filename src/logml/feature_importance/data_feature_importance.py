@@ -16,6 +16,7 @@ from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, Gradient
 from sklearn.feature_selection import SelectFdr, SelectKBest, chi2, f_classif, f_regression, mutual_info_classif, mutual_info_regression, RFE, RFECV
 from sklearn.tree import export_graphviz
 
+from ..core import MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
 from .feature_importance_permutation import FeatureImportancePermutation
@@ -302,10 +303,10 @@ class DataFeatureImportance(MlFiles):
         return m
 
     def is_classification(self):
-        return self.model_type == 'classification'
+        return self.model_type == MODEL_TYPE_CLASSIFICATION
 
     def is_regression(self):
-        return self.model_type == 'regression'
+        return self.model_type == MODEL_TYPE_REGRESSION
 
     def plot_ic_criterion(self, model, name, color):
         '''

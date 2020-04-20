@@ -7,6 +7,7 @@ import re
 import traceback
 
 from collections import namedtuple
+from ...core import MODEL_TYPE_CLASSIFICATION
 from ...core.config import CONFIG_DATASET_PREPROCESS
 from ...core.log import MlLog
 from .df_normalize import DfNormalize
@@ -87,7 +88,7 @@ class DfPreprocess(MlLog):
         if not self.balance:
             self._debug(f"Balance: Disabled, skipping")
             return True
-        if self.model_type != 'classification':
+        if self.model_type != MODEL_TYPE_CLASSIFICATION:
             self._debug(f"Balance: Cannot balance for model type '{self.model_type}', skipping")
             return False
         y = self.df[self.outputs]
@@ -197,9 +198,9 @@ class DfPreprocess(MlLog):
 
     def _create_category(self, field_name):
         " Convert field to category numbers "
-        is_input = field_name not in self.outputs
+        is_output = field_name in self.outputs
         cat_values = self.categories.get(field_name)
-        categories, one_based, scale, strict = None, True, is_input, True
+        categories, one_based, scale, strict = None, True, not is_output, True
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
@@ -209,6 +210,7 @@ class DfPreprocess(MlLog):
             strict = cat_values.get('strict', True)
         self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
         xi = self.df[field_name]
+        xi_na = xi.isnull()
         xi_cat = xi.astype('category').cat.as_ordered()
         # Categories can be either 'None' or a list
         if categories:
@@ -225,23 +227,28 @@ class DfPreprocess(MlLog):
         codes = xi_cat.cat.codes
         add_to_codes = 0
         missing_values = codes < 0
-        if np.any(missing_values):
-            # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
-            add_to_codes = 1 if one_based else 0
-            self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
-        # Offset codes
-        codes += add_to_codes
-        # Scale values to range [0, 1]
-        if scale:
-            scale_factor = len(xi_cat.cat.categories) - 1 + add_to_codes
-            codes /= scale_factor
-            self._debug(f"Scaling to category field '{field_name}' by {scale_factor}")
-            # Fix missing values
-            codes[missing_values] = np.nan
+        if is_output:
+            # Outputs keep missing values
+            codes[xi_na] = np.nan
         else:
-            # Fix missing values. Since NaN is only for floats, when using
-            # integer numbers for codes we map missing to 0 or -1
-            codes[missing_values] = 0 if one_based else -1
+            # Inputs can code missing as zero or minus one
+            if np.any(missing_values):
+                # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
+                add_to_codes = 1 if one_based else 0
+                self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
+            # Offset codes
+            codes += add_to_codes
+            # Scale values to range [0, 1]
+            if scale:
+                scale_factor = len(xi_cat.cat.categories) - 1 + add_to_codes
+                codes /= scale_factor
+                self._debug(f"Scaling to category field '{field_name}' by {scale_factor}")
+                # Fix missing values
+                codes[missing_values] = np.nan
+            else:
+                # Fix missing values. Since NaN is only for floats, when using
+                # integer numbers for codes we map missing to 0 or -1
+                codes[missing_values] = 0 if one_based else -1
         df_cat[field_name] = codes
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df_cat

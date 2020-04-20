@@ -5,6 +5,7 @@ import pandas as pd
 import re
 from collections import namedtuple
 
+from ...core import MODEL_TYPE_CLASSIFICATION
 from ...core.config import CONFIG_DATASET_PREPROCESS
 from ...core.log import MlLog
 from .methods_fields import MethodsFields
@@ -58,7 +59,7 @@ class DfNormalize(MethodsFields):
         ''' Normalize variables '''
         self._debug("Normalizing dataset (dataframe): Start")
         fields_to_normalize = list(self.df.columns)
-        is_classification = (self.model_type == 'classification')
+        is_classification = (self.model_type == MODEL_TYPE_CLASSIFICATION)
         for c in fields_to_normalize:
             if not self.is_numertic(c):
                 self._debug(f"Normalize variable '{c}' is not numeric, skipping")

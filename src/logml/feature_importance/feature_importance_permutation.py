@@ -41,7 +41,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")
         self.model.model_train()
 
-    def loss(self):
+    def loss(self, is_base=False):
         """
         Train (if necesary) and calculate loss
         In this case, there is no training, just evaluate the loss

@@ -33,10 +33,9 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
         """ Restore column 'col_name' using values 'col_ori' """
         self.datasets.zero_input(col_name, col_ori)
 
-    def loss(self):
+    def loss(self, is_base=False):
         """ Train and calculate loss """
-        model_clone = self.model.clone()
+        model_clone = self.model if is_base else self.model.clone()
         model_clone.model_train()
         model_clone.model_eval_validate()
-        return model_clone.eval_validate
         return model_clone.eval_validate_values if self.is_cv else model_clone.eval_validate

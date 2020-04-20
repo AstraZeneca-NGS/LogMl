@@ -8,7 +8,7 @@ import sys
 import time
 import unittest
 
-from logml.core import LogMl
+from logml.core import LogMl, MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
 from logml.core.files import set_plots, MlFiles
 from logml.core.log import MlLog
@@ -464,7 +464,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -482,7 +482,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'regression', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_REGRESSION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -579,7 +579,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -602,12 +602,12 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        ds = DatasetsCv(config, ds)
+        ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -630,12 +630,12 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        ds = DatasetsCv(config, ds)
+        ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -751,7 +751,7 @@ class TestLogMl(unittest.TestCase):
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_004.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
-        ds = DatasetsDf(config, model_type='classification')
+        ds = DatasetsDf(config, model_type=MODEL_TYPE_CLASSIFICATION)
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
@@ -952,6 +952,13 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+
+    def test_dataset_preprocess_013(self):
+        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_013.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        self.assertTrue(False, f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     def test_files_001(self):
         mf = MlFiles()

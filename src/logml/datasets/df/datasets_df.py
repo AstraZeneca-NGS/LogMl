@@ -215,9 +215,9 @@ class DatasetsDf(Datasets):
         rows_to_remove = self.dataset[name].isna()
         if rows_to_remove.sum() > 0:
             self._debug(f"Remove samples with missing '{name}': {rows_to_remove.sum()} rows to remove")
-            orishape - self.dataset.shape
+            orishape = self.dataset.shape
             self.dataset = self.dataset.loc[~rows_to_remove].copy()
-            self._info(f"Remove samples with missing '{names}': Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {orishape}, new shape: {self.dataset.shape}")
+            self._info(f"Remove samples with missing '{name}': Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {orishape}, new shape: {self.dataset.shape}")
         else:
             self._debug(f"Remove samples with missing '{name}': Nothing to remove")
 
