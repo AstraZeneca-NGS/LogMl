@@ -335,7 +335,22 @@ class DatasetsBase(MlFiles):
     def remove_inputs(self, names):
         """
         Remove a list of inputs from the dataset, e.g. remove columns from a dataframe
+        Note: This invalidates any split, so it should be performed before any split operation
         """
+        assert(self.dataset_train is None)
+        assert(self.dataset_validate is None)
+        assert(self.dataset_test is None)
+        raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
+    def remove_samples_if_missing(self, name):
+        """
+        Remove any sample from the dataset if 'name' (an input or output) has a missing value in that sample.
+        E.g. In a dataframe, remove any row if column 'y' is NA
+        Note: This invalidates any split, so it should be performed before any split operation
+        """
+        assert(self.dataset_train is None)
+        assert(self.dataset_validate is None)
+        assert(self.dataset_test is None)
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def reset(self, soft=False):

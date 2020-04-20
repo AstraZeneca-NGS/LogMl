@@ -7,7 +7,12 @@ from ..core.files import MlFiles
 from .datasets_base import DatasetsBase, InOut
 
 
-CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
+CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit', 'StratifiedKFold', 'StratifiedShuffleSplit']
+
+
+def value_count_percent(y):
+    vc = y.value_counts(normalize=True)
+    return '{' + ', '.join([f"{i}: {(100 * r):.2f}%" for i, r in vc.iteritems()]) + '}'
 
 
 class DatasetsCv(DatasetsBase):
@@ -41,7 +46,7 @@ class DatasetsCv(DatasetsBase):
         ```
     """
 
-    def __init__(self, config, datasets, set_config=True):
+    def __init__(self, config, datasets, model_type, set_config=True):
         super().__init__(config, set_config)
         self.datasets = datasets    # Reference to original dataset
         self.cv_datasets = list()   # A list of datasets for each cross-validation
@@ -49,6 +54,7 @@ class DatasetsCv(DatasetsBase):
         self.cv_config = self.config.get_parameters(CONFIG_CROSS_VALIDATION)
         self.cv_enable = self.cv_config.get('enable', False)
         self.cv_count = 0
+        self.model_type = model_type
         if not self.cv_enable:
             self._fatal_error(f"Creating a cross-validation dataset (DatasetCv) when cross-validation is disables, This should never happen!")
         self.cv_type = next((k for k in self.cv_config.keys() if k in CV_METHODS), None)
@@ -87,11 +93,16 @@ class DatasetsCv(DatasetsBase):
         dlen = len(self.datasets)
         self._debug(f"DatasetsCv: Dataset length={dlen}")
         x = np.arange(dlen)
+        _, y = self.datasets.get_xy()  # We may need the outputs on stratified cross-validation
         # Get train and validate indeces for each split
-        for idx_train, idx_validate in cv_it.split(x):
+        for idx_train, idx_validate in cv_it.split(x, y):
             self._debug(f"DatasetsCv: Create cross-validation indexes: idx_train length = {len(idx_train)}, idx_validate length = {len(idx_validate)}")
             ds = self.datasets.clone(deep=True)
             ds.split_idx(idx_train, idx_validate)
+            if self.model_type == 'classification':
+                _, y = ds.get_train_xy()
+                yperc = value_count_percent(y)
+                self._debug(f"DatasetsCv: Create cross-validation {len(idx_train)}: class distribution: {yperc}")
             self.cv_datasets.append(ds)
             self._debug(f"DatasetsCv: Created datasets: {len(self.cv_datasets)}")
         self._debug(f"DatasetsCv: Create cross-validation indexes: End")
@@ -170,6 +181,9 @@ class DatasetsCv(DatasetsBase):
 
     def remove_inputs(self, names):
         [d.remove_inputs(names) for d in self.all()]
+
+    def remove_samples_if_missing(self, idx):
+        [d.remove_samples_if_missing(names) for d in self.all()]
 
     def reset(self, soft=False):
         return all([d.reset(soft) for d in self.all()])

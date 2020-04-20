@@ -56,7 +56,7 @@ class SkLearnModel(ModelCv):
     def default_model_predict(self, x):
         """ Default implementation for '@model_predict' """
         try:
-            self._debug(f"Model predict ({self.class_name}): Start")
+            self._debug(f"Model predict ({self.class_name}): Start, x.shape={x.shape}")
             y_hat = self.model.predict(x)
             self._debug(f"Model predict ({self.class_name}): End")
             return y_hat
@@ -67,7 +67,7 @@ class SkLearnModel(ModelCv):
     def default_model_train(self, x, y):
         """ Fit the model using training data """
         try:
-            self._debug(f"Model train ({self.class_name}): Start")
+            self._debug(f"Model train ({self.class_name}): Start, x.shape={x.shape}, y.shape={y.shape}")
             self.train_results = self.model.fit(x, y)
             self._debug(f"Model train ({self.class_name}): End")
             return True

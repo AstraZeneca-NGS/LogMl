@@ -15,7 +15,7 @@ logger:
 
   # Max table size to show
   display_max_columns: 1000
-  display.max_rows: 1000
+  display_max_rows: 1000
 
 #---
 # Dataset parameters
@@ -91,6 +91,7 @@ dataset_preprocess:
         values: ['WT', 'MUT']  # Values to use (optional)
         one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
         scale: true            # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If one_based is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
+        strict: true           # When categories do match the expected ones: If strict is true (defaul), fatal error. Otherwise, show a message and set not matching inputs as 'missing values'
     'var_.*':
         one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
 
@@ -489,7 +490,11 @@ cross_validation:
     # ShuffleSplit:
     #     n_splits: 5
     #     test_size: 0.25
-
+    # StratifiedKFold:
+    #     n_splits: 5
+    #     shuffle: false
+    # StratifiedShuffleSplit:
+    #     n_splits: 10
 
 #---
 # Hyper-parameter optimization.

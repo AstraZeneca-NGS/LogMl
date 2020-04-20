@@ -62,8 +62,9 @@ class FeatureImportanceModel(MlFiles):
         # Shuffle each column
         self.columns = self.datasets.get_input_names()
         cols_count = len(self.columns)
+        fi_sk = self.model.get_feature_importances()
         for i, c in enumerate(self.columns):
-            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}'")
+            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', raw importance: {fi_sk[i]}")
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
                 self.losses(c)
@@ -97,19 +98,20 @@ class FeatureImportanceModel(MlFiles):
         Calculate loss after changing the dataset for 'column_name'.
         Repeat 'num_iterations' and store results.
         """
-        perf = list()
+        perf, loss = list(), list()
         for i in range(self.num_iterations):
             # Change dataset, evaluate performance, restore originl dataset
             ori = self.dataset_change(column_name)
-            loss = self.loss()
+            loss_i = self.loss()
             self.dataset_restore(column_name, ori)
             # Performance is the loss difference respect to self.loss_base
-            # (the higher the loss, the more important the variable)
+            # (the higher the loss difference, the more important the variable)
             # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
-            perf_i = loss - self.loss_base
-            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, performance {array_to_str(perf_i)}")
+            perf_i = loss_i - self.loss_base
+            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, losses: {array_to_str(loss_i)}, performance: {array_to_str(perf_i)}")
             perf.append(perf_i)
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(np.array(perf))}")
+            loss.append(perf_i)
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
         self.performance[column_name] = perf
 
     def loss(self):
