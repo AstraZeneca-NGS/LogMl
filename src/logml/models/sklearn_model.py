@@ -14,7 +14,7 @@ from ..util.etc import camel_to_snake
 
 
 class SkLearnModel(ModelCv):
-    ''' Create a wrapper for a SkLearn model '''
+    """ Create a wrapper for a SkLearn model """
     def __init__(self, config, datasets, class_name, params, set_config=True):
         super().__init__(config, datasets, set_config)
         self.is_save_params = False

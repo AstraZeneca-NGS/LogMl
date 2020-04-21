@@ -16,7 +16,7 @@ class AnalysisDf(MlFiles):
         self.config_analysis = self.config[CONFIG_ANALYSIS]
 
     def __call__(self):
-        ''' Analyses '''
+        """ Analyses """
         if not self.enable:
             self._debug(f"Analysis disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_ANALYSIS}', enable='{self.enable}'")
             return True

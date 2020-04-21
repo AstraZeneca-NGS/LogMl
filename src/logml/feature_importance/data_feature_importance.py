@@ -32,7 +32,7 @@ EPSILON = 1.0e-4
 
 
 class DataFeatureImportance(MlFiles):
-    '''
+    """
     Perform feature importance analysis.
 
     We perform several different approaches using "classic statistics" as
@@ -42,7 +42,7 @@ class DataFeatureImportance(MlFiles):
     according to the "loss" of the model (on the validation dataset). This means
     that poorly performing models will contribute less than better performing
     models.
-    '''
+    """
 
     def __init__(self, config, datasets, model_type, tag, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
@@ -102,7 +102,7 @@ class DataFeatureImportance(MlFiles):
         self.x_train, self.y_train = None, None
 
     def boruta(self):
-        ''' Calculate feature improtance using Boruta algorithm '''
+        """ Calculate feature improtance using Boruta algorithm """
         if not self.is_classification():
             self._debug("Boruta algorithm only for classification")
             return
@@ -114,7 +114,7 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank('boruta_rank', boruta.ranking_)
 
     def __call__(self):
-        ''' Feature importance '''
+        """ Feature importance """
         if not self.enable:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable='{self.enable}'")
             return True
@@ -168,7 +168,7 @@ class DataFeatureImportance(MlFiles):
         return True
 
     def feature_importance_models(self):
-        ''' Feature importance using several models '''
+        """ Feature importance using several models """
         if self.is_fip_random_forest:
             self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
         else:
@@ -216,7 +216,7 @@ class DataFeatureImportance(MlFiles):
         return True
 
     def feature_importance_skmodel(self, model, model_name, config_tag):
-        ''' Show model built-in feature importance '''
+        """ Show model built-in feature importance """
         conf = f"is_skmodel_{config_tag}"
         weight = model.eval_validate if model.model_eval_validate() else None
         skmodel = model.model
@@ -253,7 +253,7 @@ class DataFeatureImportance(MlFiles):
         return m
 
     def fit_extra_trees(self, n_estimators=100, cv_enable=None):
-        ''' Create a ExtraTrees model '''
+        """ Create a ExtraTrees model """
         if self.is_regression():
             m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
         elif self.is_classification():
@@ -267,7 +267,7 @@ class DataFeatureImportance(MlFiles):
         return m
 
     def fit_gradient_boosting(self, cv_enable=None):
-        ''' Create a ExtraTrees model '''
+        """ Create a ExtraTrees model """
         if self.is_regression():
             m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
         elif self.is_classification():
@@ -281,7 +281,7 @@ class DataFeatureImportance(MlFiles):
         return m
 
     def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, cv_enable=None):
-        ''' Create a RandomForest model '''
+        """ Create a RandomForest model """
         if self.is_regression():
             m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
         elif self.is_classification():
@@ -309,10 +309,10 @@ class DataFeatureImportance(MlFiles):
         return self.model_type == MODEL_TYPE_REGRESSION
 
     def plot_ic_criterion(self, model, name, color):
-        '''
+        """
         Plot AIC/BIC criterion
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
-        '''
+        """
         alpha_ = model.alpha_ + EPSILON
         alphas_ = model.alphas_ + EPSILON
         criterion_ = model.criterion_
@@ -322,10 +322,10 @@ class DataFeatureImportance(MlFiles):
         plt.ylabel('criterion')
 
     def plot_lars(self, model_aic, model_bic):
-        '''
+        """
         Plot LARS AIC/BIC criterion
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
-        '''
+        """
         alpha_bic_ = model_bic.alpha_
         fig = plt.figure()
         self.plot_ic_criterion(model_aic, 'AIC', 'b')
@@ -334,10 +334,10 @@ class DataFeatureImportance(MlFiles):
         self._plot_show('Information-criterion for model selection', 'dataset_feature_importance', fig)
 
     def plot_lasso_alphas(self, model):
-        '''
+        """
         Plot LassoCV model alphas
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
-        '''
+        """
         m_log_alphas = -np.log10(model.alphas_ + EPSILON)
         fig = plt.figure()
         plt.plot(m_log_alphas, model.mse_path_, ':')
@@ -370,10 +370,10 @@ class DataFeatureImportance(MlFiles):
         return ok
 
     def random_inputs_add(self):
-        '''
+        """
         Add random columns to a dataset
         Return list of names of columns added
-        '''
+        """
         added_columns = list()
         if self.random_inputs_ratio <= 0.0:
             return added_columns
@@ -394,7 +394,7 @@ class DataFeatureImportance(MlFiles):
         return added_columns
 
     def recursive_feature_elimination(self):
-        ''' Use RFE to estimate parameter importance based on model '''
+        """ Use RFE to estimate parameter importance based on model """
         self._debug(f"Feature importance {self.tag}: Recursive feature elimination")
         if not self.is_rfe_model:
             return
@@ -415,7 +415,7 @@ class DataFeatureImportance(MlFiles):
             self.recursive_feature_elimination_model(self.fit_gradient_boosting(cv_enable=False), 'GradientBoosting')
 
     def recursive_feature_elimination_model(self, model, model_name):
-        ''' Use RFE to estimate parameter importance based on model '''
+        """ Use RFE to estimate parameter importance based on model """
         weight = model.eval_validate if model.model_eval_validate() else None
         self._debug(f"Feature importance {self.tag}: Recursive Feature Elimination, model '{model_name}', x.shape={self.x.shape}, x.shape={self.y.shape}, weight={weight}")
         skmodel = model.model
@@ -428,7 +428,7 @@ class DataFeatureImportance(MlFiles):
         self.results.add_col_rank(f"rfe_rank_{model_name}", fit.ranking_, weight=weight)
 
     def regularization_models(self):
-        ''' Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) '''
+        """ Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) """
         if not self.is_regression():
             return
         self._debug(f"Feature importance {self.tag}: Regularization")
@@ -446,7 +446,7 @@ class DataFeatureImportance(MlFiles):
             self.plot_lars(lars_aic, lars_bic)
 
     def regularization_model(self, model, model_name=None):
-        ''' Fit a modularization model and show non-zero coefficients '''
+        """ Fit a modularization model and show non-zero coefficients """
         skmodel = model.model
         weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:
@@ -458,13 +458,13 @@ class DataFeatureImportance(MlFiles):
         return skmodel
 
     def reweight_results(self):
-        '''
+        """
         Rank results according to all methods
             - Re-weight: Current weights are 'loss functions' from each
                 methods, i.e. lower is better. We need the opposite, i.e. higher
                 weight means the result of a methods is more important.
             - Perform weighted ranking
-        '''
+        """
         self._debug(f"Feature importance {self.tag}: Re-weighting")
         names = self.results.get_weight_names()
         loss_ori = dict(self.results.weights)
@@ -495,10 +495,10 @@ class DataFeatureImportance(MlFiles):
         return loss_ori
 
     def select(self):
-        '''
+        """
         User Select (Fdr or K-best) to calculate a feature importance rank
         Use different functions, depending on model_type and inputs
-        '''
+        """
         # Select functions to use, defined as dictionary {function: has_pvalue}
         # These results have no "weight" set
         if not self.is_select:
@@ -518,7 +518,7 @@ class DataFeatureImportance(MlFiles):
         return True
 
     def select_f(self, score_function, has_pvalue):
-        ''' Select features using FDR (False Discovery Rate) or K-best '''
+        """ Select features using FDR (False Discovery Rate) or K-best """
         fname = score_function.__name__
         if has_pvalue:
             self._debug(f"Select FDR: '{fname}'")
@@ -539,7 +539,7 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
 
     def show_and_save_results(self, loss_ori):
-        ''' Show and save resutl tables '''
+        """ Show and save resutl tables """
         if self.results.is_empty():
             self._debug(f"Feature importance {self.tag}: Enpty resutls, nothing to show or save")
             return

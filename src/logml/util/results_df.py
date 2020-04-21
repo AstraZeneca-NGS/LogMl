@@ -14,32 +14,32 @@ class ResultsDf(MlLogMessages):
             self.df = pd.DataFrame({}, index=index)
 
     def add_df(self, df):
-        ''' Add columns from dataframe 'df' to dataframe '''
+        """ Add columns from dataframe 'df' to dataframe """
         if self.df is None:
             self.df = df
         else:
             self.df = self.df.join(df)
 
     def add_col_dict(self, name, vals_dict):
-        ''' Add column 'name:vals' to dataframe '''
+        """ Add column 'name:vals' to dataframe """
         keys = list(vals_dict.keys())
         vals = np.array([vals_dict[k] for k in keys])
         df_new = pd.DataFrame({name: vals}, index=keys)
         self.df = self.df.join(df_new)
 
     def add_col(self, name, vals):
-        ''' Add column 'name:vals' to dataframe '''
+        """ Add column 'name:vals' to dataframe """
         vals = self._flatten(vals)
         df_new = pd.DataFrame({name: vals}, index=self.index)
         self.df = self.df.join(df_new)
 
     def add_row(self, row_name, vals_dict):
-        ''' Add a row of values '''
+        """ Add a row of values """
         df_row = pd.DataFrame(vals_dict, index=[row_name])
         self.add_row_df(df_row)
 
     def add_row_df(self, df):
-        ''' Add (concatenate) a rows in 'df' '''
+        """ Add (concatenate) a rows in 'df' """
         if self.df is None:
             self.df = df
         else:
@@ -73,7 +73,7 @@ class ResultsRankDf(ResultsDf):
         self.rank_column_names = set()
 
     def add_col_rank(self, name, vals, weight=None, reversed=False):
-        ''' Add a column ranked by value '''
+        """ Add a column ranked by value """
         vals = self._flatten(vals)
         s = pd.Series(vals, self.index)
         ranks = s.rank(ascending=not reversed, na_option='bottom')
@@ -82,10 +82,10 @@ class ResultsRankDf(ResultsDf):
         self.rank_column_names.add(name)
 
     def add_rank_of_ranksum(self):
-        '''
+        """
         Add a (weighted) column with the sum of all columns having 'rank' in the name.
         Also, add the rank of the previous column (i.e. rank of 'rank sum')
-        '''
+        """
         self._debug(f"Rank of rank sums: columns={self.rank_column_names}")
         len = self.df.shape[0]
         ranks_sum = np.zeros(len)

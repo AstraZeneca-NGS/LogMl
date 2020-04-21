@@ -5,10 +5,10 @@ from subprocess import Popen, PIPE, STDOUT
 
 
 def find_empty_gpu():
-	'''
+	"""
 	Pick an empty GPU: Query using nvidia-smi, parse output and
 	return the first available GPU that has no process associated
-	'''
+	"""
 	p = Popen(['nvidia-smi', '-q'], stdout=PIPE, stderr=PIPE)
 	(stdout, stderr) = p.communicate()
 	stdout = stdout.decode("utf-8")
@@ -26,7 +26,7 @@ def find_empty_gpu():
 
 
 def select_empty_gpu(no_gpu_error=False):
-	''' Find and select the first empty GPU '''
+	""" Find and select the first empty GPU """
 	gpu_number = find_empty_gpu()
 	if not gpu_number:
 		if no_gpu_error:

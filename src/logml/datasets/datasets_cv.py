@@ -81,7 +81,7 @@ class DatasetsCv(DatasetsBase):
         return ds_clone
 
     def _create_cv_datasets(self):
-        ''' Create cross-validation datasets '''
+        """ Create cross-validation datasets """
         if len(self.cv_datasets) > 0:
             self._debug(f"DatasetsCv: Creating CV datasets has been done ({len(self.cv_datasets)} datasets found). Skipping")
             return
@@ -110,7 +110,7 @@ class DatasetsCv(DatasetsBase):
         self.cv_count = len(self.cv_datasets)
 
     def _get_cv_iterator(self):
-        ''' Get cross-validation iterators '''
+        """ Get cross-validation iterators """
         if not self.cv_type:
             self._error(f"No supported cross-validation method found. Options {CV_METHODS}")
             return None

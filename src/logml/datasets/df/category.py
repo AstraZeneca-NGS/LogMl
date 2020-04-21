@@ -5,15 +5,15 @@ from ...core.log import MlLogMessages
 
 
 class CategoriesPreprocess(MlLogMessages):
-    '''
+    """
     Pre-process categorical fields.
-    '''
+    """
     def __init__(self, df, categories_config, outputs, dates, one_hot, one_hot_max_cardinality):
-        '''
+        """
         Params:
             df: DataFrame
             categories_config: Config section for categories (dictionary)
-        '''
+        """
         self.df = df
         self.categories_config = categories_config
         self.outputs = outputs
@@ -24,10 +24,10 @@ class CategoriesPreprocess(MlLogMessages):
         self.columns_to_remove = set()
 
     def __call__(self):
-        '''
+        """
         Create categories as defined in YAML file.
         This creates both number categories as well as one_hot encoding
-        '''
+        """
         # Forced categories from YAML config
         self._debug(f"Converting to categorical: Start")
         self._regex_expand()
@@ -48,8 +48,8 @@ class CategoriesPreprocess(MlLogMessages):
 
     def _create_category(self, field_name):
         " Convert field to category numbers "
-        categories, one_based, scale, strict, is_output = self._get_category_options(field_name)
-        cfp = CategoricalFieldPreprocessing(field_name, self.df[field_name], categories, one_based, scale, strict, is_output)
+        categories, one_based, scale, strict, is_output, convert_to_missing = self._get_category_options(field_name)
+        cfp = CategoricalFieldPreprocessing(field_name, self.df[field_name], categories, one_based, scale, strict, is_output, convert_to_missing)
         cfp()
         self.category_column[field_name] = cfp.xi_cat
         df_cat = pd.DataFrame()
@@ -61,18 +61,18 @@ class CategoriesPreprocess(MlLogMessages):
             self.skip_nas.add(field_name)
 
     def _get_category_options(self, field_name):
-        '''
+        """
         Get category codes for field_name, based on the options from the config file
         Example of config options:
-                values: ['WT', 'MUT']  # Values to use (optional)
-                one_based: true        # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
-                scale: true            # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If one_based is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
-                strict: true           # When categories do match the expected ones: If strict is true (defaul), fatal error. Otherwise, show a message and set not matching inputs as 'missing values'
-                missing: []            # Treat all these values as 'missing' (i.e. replace these values by missing before any other conversion)
-        '''
+                values: ['WT', 'MUT']    # Values to use (optional)
+                one_based: true          # Use '0' to indicate 'NA'. If false, -1 will be used instead (default: true)
+                scale: true              # Use values in [0, 1] interval instead of integer numbers (default: true). Note: If one_based is false, then '-1' is for used for missing values and other categories are scaled in [0, 1]
+                strict: true             # When categories do match the expected ones: If strict is true (defaul), fatal error. Otherwise, show a message and set not matching inputs as 'missing values'
+                convert_to_missing: []   # Treat all these values as 'missing' (i.e. replace these values by missing before any other conversion)
+        """
         is_output = field_name in self.outputs
         cat_values = self.categories_config.get(field_name)
-        categories, one_based, scale, strict = None, True, not is_output, True
+        categories, one_based, scale, strict, convert_to_missing = None, True, not is_output, True, list()
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
@@ -80,8 +80,9 @@ class CategoriesPreprocess(MlLogMessages):
             one_based = cat_values.get('one_based', True)
             scale = cat_values.get('scale', True)
             strict = cat_values.get('strict', True)
+            strict = cat_values.get('convert_to_missing', list())
         scale = not is_output
-        return categories, one_based, scale, strict, is_output
+        return categories, one_based, scale, strict, is_output, convert_to_missing
 
     def is_categorical_column(self, field_name):
         " Is column 'field_name' a categorical column in the dataFrame? "
@@ -148,11 +149,11 @@ class CategoriesPreprocess(MlLogMessages):
 
 
 class CategoricalFieldPreprocessing(MlLogMessages):
-    '''
+    """
     Pre-proecss a single categorical field
-    '''
-    def __init__(self, field_name, xi, categories, one_based, scale, strict, is_output):
-        '''
+    """
+    def __init__(self, field_name, xi, categories, one_based, scale, strict, is_output, convert_to_missing):
+        """
         Parameters:
             xi: Values, dataframe column (xi = df[field_name])
             categories: Categories defined in the config file
@@ -160,15 +161,16 @@ class CategoricalFieldPreprocessing(MlLogMessages):
             scale: Scale values in [0, 1]
             strict: Throw a fatal error is field values do not match 'categories'
             is_output: Is this an 'output'?
-        '''
+        """
         self.field_name, self.xi, self.categories, self.one_based, self.scale, self.strict, self.is_output = field_name, xi, categories, one_based, scale, strict, is_output
         self.codes = None
         self.missing_values = None
         self.xi_cat = None
         self.is_nan_encoded = False
+        self.convert_to_missing = convert_to_missing
 
     def _adjust_codes(self):
-        ''' Apply several configuration options to '''
+        """ Apply several configuration options to """
         # One based?
         # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
         # We can represent missing values as either zero or minus one
@@ -190,21 +192,21 @@ class CategoricalFieldPreprocessing(MlLogMessages):
         # Outputs keep missing values as NaN (we need to convert to float)
         if self.is_output:
             self.codes = self.codes.astype(float)
-            self.codes[self.missing] = np.nan
+            self.codes[self.missing_values] = np.nan
             self.is_nan_encoded = False
 
     def __call__(self):
-        '''
+        """
         Create categories for a field and adjust according to settings
-        '''
+        """
         self._categories()
         self._adjust_codes()
         self._info(f"Converted to category: field '{self.field_name}', categories: {list(self.xi_cat.cat.categories)}")
 
     def _categories(self):
-        '''
+        """
         Create field_name to categorical data, as defined in categories
-        '''
+        """
         self._debug(f"Converting to category: field '{self.field_name}', categories: {self.categories}")
         self.xi_cat = self.xi.astype('category').cat.as_ordered()
         # Categories can be either 'None' or a list
@@ -212,11 +214,20 @@ class CategoricalFieldPreprocessing(MlLogMessages):
             # Check that derived categories and real categories match
             cats_derived = set(self.xi_cat.cat.categories)
             cats = set(self.categories)
-            if cats != cats_derived:
+            cats_missing = set(self.convert_to_missing) if self.convert_to_missing else set()
+            cats_all = cats.union(cats_missing)
+            cats_derived_missing = cats_derived.difference(cats)
+            if cats_all != cats_derived:
                 if self.strict:
                     self._fatal_error(f"Field '{self.field_name}' categories {cats_derived} do not match the expected ones {cats} from config file.")
                 else:
                     self._debug(f"Field '{self.field_name}' categories {cats_derived} do not match the expected ones {cats} from config file. Converting to 'missing' values")
+            cats_derived_missing = cats_derived.difference(cats)
+            if cats_missing != cats_derived_missing:
+                if self.strict:
+                    self._fatal_error(f"Field '{self.field_name}' categories missing {cats_derived_missing} do not match the expected ones {cats_missing} from config file.")
+                else:
+                    self._debug(f"Field '{self.field_name}' categories missing {cats_derived_missing} do not match the expected ones {cats} from config file ({cats_derived_missing}). Converting to 'missing' values")
             # If any values are not in 'categories', they are transformed into missing values
             self.xi_cat.cat.set_categories(self.categories, ordered=True, inplace=True)
         self.codes = self.xi_cat.cat.codes

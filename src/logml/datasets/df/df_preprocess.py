@@ -15,7 +15,7 @@ from ...util.sanitize import sanitize_name
 
 
 class DfPreprocess(MlLog):
-    '''
+    """
     DataFrame preprocessing: convet categorical, one-hot encoding, impute
     missing data, normalize.
 
@@ -23,7 +23,7 @@ class DfPreprocess(MlLog):
     Calculate some field (i.e. dataframe column) transformations
     and store the results in 'columns_to_add' and 'columns_to_remove'. Then
     apply these changes to the original dataframe to create a new dataframe.
-    '''
+    """
 
     def __init__(self, datasets, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS)
@@ -55,11 +55,11 @@ class DfPreprocess(MlLog):
             self._set_from_config()
 
     def _add_datepart(self, field_name, prefix=None, time=True):
-        '''
+        """
         Helper function that creates a new dataframe with all columns relevant to
         a date in the column `field_name`.
         Source: fast.ai
-        '''
+        """
         self._info(f"Converting to date: field '{field_name}'")
         self._make_date(self.df, field_name)
         field = self.df[field_name]
@@ -158,10 +158,10 @@ class DfPreprocess(MlLog):
         return df_new
 
     def create_categories(self):
-        '''
+        """
         Create categories as defined in YAML file.
         This creates both number categories as well as one_hot encoding
-        '''
+        """
         create_cats = CategoriesPreprocess(self.df, self.categories, self.outputs, self.dates, self.one_hot, self.one_hot_max_cardinality)
         create_cats()
         self.columns_to_add.update(create_cats.columns_to_add)
@@ -169,7 +169,7 @@ class DfPreprocess(MlLog):
         self.category_column.update(create_cats.category_column)
 
     def convert_dates(self):
-        ''' Convert all dates '''
+        """ Convert all dates """
         self._debug(f"Converting to 'date/time' values: fields {self.dates}")
         count = 0
         for field in self.dates:
@@ -257,19 +257,19 @@ class DfPreprocess(MlLog):
         return True
 
     def _remove_columns(self):
-        ''' Remove columns (before transformations) '''
+        """ Remove columns (before transformations) """
         self.df_ori = self.df
         self._info(f"Removing columns (before): {self.remove_columns}")
         self.df.drop(self.remove_columns, inplace=True, axis=1)
 
     def _remove_columns_after(self):
-        ''' Remove columns (after transformations) '''
+        """ Remove columns (after transformations) """
         self.df_ori = self.df
         self._info(f"Removing columns (after): {self.remove_columns_after}")
         self.df.drop(self.remove_columns_after, inplace=True, axis=1)
 
     def _remove_rows_with_missing_outputs(self):
-        ''' Remove rows if output variable/s have missing values c'''
+        """ Remove rows if output variable/s have missing values c"""
         if not self.remove_missing_outputs:
             self._debug("Remove missing outputs disabled, skipping")
             return
@@ -280,10 +280,10 @@ class DfPreprocess(MlLog):
         self._debug(f"Remove samples with missing outputs: End")
 
     def rename_category_cols(self, df, prepend):
-        '''
+        """
         Rename dataFrame columns by prepending a string and sanitizing the name
         Used to rename columns of a 'one hot' encoding
-        '''
+        """
         names = dict()
         for c in df.columns:
             name = f"{prepend}{sanitize_name(c)}"
@@ -291,7 +291,7 @@ class DfPreprocess(MlLog):
         df.rename(columns=names, inplace=True)
 
     def _sanitize_column_names(self):
-        ''' Sanitize all column names '''
+        """ Sanitize all column names """
         if not self.is_sanitize_column_names:
             self._debug("Sanitize column names disabled, skipping")
             return

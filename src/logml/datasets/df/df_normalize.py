@@ -15,9 +15,9 @@ NORMALIZATION_METHODS = ['log', 'log_standard', 'log1p', 'log1p_standard', 'maxa
 
 
 class DfNormalize(MethodsFields):
-    '''
+    """
     DataFrame normalization: Normalize / re-scale inputs
-    '''
+    """
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS, 'normalize', NORMALIZATION_METHODS, df.columns, outputs)
@@ -45,18 +45,18 @@ class DfNormalize(MethodsFields):
         return np.issubdtype(self.df[col_name].dtype, np.number)
 
     def is_range_01(self, col_name):
-        '''
+        """
         Is this variable in [0,1] range?
         We say the varaible is in [0.0, 1.0] range if the min is
         in [0.0 , 0.1] and the max is in [0.9, 1.0]
-        '''
+        """
         xi = self.df[col_name]
         xi_min = xi.unique().min()
         xi_max = xi.unique().max()
         return 0.0 <= xi_min and xi_min <= 0.1 and 0.9 <= xi_max and xi_max <= 1.0
 
     def _normalize(self):
-        ''' Normalize variables '''
+        """ Normalize variables """
         self._debug("Normalizing dataset (dataframe): Start")
         fields_to_normalize = list(self.df.columns)
         is_classification = (self.model_type == MODEL_TYPE_CLASSIFICATION)
@@ -84,27 +84,27 @@ class DfNormalize(MethodsFields):
         self._debug("Normalizing dataset (dataframe): End")
 
     def _normalize_log(self, xi):
-        ''' Normalize using 'log' method '''
+        """ Normalize using 'log' method """
         return np.log(xi)
 
     def _normalize_log_standard(self, xi):
-        ''' Normalize using 'log' method '''
+        """ Normalize using 'log' method """
         return self._normalize_standard(np.log(xi))
 
     def _normalize_log1p(self, xi):
-        ''' Normalize using 'log1p' method '''
+        """ Normalize using 'log1p' method """
         return np.log1p(xi)
 
     def _normalize_log1p_standard(self, xi):
-        ''' Normalize standard normalization on log(x + 1) '''
+        """ Normalize standard normalization on log(x + 1) """
         return self._normalize_standard(np.log1p(xi))
 
     def _normalize_maxabs(self, xi):
-        ''' Normalize using 'maxabs' method '''
+        """ Normalize using 'maxabs' method """
         return xi / np.max(np.abs(xi))
 
     def _normalize_minmax(self, xi):
-        ''' Normalize using 'minmax' method. Convert to interval [0, 1] '''
+        """ Normalize using 'minmax' method. Convert to interval [0, 1] """
         mi = np.min(xi)
         ma = np.max(xi)
         if (ma - mi) <= 0.0:
@@ -112,7 +112,7 @@ class DfNormalize(MethodsFields):
         return (xi - mi) / (ma - mi)
 
     def _normalize_minmax_neg(self, xi):
-        ''' Normalize using 'minmax' method. Convert to interval [-1, 1] '''
+        """ Normalize using 'minmax' method. Convert to interval [-1, 1] """
         mi = np.min(xi)
         ma = np.max(xi)
         if (ma - mi) <= 0.0:
@@ -120,15 +120,15 @@ class DfNormalize(MethodsFields):
         return 2.0 * (xi - mi) / (ma - mi) - 1.0
 
     def _normalize_quantile(self, xi):
-        ''' Normalize using 'quantile' method '''
+        """ Normalize using 'quantile' method """
         return None
 
     def _normalize_skip(self, xi):
-        ''' Skip normalization: Normalize using 'skip' method (i.e. do not normalize) '''
+        """ Skip normalization: Normalize using 'skip' method (i.e. do not normalize) """
         return xi
 
     def _normalize_standard(self, xi):
-        ''' Normalize using 'standard' method (substract the mean and divide by std)'''
+        """ Normalize using 'standard' method (substract the mean and divide by std)"""
         me = np.nanmean(xi)
         std = np.nanstd(xi)
         if std <= 0.0:

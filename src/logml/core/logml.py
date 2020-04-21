@@ -16,10 +16,10 @@ from ..util.results_df import ResultsDf
 
 
 class LogMl(MlFiles):
-    '''
+    """
     ML Logger definition
     Note: This class is used as a singleton
-    '''
+    """
     def __init__(self, config_file=None, config=None, datasets=None, verbose=False, debug=False):
         if config is None and config_file is not None:
             config = Config(config_file=config_file)
@@ -56,7 +56,7 @@ class LogMl(MlFiles):
         self.model_results = ResultsDf()
 
     def _analysis(self):
-        ''' Perform analises '''
+        """ Perform analises """
         if not self.is_dataset_df():
             self._debug("Analysis: Only available for dataset type 'df', skipping")
             return True
@@ -64,7 +64,7 @@ class LogMl(MlFiles):
         return self.analysis()
 
     def __call__(self):
-        ''' Execute model trainig '''
+        """ Execute model trainig """
         self._info(f"LogMl: Start")
         # Configure
         if self.config is None:
@@ -107,10 +107,10 @@ class LogMl(MlFiles):
         return True
 
     def _config_sanity_check(self):
-        '''
+        """
         Check parameters from config.
         Return True on success, False if there are errors
-        '''
+        """
         wf_enabled = list()
         for wf_name in ['cross_validation', 'hyper_parameter_optimization', 'mode_search']:
             wf = self.__dict__.get(wf_name)
@@ -173,15 +173,15 @@ class LogMl(MlFiles):
         return self.dataset_feature_importance_na()
 
     def get_model_eval_test(self):
-        ''' Get model test results '''
+        """ Get model test results """
         return self.model.eval_test
 
     def get_model_eval_validate(self):
-        ''' Get model validate results '''
+        """ Get model validate results """
         return self.model.eval_validate
 
     def initialize(self):
-        ''' Initialize objects after config is setup '''
+        """ Initialize objects after config is setup """
         if self.config is not None:
             self._set_from_config()
         if self.model_ori is None:
@@ -204,7 +204,7 @@ class LogMl(MlFiles):
         return ds_type == 'df'
 
     def model_train(self, config=None, dataset=None):
-        ''' Train a single model '''
+        """ Train a single model """
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
@@ -214,7 +214,7 @@ class LogMl(MlFiles):
         return ret
 
     def models_train(self):
-        ''' Train (several) models '''
+        """ Train (several) models """
         if self.model_search.enable:
             self._debug(f"Model search")
             return self.model_search()
@@ -241,7 +241,7 @@ class LogMl(MlFiles):
         return ds
 
     def _new_model(self, config=None, datasets=None):
-        ''' Create an Model: This is a factory method '''
+        """ Create an Model: This is a factory method """
         if config is None:
             config = self.config
         if datasets is None:

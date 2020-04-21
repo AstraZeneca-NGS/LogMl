@@ -194,7 +194,7 @@ def is_sorted(x):
 
 
 def logit(h):
-    ''' Logistic from activation h '''
+    """ Logistic from activation h """
     p = 1.0 / (1.0 + np.exp(-h))
     r = np.random.rand(len(p))
     y = (r < p).astype('float')

@@ -9,10 +9,10 @@ from .sklearn_model import SkLearnModel
 
 
 class ModelSearch(MlFiles):
-    '''
+    """
     ModelSearch: Build several (base) models and fit the data
     Explore different combinations of models and hyper parameters
-    '''
+    """
     def __init__(self, logml):
         super().__init__(logml.config, CONFIG_MODEL_SEARCH)
         self.logml = logml
@@ -22,7 +22,7 @@ class ModelSearch(MlFiles):
         self._set_from_config()
 
     def __call__(self):
-        ''' Execute model trainig '''
+        """ Execute model trainig """
         self._info(f"Model search: Start")
         if not self.enable:
             self._info(f"Model search disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_MODEL_SEARCH}', enable='{self.enable}'")
@@ -32,7 +32,7 @@ class ModelSearch(MlFiles):
         return ret
 
     def search(self):
-        ''' Model search '''
+        """ Model search """
         # Create a list of models
         self._info(f"Search models: Start")
         if self.model_type is None:
@@ -60,11 +60,11 @@ class ModelSearch(MlFiles):
         return True
 
     def search_model(self, model_class, params):
-        '''
+        """
         Create model and train it.
         Creates a new config, a new LogMl, adds the model to it and then runs
         the new LogMl
-        '''
+        """
         self._debug(f"Searching model: model_class={model_class}\tparameters={params}")
         enable = params.get('enable', True)
         if not enable:

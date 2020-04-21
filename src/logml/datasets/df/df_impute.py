@@ -14,9 +14,9 @@ IMPUTATION_METHODS = ['mean', 'median', 'minus_one', 'most_frequent', 'one', 'sk
 
 
 class DfImpute(MethodsFields):
-    '''
+    """
     DataFrame imputation of missing data
-    '''
+    """
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS, 'impute', IMPUTATION_METHODS, df.columns, outputs)
@@ -44,7 +44,7 @@ class DfImpute(MethodsFields):
         return np.issubdtype(self.df[col_name].dtype, np.number)
 
     def _impute(self):
-        ''' impute variables '''
+        """ impute variables """
         self._debug("Imputing dataset (dataframe): Start")
         fields_to_impute = list(self.df.columns)
         for c in fields_to_impute:
@@ -70,19 +70,19 @@ class DfImpute(MethodsFields):
         self._debug("Imputing dataset (dataframe): End")
 
     def _impute_mean(self, xi):
-        ''' Impute using 'mean' method '''
+        """ Impute using 'mean' method """
         return xi[~np.isnan(xi)].mean()
 
     def _impute_median(self, xi):
-        ''' Impute using 'median' method '''
+        """ Impute using 'median' method """
         return np.median(xi[~np.isnan(xi)])
 
     def _impute_minus_one(self, xi):
-        ''' Impute using 'minus_one' method '''
+        """ Impute using 'minus_one' method """
         return -1
 
     def _impute_most_frequent(self, xi):
-        ''' Impute using 'most_frequent' method '''
+        """ Impute using 'most_frequent' method """
         # Select the most frequent values
         count = dict()
         for n in xi[~np.isnan(xi)]:
@@ -93,12 +93,12 @@ class DfImpute(MethodsFields):
         return np.median(np.array(most_freqs))
 
     def _impute_one(self, xi):
-        ''' Impute using 'one' method '''
+        """ Impute using 'one' method """
         return 1
 
     def _impute_skip(self, xi):
         return None
 
     def _impute_zero(self, xi):
-        ''' Impute using 'zero' method '''
+        """ Impute using 'zero' method """
         return 0

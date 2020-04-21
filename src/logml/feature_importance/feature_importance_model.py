@@ -16,9 +16,9 @@ from ..util.etc import array_to_str
 
 
 class FeatureImportanceModel(MlFiles):
-    '''
+    """
     Estimate feature importance based on a model.
-    '''
+    """
 
     def __init__(self, model, model_type, rand_columns, num_iterations):
         self.model = model.clone()
@@ -87,7 +87,7 @@ class FeatureImportanceModel(MlFiles):
         return pd.Series(self.pvalues, index=self.columns)
 
     def get_weight(self):
-        ''' Weight used when combinig different models for feature importance '''
+        """ Weight used when combinig different models for feature importance """
         return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
 
     def initialize(self):

@@ -14,16 +14,16 @@ from ..util.results_df import ResultsDf
 
 
 class Model(MlFiles):
-    '''
+    """
     Model: A single (training) of a model
     Train a model setting specific parameters
-    '''
+    """
     _id_counter = 0
 
     def __init__(self, config, datasets=None, set_config=True):
-        '''
+        """
         Model: A model that can be created, trained and evaluated
-        '''
+        """
         super().__init__(config, CONFIG_MODEL)
         self._id = self._new_id()
         self.datasets = datasets
@@ -55,7 +55,7 @@ class Model(MlFiles):
         self.is_cv = False  # This is not a cross-validation model
 
     def __call__(self):
-        ''' Execute model trainig '''
+        """ Execute model trainig """
         if not self.enable:
             self._info(f"Model disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_MODEL}', enable='{self.enable}'")
             return True
@@ -72,7 +72,7 @@ class Model(MlFiles):
         return ret
 
     def _call(self):
-        ''' Execute model trainig '''
+        """ Execute model trainig """
         if self.datasets is None:
             self._error("Could not find dataset")
             return False
@@ -123,10 +123,10 @@ class Model(MlFiles):
         return model_clone
 
     def _config_sanity_check(self):
-        '''
+        """
         Check parameters from config.
         Return True on success, False if there are errors
-        '''
+        """
         assert self.model_path is not None
         assert self.model_name is not None
 
@@ -173,7 +173,7 @@ class Model(MlFiles):
         return False
 
     def get_file_name(self, file_type=None, ext='pkl'):
-        ''' Create a file name for training data '''
+        """ Create a file name for training data """
         self._debug(f"file_type={file_type}, ext='{ext}'")
         return self._get_file_name(self.model_path, self.model_name, file_type, ext, _id=self._id)
 
@@ -196,7 +196,7 @@ class Model(MlFiles):
         return invoked
 
     def invoke_model_evaluate(self, x, y, name):
-        ''' Invoke model evaluate '''
+        """ Invoke model evaluate """
         try:
             args = [self.model, x, y]
             (invoked, ret) = self.config.invoke(MODEL_EVALUATE, f"Model evaluate {name}", args)
@@ -209,7 +209,7 @@ class Model(MlFiles):
             return True, math.inf
 
     def invoke_model_predict(self, x):
-        ''' Invoke model predict, return all predictions for input/s in x '''
+        """ Invoke model predict, return all predictions for input/s in x """
         try:
             args = [self.model, x]
             (invoked, ret) = self.config.invoke(MODEL_PREDICT, f"Model predict", args)
@@ -236,7 +236,7 @@ class Model(MlFiles):
         return invoked
 
     def load_test_results(self):
-        ''' Load test results from pickle file '''
+        """ Load test results from pickle file """
         file_name = self.get_file_name('test_results')
         self._debug(f"Load test results: Loading pickle file '{file_name}'")
         res = self._load_pickle(file_name, 'test_results')
@@ -267,7 +267,7 @@ class Model(MlFiles):
         return ret
 
     def model_create(self):
-        ''' Create a model '''
+        """ Create a model """
         x, y = self.datasets.get_train_xy()
         if x is None:
             self._warning("Model create: Cannot get training dataset")
@@ -307,7 +307,7 @@ class Model(MlFiles):
         return ret is not None
 
     def model_eval_validate(self):
-        ''' Validate model: Evaluate on validation dataset '''
+        """ Validate model: Evaluate on validation dataset """
         x, y = self.datasets.get_validate_xy()
         if x is None:
             self._debug(f"Validation dataset not found, skipping")
@@ -323,7 +323,7 @@ class Model(MlFiles):
         return self.default_model_predict(x)
 
     def model_save(self):
-        ''' Save dataset to pickle file '''
+        """ Save dataset to pickle file """
         ret = self.invoke_model_save()
         return ret if ret else self.default_model_save()
 
@@ -344,13 +344,13 @@ class Model(MlFiles):
             return None
 
     def _new_id(self):
-        ''' Create a new Model._id '''
+        """ Create a new Model._id """
         Model._id_counter += 1
         dt = datetime.datetime.utcnow().isoformat(sep='.').replace(':', '').replace('-', '')
         return f"{dt}.{Model._id_counter}"
 
     def save_params(self):
-        ''' Save parameters to YAML file '''
+        """ Save parameters to YAML file """
         if not self.is_save_params:
             self._debug(f"Saving parameters disabled, skipping (is_save_params='{self.is_save_params})'")
             return True
@@ -365,7 +365,7 @@ class Model(MlFiles):
         return True
 
     def save_train_results(self):
-        ''' Save training results to picle file '''
+        """ Save training results to picle file """
         if not self.is_save_train_pickle:
             return True
         if self.train_results is None:
@@ -376,7 +376,7 @@ class Model(MlFiles):
         return True
 
     def save_test_results(self):
-        ''' Save test results to picle file '''
+        """ Save test results to picle file """
         if not self.is_save_test_pickle:
             self._debug(f"is_save_test_pickle={self.is_save_test_pickle}, skiping")
             return True
@@ -389,7 +389,7 @@ class Model(MlFiles):
         return True
 
     def save_validate_results(self):
-        ''' Save validation results to picle file '''
+        """ Save validation results to picle file """
         if not self.is_save_validate_pickle:
             self._debug(f"is_save_validate_pickle={self.is_save_validate_pickle}, skiping")
             return True

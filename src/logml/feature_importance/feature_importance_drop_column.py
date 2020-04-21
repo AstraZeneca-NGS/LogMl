@@ -12,13 +12,13 @@ from .feature_importance_model import FeatureImportanceModel
 
 
 class FeatureImportanceDropColumn(FeatureImportanceModel):
-    '''
+    """
     Estimate feature importance based on a model.
     How it works: Drops a single column, re-train and analyze how model performance
     is degraded (respect to validation dataset). Most important features will
     make the model perform much worse when dropped, unimportant features will
     not affect performance
-    '''
+    """
 
     def __init__(self, model, model_name, rand_columns, num_iterations):
         super().__init__(model, model_name, rand_columns, num_iterations)

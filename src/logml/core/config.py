@@ -42,9 +42,9 @@ def update_dict(d, u):
 
 
 class Config(MlFiles):
-    '''
+    """
     Parameters object: Reads a YAML file and stores configuration parameters
-    '''
+    """
     def __init__(self, config_file=None, parameters=None, argv=None, log_level=None):
         super().__init__(CONFIG_CONFIG)
         self.argv = argv if argv is not None else sys.argv
@@ -60,14 +60,14 @@ class Config(MlFiles):
         return self.read_config_yaml()
 
     def _config_sanity_check(self):
-        '''
+        """
         Check configuration parameters
         Returns True on success, False on failure
-        '''
+        """
         return True
 
     def copy(self, disable_all=False):
-        ''' Create a copy of the config, disable all sections if 'disable_all' is true '''
+        """ Create a copy of the config, disable all sections if 'disable_all' is true """
         conf = copy.deepcopy(self)
         if disable_all:
             for sec in [CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH]:
@@ -78,18 +78,18 @@ class Config(MlFiles):
         return self.get_parameters(key)
 
     def get_parameters(self, section):
-        ''' Get 'section' parameters '''
+        """ Get 'section' parameters """
         if section in self.parameters:
             return self.parameters[section]
         self._debug(f"Config has not parameters for '{section}'.")
         return dict()
 
     def get_parameters_functions(self, fname):
-        ''' Get user-defined functions parameters '''
+        """ Get user-defined functions parameters """
         return self.get_parameters_section(CONFIG_FUNCTIONS, fname, default_value=dict())
 
     def get_parameters_section(self, section, param_name, default_value=None):
-        ''' Get parameters 'param_name' from section 'section' '''
+        """ Get parameters 'param_name' from section 'section' """
         fdict = self.get_parameters(section)
         if not fdict:
             self._debug(f"Config has no '{section}' section.")
@@ -129,10 +129,10 @@ class Config(MlFiles):
         return True
 
     def read_config_yaml(self):
-        '''
+        """
         Reads a configuration YAML file and checks parameters
         Returns True on success, False on failure
-        '''
+        """
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
         self._debug(f"params: {self.parameters}")
@@ -144,20 +144,20 @@ class Config(MlFiles):
             self.parameters[section]['enable'] = enable
 
     def update(self, params):
-        '''
+        """
         Create a new config and update parameters from 'params' dictionary
         recursively
-        '''
+        """
         config_new = copy.deepcopy(self)
         update_dict(config_new.parameters, params)
         return config_new
 
     def update_section(self, section, params):
-        '''
+        """
         Create a new config and update parameters from 'params' dictionary.
         E.g.: These parameters have been set by hyper parameter optimization process.
         Return new config object with updated values.
-        '''
+        """
         config_new = copy.deepcopy(self)
         parameters = config_new.parameters[section] if section is not None else config_new.parameters
         if params:
