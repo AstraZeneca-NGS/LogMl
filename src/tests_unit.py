@@ -1,5 +1,6 @@
 
 import logging
+import math
 import numpy as np
 import pandas as pd
 import os
@@ -14,6 +15,7 @@ from logml.core.files import set_plots, MlFiles
 from logml.core.log import MlLog
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 from logml.datasets import Datasets, DatasetsDf, DatasetsCv, DatasetsDf
+from logml.datasets.df.category import CategoricalFieldPreprocessing
 from logml.feature_importance.data_feature_importance import DataFeatureImportance
 from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
 from logml.models import Model
@@ -55,6 +57,68 @@ class TestLogMl(unittest.TestCase):
             MlLog().set_log_level(logging.DEBUG)
         set_plots(disable=True, show=False, save=False)
         MlRegistry().reset()
+
+    def test_class_CategoricalFieldPreprocessing_001(self):
+        ''' Test CategoricalFieldPreprocessing: Undefined categories '''
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=None, one_based=False, scale=False, strict=True, is_output=False)
+        cfp()
+        # Check that undefined values are -1
+        self.assertEqual(-1, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(2, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertEqual(-1, cfp.codes[9], f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_002(self):
+        ''' Test CategoricalFieldPreprocessing: Set categories '''
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=False)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        codes_expected = np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, -1])
+        # Check that undefined values are -1
+        self.assertEqual(-1, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(2, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertTrue(np.array_equal(codes_expected, codes), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
+        self.assertEqual(-1, cfp.codes[9], f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_003(self):
+        ''' Test CategoricalFieldPreprocessing: Set categories, one_based '''
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=True, scale=False, strict=True, is_output=False)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        codes_expected = np.array([1, 2, 3, 1, 2, 3, 1, 2, 3, 0])
+        # Check that undefined values are -1
+        self.assertEqual(0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(3, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertTrue(np.array_equal(codes_expected, codes), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
+        self.assertEqual(0, cfp.codes[9], f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_004(self):
+        ''' Test CategoricalFieldPreprocessing: Set categories, scale '''
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=True, strict=True, is_output=False)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        codes_expected = np.array([0, 0.5, 1.0, 0, 0.5, 1.0, 0, 0.5, 1.0, math.nan])
+        # Check that undefined values are -1
+        self.assertEqual(0.0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(1.0, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        np.testing.assert_allclose(codes_expected, codes)
+        self.assertTrue(np.isnan(cfp.codes[9]), f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_005(self):
+        ''' Test CategoricalFieldPreprocessing: Set categories, output '''
+        # TODO: Check that defined values ara 0.0, 1.0, 2.0
+        # TODO: Check that undefined values are nan
+        self.assertTrue(false, "!!!!!!!!!!!!!!!!!!")
+
+    def test_class_CategoricalFieldPreprocessing_005(self):
+        ''' Test CategoricalFieldPreprocessing: Set categories, missing_values '''
+        # TODO: Check that defined values ara 0.0, 1.0, 2.0
+        # TODO: Check that undefined values are nan
+        # TODO: Check that values matchnig 'missing_values' are nan
+        self.assertTrue(false, "!!!!!!!!!!!!!!!!!!")
 
     def test_config_001(self):
         ''' Test objects parameters from config and file names '''
