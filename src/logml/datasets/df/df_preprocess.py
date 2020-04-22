@@ -168,6 +168,8 @@ class DfPreprocess(MlLog):
         self.columns_to_add.update(create_cats.columns_to_add)
         self.columns_to_remove.update(create_cats.columns_to_remove)
         self.category_column.update(create_cats.category_column)
+        self.na_columns.update(create_cats.na_columns)
+        self.skip_nas.update(create_cats.skip_nas)
 
     def convert_dates(self):
         """ Convert all dates """

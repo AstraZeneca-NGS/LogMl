@@ -4,6 +4,7 @@ import pandas as pd
 import traceback
 
 from ...core.log import MlLogMessages
+from ...util.sanitize import sanitize_name
 
 
 class CategoriesPreprocess(MlLogMessages):
@@ -17,14 +18,16 @@ class CategoriesPreprocess(MlLogMessages):
             categories_config: Config section for categories (dictionary)
         """
         self.df = df
-        self.category_column = dict()  # Store Pandas categorical definition
         self.categories_config = categories_config
         self.outputs = outputs
         self.dates = dates
         self.one_hot = one_hot
         self.one_hot_max_cardinality = one_hot_max_cardinality
+        self.category_column = dict()  # Store Pandas categorical definition
         self.columns_to_add = dict()
         self.columns_to_remove = set()
+        self.na_columns = set()  # Columns added as 'missing data' indicators
+        self.skip_nas = set()  # Skip doing "missing data" on these columns (they have been covered somewhere else, e.g. one-hot)
 
     def __call__(self):
         """
