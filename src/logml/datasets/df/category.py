@@ -1,6 +1,7 @@
 
 import numpy as np
 import pandas as pd
+import re
 import traceback
 
 from ...core.log import MlLogMessages
@@ -78,16 +79,15 @@ class CategoriesPreprocess(MlLogMessages):
         """
         is_output = field_name in self.outputs
         cat_values = self.categories_config.get(field_name)
-        categories, one_based, scale, strict, convert_to_missing = None, True, not is_output, True, list()
+        categories, one_based, scale, strict, convert_to_missing = None, True, False, True, list()
         if isinstance(cat_values, list):
             categories = cat_values
         elif isinstance(cat_values, dict):
             categories = cat_values.get('values')
             one_based = cat_values.get('one_based', True)
-            scale = cat_values.get('scale', True)
+            scale = cat_values.get('scale', False)
             strict = cat_values.get('strict', True)
-            strict = cat_values.get('convert_to_missing', list())
-        scale = not is_output
+            convert_to_missing = cat_values.get('convert_to_missing', list())
         return categories, one_based, scale, strict, is_output, convert_to_missing
 
     def is_categorical_column(self, field_name):
@@ -179,7 +179,13 @@ class CategoricalFieldPreprocessing(MlLogMessages):
             strict: Throw a fatal error is field values do not match 'categories'
             is_output: Is this an 'output'?
         """
-        self.field_name, self.xi, self.categories, self.one_based, self.scale, self.strict, self.is_output = field_name, xi, categories, one_based, scale, strict, is_output
+        self.field_name = field_name
+        self.xi = xi
+        self.categories = categories
+        self.one_based = one_based
+        self.scale = scale
+        self.strict = strict
+        self.is_output = is_output
         self.codes = None
         self.missing_values = None
         self.xi_cat = None

@@ -13,7 +13,7 @@ source ./bin/activate
 # If these variables are set, only perform one unit/integration test
 TEST_UNIT_NAME=""
 # TEST_UNIT_NAME="-"  # Disable Unit testing
-# TEST_UNIT_NAME="TestLogMl.test_class_CategoricalFieldPreprocessing_007"
+# TEST_UNIT_NAME="TestLogMl.test_dataset_006"
 TEST_INTEGRATION_NAME=""
 # TEST_INTEGRATION_NAME="TestLogMlIntegration.test_linear3c"
 
