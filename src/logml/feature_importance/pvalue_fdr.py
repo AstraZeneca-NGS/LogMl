@@ -19,7 +19,7 @@ from ..datasets import InOut
 
 def get_categories(x):
     cats = x.replace([np.inf, -np.inf], np.nan).unique()
-    return cats[~np.isnan(cats)]
+    return np.sort(cats[~np.isnan(cats)])
 
 
 def fdr_with_nas(pvals):
@@ -305,12 +305,12 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         # Add 'best class'. Get best index, map to category number, then map categoy number to category name
         best_category_idx = pvals_corr.argmin(axis=0)
         category_number = np.array(self.classes)
-        self.best_category_num = category_number[best_category_idx]
+        self.best_category_num = category_number[best_category_idx].astype('int')
         output_name = self.datasets.outputs[0]  # We assume that there is only one output for this analysis
         output_category = self.datasets.dataset_preprocess.category_column.get(output_name)
         if output_category is not None:
             category_name = output_category.cat.categories
-            self.best_category = category_name[self.best_category_num]
+            self.best_category = list(category_name[best_category_idx])
         else:
             self.best_category = self.best_category_num
         # Assign 'rejected': Use 'or' across comparissons (i.e. 'any')

@@ -989,7 +989,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
-        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        col, c_min, c_max, unique_expected = 'y', 1, 3, [1, 2, 3]
         self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
@@ -1025,7 +1025,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
-        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        col, c_min, c_max, unique_expected = 'y', 1, 3, [1, 2, 3]
         self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
