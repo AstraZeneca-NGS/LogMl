@@ -1,5 +1,7 @@
 
 import numpy as np
+import pandas as pd
+import traceback
 
 from ...core.log import MlLogMessages
 
@@ -15,6 +17,7 @@ class CategoriesPreprocess(MlLogMessages):
             categories_config: Config section for categories (dictionary)
         """
         self.df = df
+        self.category_column = dict()  # Store Pandas categorical definition
         self.categories_config = categories_config
         self.outputs = outputs
         self.dates = dates
@@ -124,6 +127,17 @@ class CategoriesPreprocess(MlLogMessages):
         [self.categories_config.pop(k) for k in categories_del]
         self.categories_config.update(categories_add)
 
+    def rename_category_cols(self, df, prepend):
+        """
+        Rename dataFrame columns by prepending a string and sanitizing the name
+        Used to rename columns of a 'one hot' encoding
+        """
+        names = dict()
+        for c in df.columns:
+            name = f"{prepend}{sanitize_name(c)}"
+            names[c] = name
+        df.rename(columns=names, inplace=True)
+
     def _sanity_check(self, one_hot_added):
         # Sanity check: Make sure all variables defined in 'categories' have been converted
         categories_defined = set(self.categories_config.keys())
@@ -219,15 +233,15 @@ class CategoricalFieldPreprocessing(MlLogMessages):
             cats_derived_missing = cats_derived.difference(cats)
             if cats_all != cats_derived:
                 if self.strict:
-                    self._fatal_error(f"Field '{self.field_name}' categories {cats_derived} do not match the expected ones {cats} from config file.")
+                    raise ValueError(f"Field '{self.field_name}' categories {sorted(list(cats_derived))} do not match the expected ones from config file {sorted(list(cats_all))}")
                 else:
-                    self._debug(f"Field '{self.field_name}' categories {cats_derived} do not match the expected ones {cats} from config file. Converting to 'missing' values")
+                    self._debug(f"Field '{self.field_name}' categories {sorted(list(cats_derived))} do not match the expected ones from config file {sorted(list(cats_all))}. Converting to 'missing' values")
             cats_derived_missing = cats_derived.difference(cats)
             if cats_missing != cats_derived_missing:
                 if self.strict:
-                    self._fatal_error(f"Field '{self.field_name}' categories missing {cats_derived_missing} do not match the expected ones {cats_missing} from config file.")
+                    raise ValueError(f"Field '{self.field_name}' categories missing {sorted(list(cats_derived_missing))} do not match the expected ones from config file {sorted(list(cats_missing))}")
                 else:
-                    self._debug(f"Field '{self.field_name}' categories missing {cats_derived_missing} do not match the expected ones {cats} from config file ({cats_derived_missing}). Converting to 'missing' values")
+                    self._debug(f"Field '{self.field_name}' categories missing {sorted(list(cats_derived_missing))} do not match the expected ones from config file {sorted(list(cats_missing))}. Converting to 'missing' values")
             # If any values are not in 'categories', they are transformed into missing values
             self.xi_cat.cat.set_categories(self.categories, ordered=True, inplace=True)
         self.codes = self.xi_cat.cat.codes

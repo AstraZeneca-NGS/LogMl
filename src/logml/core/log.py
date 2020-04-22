@@ -102,7 +102,7 @@ class MlLogMessages:
         """ Show an error message and exit """
         logml_logger.error(f"{self._context()}: {msg}")
         sys.stderr.flush()
-        if self.config.exit_on_fatal_error:
+        if 'config' not in self.__dict__ or self.config.exit_on_fatal_error:
             sys.exit(1)
 
     def _info(self, msg):

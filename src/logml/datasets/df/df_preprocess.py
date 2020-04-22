@@ -6,6 +6,7 @@ import pandas as pd
 import re
 import traceback
 
+from .category import CategoriesPreprocess
 from ...core import MODEL_TYPE_CLASSIFICATION
 from ...core.config import CONFIG_DATASET_PREPROCESS
 from ...core.log import MlLog
@@ -278,17 +279,6 @@ class DfPreprocess(MlLog):
             self.datasets.remove_samples_if_missing(n)
         return self.datasets.dataset
         self._debug(f"Remove samples with missing outputs: End")
-
-    def rename_category_cols(self, df, prepend):
-        """
-        Rename dataFrame columns by prepending a string and sanitizing the name
-        Used to rename columns of a 'one hot' encoding
-        """
-        names = dict()
-        for c in df.columns:
-            name = f"{prepend}{sanitize_name(c)}"
-            names[c] = name
-        df.rename(columns=names, inplace=True)
 
     def _sanitize_column_names(self):
         """ Sanitize all column names """

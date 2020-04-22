@@ -135,33 +135,38 @@ class TestLogMl(unittest.TestCase):
     def test_class_CategoricalFieldPreprocessing_006(self):
         """ Test CategoricalFieldPreprocessing: Set categories, missing_values """
         xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
-        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=None)
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=['mid'])
         cfp()
-        codes = cfp.codes.to_numpy()
         # Check categorical values converted to codes
-        codes_expected = np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, math.nan], dtype=float)
+        codes_expected = np.array([0, math.nan, 1, 0, math.nan, 1, 0, math.nan, 1, math.nan], dtype=float)
+        codes = cfp.codes.to_numpy()
         # Check that undefined values are -1
         self.assertEqual(0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
-        self.assertEqual(2, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertEqual(1, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
         self.assertEqual(np.float64, codes.dtype, f"Codes.dtype: {codes.dtype}")
-        self.assertTrue(np.array_equal(codes_expected[:9], codes[:9]), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
-        # Check that undefined values are nan (output variable)
-        self.assertTrue(np.isnan(cfp.codes[9]), f"Missing code: {cfp.codes[9]}")
+        for i, c in enumerate(codes):
+            if np.isnan(c):
+                self.assertTrue(np.isnan(cfp.codes[i]), f"Missing code {i}: {cfp.codes[i]}")
+            else:
+                self.assertEqual(codes_expected[i], codes[i], f"Codes expected {i}: {codes_expected[i]} != {codes[i]}")
+
+    def test_class_CategoricalFieldPreprocessing_007(self):
+        """ Test CategoricalFieldPreprocessing: Missing a category should raise an exception """
         xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
-        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=None)
-        cfp()
-        codes = cfp.codes.to_numpy()
-        # Check categorical values converted to codes
-        self.assertEqual(0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
-        self.assertEqual(2, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
-        self.assertEqual(np.float64, codes.dtype, f"Codes.dtype: {codes.dtype}")
-        self.assertTrue(np.array_equal(codes_expected[:9], codes[:9]), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
-        # Check that undefined values are nan (output variable)
-        self.assertTrue(np.isnan(cfp.codes[9]), f"Missing code: {cfp.codes[9]}")
-        # Check that 'missing' categories are converted to -1
-        missing_idx = [1, 4, 7]
-        for i in missing_idx:
-            self.assertEqual(-1, codes[i], f"Missing codes expected at possition {i}, codes[{i}]: {codes[i]}")
+        with self.assertRaises(ValueError) as context_manager:
+            cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=[])
+            cfp()
+        ve = context_manager.exception
+        self.assertEqual(str(ve), "Field 'test_field' categories ['large', 'mid', 'small'] do not match the expected ones from config file ['large', 'small']")
+
+    def test_class_CategoricalFieldPreprocessing_008(self):
+        """ Test CategoricalFieldPreprocessing: Missing a category should raise an exception """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        with self.assertRaises(ValueError) as context_manager:
+            cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=['mid', 'zzz'])
+            cfp()
+        ve = context_manager.exception
+        self.assertEqual(str(ve), "Field 'test_field' categories ['large', 'mid', 'small'] do not match the expected ones from config file ['large', 'mid', 'small', 'zzz']")
 
     def test_config_001(self):
         """ Test objects parameters from config and file names """
