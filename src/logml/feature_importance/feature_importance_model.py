@@ -16,9 +16,9 @@ from ..util.etc import array_to_str
 
 
 class FeatureImportanceModel(MlFiles):
-    '''
+    """
     Estimate feature importance based on a model.
-    '''
+    """
 
     def __init__(self, model, model_type, rand_columns, num_iterations):
         self.model = model.clone()
@@ -57,7 +57,7 @@ class FeatureImportanceModel(MlFiles):
         # Base performance
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
-        self.loss_base = self.loss()
+        self.loss_base = self.loss(is_base=True)
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {array_to_str(self.loss_base)}")
         # Shuffle each column
         self.columns = self.datasets.get_input_names()
@@ -87,7 +87,7 @@ class FeatureImportanceModel(MlFiles):
         return pd.Series(self.pvalues, index=self.columns)
 
     def get_weight(self):
-        ''' Weight used when combinig different models for feature importance '''
+        """ Weight used when combinig different models for feature importance """
         return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
 
     def initialize(self):
@@ -114,9 +114,10 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
         self.performance[column_name] = perf
 
-    def loss(self):
+    def loss(self, is_base=False):
         """
         Calculate loss. Re-train model if necesary
+        is_base: Indicates if this is the 'base' model loss used for comparisson (i.e. self.model)
         Returns: A loss value or multiple loss values if the model uses cross-validation
         """
         raise Exception("Unimplemented!")

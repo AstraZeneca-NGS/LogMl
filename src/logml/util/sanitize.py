@@ -15,12 +15,12 @@ sanitize_dict = {
 
 
 def sanitize_name(s):
-    ''' Sanitize a string to be used as a variable or column name '''
+    """ Sanitize a string to be used as a variable or column name """
     return ''.join(sanitize_char(c) for c in str(s))
 
 
 def sanitize_char(c):
-    ''' Sanitize a string by only allowing "valid" characters '''
+    """ Sanitize a string by only allowing "valid" characters """
     if c in sanitize_valid_chars:
         return c
     if c in sanitize_dict:

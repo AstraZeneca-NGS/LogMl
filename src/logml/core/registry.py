@@ -28,7 +28,7 @@ REGISTRATION_KEYS = [DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT
 
 
 def singleton(cls):
-    ''' Singleton decorator '''
+    """ Singleton decorator """
     @functools.wraps(cls)
     def wrapper():
         if not wrapper.instance:
@@ -40,7 +40,7 @@ def singleton(cls):
 
 @singleton
 class MlRegistry(MlLog):
-    ''' Singleton class used to register functions '''
+    """ Singleton class used to register functions """
     def __init__(self, model_name=None, parameters=None):
         super().__init__()
         self._functions = dict()     # Functions registered for each stage
@@ -52,13 +52,13 @@ class MlRegistry(MlLog):
         return function_name in self._functions
 
     def invoke(self, function_name, name=None, args=None, kwargs=None):
-        '''
+        """
         Invoke a function by name, populate parameters
         returns: A tuple with first element 'True' if the function was invoked
                  and second element is the function's return value.
                  A tuple with first element 'False' if the function was NOT
                  invoked, second element is None
-        '''
+        """
         # Initialize
         if not name:
             name = function_name
@@ -88,14 +88,14 @@ class MlRegistry(MlLog):
         return True, retval
 
     def register(self, name, f):
-        ''' Register a function '''
+        """ Register a function """
         self._debug(f"Register: key '{name}', function '{f.__name__}'")
         if name not in REGISTRATION_KEYS:
             raise Exception(f"Invalid registration key '{name}', valid keys are {REGISTRATION_KEYS}")
         self._functions[name] = f
 
     def reset(self):
-        ''' Reset registry '''
+        """ Reset registry """
         self._functions = dict()
 
 

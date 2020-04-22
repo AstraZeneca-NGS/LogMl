@@ -13,7 +13,7 @@ from .feature_importance_model import FeatureImportanceModel
 
 
 class FeatureImportancePermutation(FeatureImportanceModel):
-    '''
+    """
     Estimate feature importance based on a model.
     How it works: Suffle a column and analyze how model performance is
     degraded. Most important features will make the model perform much
@@ -21,7 +21,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
 
     To estimate a p-value, it uses a ranked test by comparing to resutls from
     randomly shuffled columns
-    '''
+    """
 
     def __init__(self, model, model_name, rand_columns, num_iterations):
         super().__init__(model, model_name, rand_columns, num_iterations)
@@ -41,7 +41,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")
         self.model.model_train()
 
-    def loss(self):
+    def loss(self, is_base=False):
         """
         Train (if necesary) and calculate loss
         In this case, there is no training, just evaluate the loss

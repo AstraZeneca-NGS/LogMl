@@ -14,7 +14,7 @@ HYPER_PARAM_TYPES.extend(['model_train', 'model_create'])
 
 
 class HyperOpt(MlLog):
-    ''' Hyper parameter optimization class '''
+    """ Hyper parameter optimization class """
     def __init__(self, logml):
         super().__init__(logml.config, CONFIG_HYPER_PARAMETER_OPTMIMIZATION)
         self.logml = logml
@@ -36,20 +36,20 @@ class HyperOpt(MlLog):
         return self.hyper_parameter_search()
 
     def _config_sanity_check(self):
-        '''
+        """
         Check parameters from config.
         Return True on success, False if there are errors
-        '''
+        """
         model_enable = self.config.get_parameters(CONFIG_MODEL).get('enable')
         if self.enable and not model_enable:
             self._fatal_error(f"Config file '{self.config.config_file}', section {CONFIG_HYPER_PARAMETER_OPTMIMIZATION} incnsistency: Hyper-parameter search is enabled, but model is disabled (section {CONFIG_MODEL}, enable:{model_enable})")
         return True
 
     def create_objective_function(self):
-        '''
+        """
         Create an objective function for hyper-parameter tunning
         Note, we just crete a closure and return a wrapper
-        '''
+        """
         def _objective_function_wrapper(params):
             return self.objective_function(params)
 
@@ -57,7 +57,7 @@ class HyperOpt(MlLog):
         return _objective_function_wrapper
 
     def create_search_space(self):
-        ''' Create search space for all hyper parameters '''
+        """ Create search space for all hyper parameters """
         self._debug(f"Create search space")
         space = dict()
         for param_type in HYPER_PARAM_TYPES:
@@ -66,7 +66,7 @@ class HyperOpt(MlLog):
         return space
 
     def _create_search_space(self, space_def, param_type):
-        ''' Create a search space, given a set of parameters '''
+        """ Create a search space, given a set of parameters """
         space = dict()
         if space_def is None:
             return space
@@ -76,7 +76,7 @@ class HyperOpt(MlLog):
         return space
 
     def get_algorithm(self):
-        ''' Get algorithm type from YAML definition'''
+        """ Get algorithm type from YAML definition"""
         algo = self.algorithm
         if algo is None:
             raise ValueError(f"Missing 'algorithm' entry in 'hyper_parameter_optimization' section (YAML file)")
@@ -87,7 +87,7 @@ class HyperOpt(MlLog):
         raise ValueError(f"Unknown  'algorithm' type '{algo}' in 'hyper_parameter_optimization' section (YAML file)")
 
     def hyper_parameter_search(self):
-        ''' Perform hyper parameter search '''
+        """ Perform hyper parameter search """
         self._debug(f"Start")
         self.trials = hyperopt.Trials()
         self.objective = self.create_objective_function()
@@ -117,7 +117,7 @@ class HyperOpt(MlLog):
         return True
 
     def _new_dataset(self, config):
-        '''
+        """
         When we are using hyper-paarmeters in dataset 'create', 'augment' or 'postprocessing', we
         must create datasets from scratch each time.
         We build a copy of the dataset object but set it so that:
@@ -125,7 +125,7 @@ class HyperOpt(MlLog):
           - It doesn't save to pickle
           - Reset fields (dataset / train / test / validate)
         Note: We do a 'copy' in order to preserve parameters and class type
-        '''
+        """
         if not self.is_create_dataset:
             return None
         self._debug(f"Creating new dataset")
@@ -138,10 +138,10 @@ class HyperOpt(MlLog):
         return datasets
 
     def objective_function(self, params):
-        '''
+        """
         Objective function invoked in hyper-parameter tunning
         It invokes training & test, then returns the test result metric to minimize
-        '''
+        """
         self.iteration += 1
         # Create a new config with updated parameters
         params_ml = self._space2params(params)
@@ -165,7 +165,7 @@ class HyperOpt(MlLog):
         return ret_val
 
     def save_results(self):
-        ''' Save hyper parameter search results to picle file '''
+        """ Save hyper parameter search results to picle file """
         mltrain = self.logml.model
         file_name = mltrain.get_file_name('hyper_param_search')
         self._debug(f"Save hyper-parameter search results: Saving to pickle file '{file_name}'")
@@ -174,7 +174,7 @@ class HyperOpt(MlLog):
         return True
 
     def _search_space(self, param_label, param_def):
-        ''' Create a search space from the definition '''
+        """ Create a search space from the definition """
         self._debug(f"param_label={param_label}, param_def={param_def}")
         distribution = param_def[0]
         args = list()
@@ -187,7 +187,7 @@ class HyperOpt(MlLog):
         return sp
 
     def _space2params(self, params):
-        ''' Repack parameters for LogMl.model_train '''
+        """ Repack parameters for LogMl.model_train """
         ps = dict()
         for key in params:
             param_type, param_name = key.split('.', 2)

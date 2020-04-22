@@ -25,9 +25,9 @@ def _parse_base(base):
 
 
 class DfAugment(MlLog):
-    '''
+    """
     DataFrame augmentation
-    '''
+    """
 
     def __init__(self, df, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_AUGMENT)
@@ -133,10 +133,10 @@ class DfAugment(MlLog):
 
 
 class DfAugmentOpBinary(FieldsParams):
-    '''
+    """
     Augment dataset by adding "binary operations" between two fields (e.g. difference,
     ratio, log ratio, etc.)
-    '''
+    """
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
@@ -221,9 +221,9 @@ class DfAugmentOpBinary(FieldsParams):
 
 
 class DfAugmentOpNary(FieldsParams):
-    '''
+    """
     Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. sum)
-    '''
+    """
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
@@ -294,10 +294,10 @@ class DfAugmentOpNary(FieldsParams):
 
 
 class DfAugmentOpNaryIncremental(FieldsParams):
-    '''
+    """
     Augment dataset by adding "N-ary operations" between (two or more) fields (e.g. 'and') in an incremental way
     This is much more efficient when there are many new values not incorporated due to having too many zeros.
-    '''
+    """
 
     def __init__(self, df, config, subsection, outputs, model_type, params=None, madatory_params=None):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, subsection, df.columns, outputs, params, madatory_params)
@@ -435,7 +435,7 @@ class DfAugmentOpNaryIncremental(FieldsParams):
 
 
 class DfAugmentOpAdd(DfAugmentOpNary):
-    ''' Augment dataset by adding two or more fields '''
+    """ Augment dataset by adding two or more fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'add', outputs, model_type, params=['min_non_zero', 'order'])
@@ -446,7 +446,7 @@ class DfAugmentOpAdd(DfAugmentOpNary):
 
 
 class DfAugmentOpAnd(DfAugmentOpNaryIncremental):
-    ''' Augment dataset by performing 'and' of two or more fields '''
+    """ Augment dataset by performing 'and' of two or more fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'and', outputs, model_type, params=['min_non_zero', 'order', 'threshold'])
@@ -466,7 +466,7 @@ class DfAugmentOpAnd(DfAugmentOpNaryIncremental):
 
 
 class DfAugmentOpDiv(DfAugmentOpBinary):
-    ''' Augment dataset by dividing two fields '''
+    """ Augment dataset by dividing two fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'div', outputs, model_type, params=['min_non_zero'])
@@ -481,7 +481,7 @@ class DfAugmentOpDiv(DfAugmentOpBinary):
 
 
 class DfAugmentOpLogRatio(DfAugmentOpBinary):
-    ''' Augment dataset by applying the log ratio of two fields '''
+    """ Augment dataset by applying the log ratio of two fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'log_ratio', outputs, model_type, params=['base', 'min_non_zero'])
@@ -507,7 +507,7 @@ class DfAugmentOpLogRatio(DfAugmentOpBinary):
 
 
 class DfAugmentOpLogPlusOneRatio(DfAugmentOpBinary):
-    ''' Augment dataset by applying the log+1 ratio of two fields '''
+    """ Augment dataset by applying the log+1 ratio of two fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'logp1_ratio', outputs, model_type, params=['base', 'min_non_zero'])
@@ -535,7 +535,7 @@ class DfAugmentOpLogPlusOneRatio(DfAugmentOpBinary):
 
 
 class DfAugmentOpMult(DfAugmentOpNary):
-    ''' Augment dataset by multiplying two or more fields '''
+    """ Augment dataset by multiplying two or more fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'mult', outputs, model_type, params=['min_non_zero', 'order'])
@@ -546,7 +546,7 @@ class DfAugmentOpMult(DfAugmentOpNary):
 
 
 class DfAugmentOpSub(DfAugmentOpBinary):
-    ''' Augment dataset by substracting two fields '''
+    """ Augment dataset by substracting two fields """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, 'sub', outputs, model_type, params=['min_non_zero'])
@@ -557,7 +557,7 @@ class DfAugmentOpSub(DfAugmentOpBinary):
 
 
 class DfAugmentNmf(FieldsParams):
-    ''' Augment dataset by adding Non-negative martix factorization '''
+    """ Augment dataset by adding Non-negative martix factorization """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, 'nmf', df.columns, outputs, params=['min_non_zero', 'num'], madatory_params=['num'])
@@ -578,7 +578,7 @@ class DfAugmentNmf(FieldsParams):
 
 
 class DfAugmentPca(FieldsParams):
-    ''' Augment dataset by adding principal components '''
+    """ Augment dataset by adding principal components """
 
     def __init__(self, df, config, outputs, model_type):
         super().__init__(df, config, CONFIG_DATASET_AUGMENT, 'pca', df.columns, outputs, params=['num'], madatory_params=['num'])

@@ -38,14 +38,14 @@ def set_plots(disable=None, show=None, save=None, path=None):
 
 
 class MlFiles(MlLog):
-    '''
+    """
     ML Files: Basic file load / save capabilities
-    '''
+    """
     def __init__(self, config=None, config_section=None):
         super().__init__(config, config_section)
 
     def _adjust_image_size(self, size, count_vars):
-        ''' Adjust the image size '''
+        """ Adjust the image size """
         if count_vars is None or (count_vars <= PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS):
             return size
         return min(PLOTS_FIGSIZE_MAX, size * count_vars / PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS)
@@ -55,10 +55,10 @@ class MlFiles(MlLog):
             display(obj)
 
     def _get_file_name(self, path, name, file_type=None, ext='pkl', _id=None):
-        ''' Create a file name
+        """ Create a file name
         Make sure all intermediate directories exists, so
         that the file can be created
-        '''
+        """
         self._debug(f"path={path}, name={name}, file_type={file_type}, ext='{ext}'")
         if not path or not name:
             return None
@@ -73,7 +73,7 @@ class MlFiles(MlLog):
         return fname
 
     def _load_pickle(self, file_pickle, tag):
-        ''' Load a pickle file, return data (on success) or None (on failure) '''
+        """ Load a pickle file, return data (on success) or None (on failure) """
         if not file_pickle:
             self._debug(f"{tag}: Empty file name, skipping")
             return None
@@ -86,7 +86,7 @@ class MlFiles(MlLog):
             return dataset
 
     def _load_yaml(self, file_yaml):
-        ''' Load a yaml file '''
+        """ Load a yaml file """
         yaml_dir = os.path.dirname(file_yaml)
         self._debug(f"Loading YAML file '{file_yaml}', base dir '{yaml_dir}'")
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=yaml_dir)
@@ -94,11 +94,11 @@ class MlFiles(MlLog):
             return yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     def _plot_show(self, title, section, figure=None, count_vars_x=None, count_vars_y=None):
-        '''
+        """
         Show a plot in a way that we can continue processing
             count_vars_x: Number of variables plotted along the x-axis, the size of the figure is adjusted (increased) by `max(1.0, count_vars_x / PLOTS_ADJUSTMENT_FACTOR_COUNT_VARS)`
             count_vars_y: Number of variables plotted along the y-axis
-        '''
+        """
         # Adjust figure size
         fig = plt.gcf()
         figsize_x = self._adjust_image_size(PLOTS_FIGSIZE_X, count_vars_x)
@@ -121,7 +121,7 @@ class MlFiles(MlLog):
             plt.close(figure)
 
     def _save_csv(self, file_csv, tag, df, save_index=False):
-        ''' Save a dataFrame to a CSV file, return True (on success) or False (on failure) '''
+        """ Save a dataFrame to a CSV file, return True (on success) or False (on failure) """
         if not file_csv:
             self._debug(f"{tag}: Empty file name, skipping")
             return False
@@ -132,7 +132,7 @@ class MlFiles(MlLog):
         df.to_csv(file_csv, index=save_index)
 
     def _save_pickle(self, file_pickle, tag, data):
-        ''' Save a pickle file, return True (on success) or False (on failure) '''
+        """ Save a pickle file, return True (on success) or False (on failure) """
         if not file_pickle:
             self._debug(f"{tag}: Empty file name, skipping")
             return False
@@ -142,6 +142,6 @@ class MlFiles(MlLog):
             return True
 
     def _save_yaml(self, file_name, data):
-        ''' Save data to YAML file '''
+        """ Save data to YAML file """
         with open(file_name, 'w') as out:
             yaml.dump(data, out, default_flow_style=False)

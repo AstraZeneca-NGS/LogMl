@@ -1,7 +1,7 @@
 logger:
 
 dataset:
-    dataset_name: 'test_dataset_preprocess_013'
+    dataset_name: 'test_dataset_preprocess_014'
     dataset_path: 'tests/unit/data'
     dataset_type: 'df'
     is_use_default_split: False
@@ -13,6 +13,8 @@ dataset_preprocess:
     'x.*':
         values: ['WT', 'MUT']
         one_based: false
+        strict: false
+        convert_to_missing: ['UNK']
     'z.*':
         values: ['WT', 'MUT']
         scale: true
@@ -20,8 +22,9 @@ dataset_preprocess:
         values: ['WT', 'UNK', 'MUT']
         scale: true
     y:
-        values: ['WT', 'UNK', 'MUT']
+        values: ['WT', 'MUT']
         one_based: false
+        convert_to_missing: ['UNK']
   impute:
     minus_one: ['x.*']
     zero: ['a.*', 'z.*']
@@ -32,5 +35,5 @@ dataset_preprocess:
 
 model:
   enable: false
-  model_name: 'test_model_dataset_preprocess_013'
-  model_path: 'tests/tmp/test_model_dataset_preprocess_013'
+  model_name: 'test_model_dataset_preprocess_014'
+  model_path: 'tests/tmp/test_model_dataset_preprocess_014'

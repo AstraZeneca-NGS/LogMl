@@ -5,6 +5,7 @@ import sklearn.model_selection
 from ..core.config import CONFIG_CROSS_VALIDATION
 from ..core.files import MlFiles
 from .datasets_base import DatasetsBase, InOut
+from ..core import MODEL_TYPE_CLASSIFICATION
 
 
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit', 'StratifiedKFold', 'StratifiedShuffleSplit']
@@ -80,7 +81,7 @@ class DatasetsCv(DatasetsBase):
         return ds_clone
 
     def _create_cv_datasets(self):
-        ''' Create cross-validation datasets '''
+        """ Create cross-validation datasets """
         if len(self.cv_datasets) > 0:
             self._debug(f"DatasetsCv: Creating CV datasets has been done ({len(self.cv_datasets)} datasets found). Skipping")
             return
@@ -99,7 +100,7 @@ class DatasetsCv(DatasetsBase):
             self._debug(f"DatasetsCv: Create cross-validation indexes: idx_train length = {len(idx_train)}, idx_validate length = {len(idx_validate)}")
             ds = self.datasets.clone(deep=True)
             ds.split_idx(idx_train, idx_validate)
-            if self.model_type == 'classification':
+            if self.model_type == MODEL_TYPE_CLASSIFICATION:
                 _, y = ds.get_train_xy()
                 yperc = value_count_percent(y)
                 self._debug(f"DatasetsCv: Create cross-validation {len(idx_train)}: class distribution: {yperc}")
@@ -109,7 +110,7 @@ class DatasetsCv(DatasetsBase):
         self.cv_count = len(self.cv_datasets)
 
     def _get_cv_iterator(self):
-        ''' Get cross-validation iterators '''
+        """ Get cross-validation iterators """
         if not self.cv_type:
             self._error(f"No supported cross-validation method found. Options {CV_METHODS}")
             return None

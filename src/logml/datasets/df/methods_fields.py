@@ -54,7 +54,7 @@ class MatchFields(MlLog):
 
 
 class MethodsFields(MatchFields):
-    ''' A mapping from methods to fields (e.g. normalization methods applied to fields)'''
+    """ A mapping from methods to fields (e.g. normalization methods applied to fields)"""
 
     def __init__(self, config, section, subsection, method_names, field_names, outputs):
         super().__init__(config, section, subsection, field_names, outputs)
@@ -62,10 +62,10 @@ class MethodsFields(MatchFields):
         self.fields_by_method = dict()
 
     def find_method(self, name):
-        '''
+        """
         Find a method for input variable 'name'
         Returns None if field 'name' is in 'skip' list
-        '''
+        """
         if self.is_skip(name):
             self._debug(f"Method {self.subsection}, variable '{name}' in skip list")
             return None
@@ -96,10 +96,10 @@ class MethodsFields(MatchFields):
         self._set_default_method()
 
     def is_skip(self, name):
-        '''
+        """
         Is 'name' in the list of fields to skip?
         Return: True if skip is a list and 'name' is in the list, False otherwise (even if skip=True, i.e. defined as default method)
-        '''
+        """
         skip = self.get_fields(METHOD_SKIP_NAME)
         return False if skip is True else name in skip
 
@@ -119,7 +119,7 @@ class MethodsFields(MatchFields):
             self._debug(f"Method '{method_name}' for fields '{fields}'")
 
     def _set_default_method(self):
-        ''' Set default method (from configuration) '''
+        """ Set default method (from configuration) """
         default_method = list()
         self.method_default = None
         for n in self.method_names:

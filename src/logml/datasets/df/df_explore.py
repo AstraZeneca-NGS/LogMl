@@ -21,10 +21,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class DfExplore(MlFiles):
-    '''
+    """
     Perform data exploratory analysis.
     There are two types of analysis being performed here:
-    '''
+    """
 
     def __init__(self, df, name, config, files_base, set_config=True):
         super().__init__(config, CONFIG_DATASET_EXPLORE)
@@ -50,7 +50,7 @@ class DfExplore(MlFiles):
             self._set_from_config()
 
     def __call__(self):
-        ''' Explore dataset '''
+        """ Explore dataset """
         if not self.enable:
             self._debug(f"Dataset explore ({self.name}) disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_EXPLORE}', enable='{self.enable}'")
             return True
@@ -120,7 +120,7 @@ class DfExplore(MlFiles):
         self._plot_show(f"Dendogram rank correlation", f'dataset_explore.{self.name}', count_vars_x=num_vars, count_vars_y=num_vars)
 
     def dendogram_na(self):
-        ''' Dendogram of missing values '''
+        """ Dendogram of missing values """
         count_na = self.df.isna().sum().sum()
         if count_na <= 0:
             self._debug(f"Dendogram of missing values {self.name}: No missing values, skipping")
@@ -198,7 +198,7 @@ class DfExplore(MlFiles):
         return pd.DataFrame({field_name: [is_normal, p]}, index=['Normality', 'Normality_test_pvalue'])
 
     def explore(self):
-        ''' Explore dataFrame'''
+        """ Explore dataFrame"""
         if self.df is None:
             self._debug(f"Explore data '{self.name}': DataFrame is None, skipping.")
             return
@@ -323,7 +323,7 @@ class DfExplore(MlFiles):
         return df_copy
 
     def remove_non_numeric_cols(self, df):
-        ''' Return a new dataFrame with only numeric columns '''
+        """ Return a new dataFrame with only numeric columns """
         to_drop = list()
         for c in df.columns:
             if not self.is_numeric(df[c]):
@@ -332,7 +332,7 @@ class DfExplore(MlFiles):
         return df_copy
 
     def remove_zero_std_cols(self, df, std_threshold=0.0):
-        ''' Return a new dataFrame with numeric columns having stdev < std_threshold removed '''
+        """ Return a new dataFrame with numeric columns having stdev < std_threshold removed """
         to_drop = list()
         for c in df.columns:
             if not self.is_numeric(df[c]):
@@ -345,7 +345,7 @@ class DfExplore(MlFiles):
         return df_copy
 
     def save(self):
-        ''' Save as pickle file and save CSV tables '''
+        """ Save as pickle file and save CSV tables """
         self._save_pickle(f"{self.files_base}.data_explore.pkl", "Data explore", self)
 
     def _spearmanr(self, x):

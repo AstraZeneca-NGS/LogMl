@@ -1,5 +1,6 @@
 
 import logging
+import math
 import numpy as np
 import pandas as pd
 import os
@@ -8,12 +9,13 @@ import sys
 import time
 import unittest
 
-from logml.core import LogMl
+from logml.core import LogMl, MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
 from logml.core.files import set_plots, MlFiles
 from logml.core.log import MlLog
 from logml.core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_TRAIN
 from logml.datasets import Datasets, DatasetsDf, DatasetsCv, DatasetsDf
+from logml.datasets.df.category import CategoricalFieldPreprocessing
 from logml.feature_importance.data_feature_importance import DataFeatureImportance
 from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
 from logml.models import Model
@@ -42,7 +44,7 @@ def is_sorted(x):
 
 
 def rm(file):
-    ''' Delete file, if it exists '''
+    """ Delete file, if it exists """
     if os.path.exists(file):
         os.remove(file)
 
@@ -56,8 +58,118 @@ class TestLogMl(unittest.TestCase):
         set_plots(disable=True, show=False, save=False)
         MlRegistry().reset()
 
+    def test_class_CategoricalFieldPreprocessing_001(self):
+        """ Test CategoricalFieldPreprocessing: Undefined categories """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=None, one_based=False, scale=False, strict=True, is_output=False, convert_to_missing=None)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        # Check categorical values converted to codes
+        self.assertEqual(-1, codes.min(), f"Min codes: {codes.min()}")
+        self.assertEqual(2, codes.max(), f"Max codes: {codes.max()}")
+        self.assertEqual(np.int8, codes.dtype, f"Codes.dtype: {codes.dtype}")
+        # Check that undefined values are -1
+        self.assertEqual(-1, cfp.codes[9], f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_002(self):
+        """ Test CategoricalFieldPreprocessing: Set categories """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=False, convert_to_missing=None)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        codes_expected = np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, -1])
+        # Check categorical values converted to codes: zero-based
+        self.assertEqual(-1, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(2, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertEqual(np.int8, codes.dtype, f"Codes.dtype: {codes.dtype}")
+        self.assertTrue(np.array_equal(codes_expected, codes), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
+        # Check that undefined values are -1
+        self.assertEqual(-1, cfp.codes[9], f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_003(self):
+        """ Test CategoricalFieldPreprocessing: Set categories, one_based """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=True, scale=False, strict=True, is_output=False, convert_to_missing=None)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        # Check categorical values converted to codes: one-based
+        codes_expected = np.array([1, 2, 3, 1, 2, 3, 1, 2, 3, 0])
+        self.assertEqual(0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(3, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertTrue(np.array_equal(codes_expected, codes), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
+        self.assertEqual(np.int8, codes.dtype, f"Codes.dtype: {codes.dtype}")
+        # Check that undefined values are 0
+        self.assertEqual(0, cfp.codes[9], f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_004(self):
+        """ Test CategoricalFieldPreprocessing: Set categories, scale """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=True, strict=True, is_output=False, convert_to_missing=None)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        # Check categorical values converted to codes: floats in range [0, 1]
+        codes_expected = np.array([0, 0.5, 1.0, 0, 0.5, 1.0, 0, 0.5, 1.0, math.nan])
+        self.assertEqual(0.0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(1.0, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertEqual(np.float64, codes.dtype, f"Codes.dtype: {codes.dtype}")
+        np.testing.assert_allclose(codes_expected, codes)
+        # Check that undefined values are NaN
+        self.assertTrue(np.isnan(cfp.codes[9]), f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_005(self):
+        """ Test CategoricalFieldPreprocessing: Set categories, output """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=None)
+        cfp()
+        codes = cfp.codes.to_numpy()
+        # Check categorical values converted to codes
+        codes_expected = np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, math.nan], dtype=float)
+        # Check that undefined values are -1
+        self.assertEqual(0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(2, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertEqual(np.float64, codes.dtype, f"Codes.dtype: {codes.dtype}")
+        self.assertTrue(np.array_equal(codes_expected[:9], codes[:9]), f"Codes expected: {codes_expected}\n\tCodes: {codes}")
+        # Check that undefined values are nan (output variable)
+        self.assertTrue(np.isnan(cfp.codes[9]), f"Missing code: {cfp.codes[9]}")
+
+    def test_class_CategoricalFieldPreprocessing_006(self):
+        """ Test CategoricalFieldPreprocessing: Set categories, missing_values """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=['mid'])
+        cfp()
+        # Check categorical values converted to codes
+        codes_expected = np.array([0, math.nan, 1, 0, math.nan, 1, 0, math.nan, 1, math.nan], dtype=float)
+        codes = cfp.codes.to_numpy()
+        # Check that undefined values are -1
+        self.assertEqual(0, cfp.codes.min(), f"Min codes: {cfp.codes.min()}")
+        self.assertEqual(1, cfp.codes.max(), f"Max codes: {cfp.codes.max()}")
+        self.assertEqual(np.float64, codes.dtype, f"Codes.dtype: {codes.dtype}")
+        for i, c in enumerate(codes):
+            if np.isnan(c):
+                self.assertTrue(np.isnan(cfp.codes[i]), f"Missing code {i}: {cfp.codes[i]}")
+            else:
+                self.assertEqual(codes_expected[i], codes[i], f"Codes expected {i}: {codes_expected[i]} != {codes[i]}")
+
+    def test_class_CategoricalFieldPreprocessing_007(self):
+        """ Test CategoricalFieldPreprocessing: Missing a category should raise an exception """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        with self.assertRaises(ValueError) as context_manager:
+            cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=[])
+            cfp()
+        ve = context_manager.exception
+        self.assertEqual(str(ve), "Field 'test_field' categories ['large', 'mid', 'small'] do not match the expected ones from config file ['large', 'small']")
+
+    def test_class_CategoricalFieldPreprocessing_008(self):
+        """ Test CategoricalFieldPreprocessing: Missing a category should raise an exception """
+        xi = pd.Series(['small', 'mid', 'large', 'small', 'mid', 'large', 'small', 'mid', 'large', None])
+        with self.assertRaises(ValueError) as context_manager:
+            cfp = CategoricalFieldPreprocessing('test_field', xi, categories=['small', 'mid', 'large'], one_based=False, scale=False, strict=True, is_output=True, convert_to_missing=['mid', 'zzz'])
+            cfp()
+        ve = context_manager.exception
+        self.assertEqual(str(ve), "Field 'test_field' categories ['large', 'mid', 'small'] do not match the expected ones from config file ['large', 'mid', 'small', 'zzz']")
+
     def test_config_001(self):
-        ''' Test objects parameters from config and file names '''
+        """ Test objects parameters from config and file names """
         config_file = os.path.join('tests', 'unit', 'config', 'test_config_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
@@ -107,7 +219,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(ret)
 
     def test_dataset_002(self):
-        ''' Check Datasets.__call__() '''
+        """ Check Datasets.__call__() """
         def test_dataset_002_augment(dataset, num_augment=1):
             assert num_augment == 10
             dataset.append(5)
@@ -162,7 +274,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]))
 
     def test_dataset_003(self):
-        ''' Check Datasets.__call__(), with 'enable=False', in this case 'dataset_split' is false '''
+        """ Check Datasets.__call__(), with 'enable=False', in this case 'dataset_split' is false """
         def test_dataset_003_augment(dataset, num_augment=1):
             assert num_augment == 10
             dataset.append(5)
@@ -200,7 +312,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.dataset_xy.y, [1, 2, 3, 4, 5, 6])
 
     def test_dataset_004(self):
-        ''' Check Datasets.__call__(), with default split method '''
+        """ Check Datasets.__call__(), with default split method """
         def test_dataset_004_create(num_create):
             assert num_create == 42
             return np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -243,7 +355,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(all(ds.get_test() == np.array([108, 109])))
 
     def test_dataset_006(self):
-        ''' DatasetsDf test (load dataframe) and expand date/time columns and '_na' columns '''
+        """ DatasetsDf test (load dataframe) and expand date/time columns and '_na' columns """
         # Create dataset
         config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_006.yaml'), argv=list())
         config()
@@ -252,7 +364,9 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         self.assertTrue(ret)
         # Check categories
-        self.assertTrue(all(ds.dataset['UsageBand'].head(10) == np.array([2, 2, 2, 1, 2, 2, 2, 1, 0, 2])))
+        ub_head = ds.dataset['UsageBand'].head(10)
+        ub_head_expected = np.array([2, 2, 2, 1, 2, 2, 2, 1, 0, 2])
+        np.testing.assert_allclose(ub_head_expected, ub_head)
         # Check date convertion
         self.assertTrue('sale:year' in ds.dataset.columns)
         self.assertTrue('sale:month' in ds.dataset.columns)
@@ -261,7 +375,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue('MachineHoursCurrentMeter_na' in ds.dataset.columns)
 
     def test_dataset_007(self):
-        ''' Test preprocess 'drop_zero_std' feature '''
+        """ Test preprocess 'drop_zero_std' feature """
         # Create dataset
         config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_007.yaml'), argv=list())
         config()
@@ -274,7 +388,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('auctioneerID' in ds.dataset.columns)
 
     def test_dataset_augment_001(self):
-        ''' Checking dataset augment: PCA '''
+        """ Checking dataset augment: PCA """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -304,7 +418,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(cov_diff < 0.12, f"Expected covarianve differs (difference norm: {cov_diff}). Covariance:\n{cov}\nExpected:\n{cov_expected}")
 
     def test_dataset_augment_002(self):
-        ''' Checking dataset augment: Operations '''
+        """ Checking dataset augment: Operations """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -346,7 +460,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(is_close(np.log((x3 + 1) / (x4 + 1)), df['logep1_ratio_expr_x3_x4'][0]))
 
     def test_dataset_augment_003(self):
-        ''' Checking dataset augment: Filter results having too many zeros '''
+        """ Checking dataset augment: Filter results having too many zeros """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -370,7 +484,7 @@ class TestLogMl(unittest.TestCase):
                         self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
 
     def test_dataset_augment_004(self):
-        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        """ Checking dataset augment: Add or Multiply more than 2 fields """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_004.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -409,7 +523,7 @@ class TestLogMl(unittest.TestCase):
                             self.assertFalse(name in df.columns, f"Found augmented column: {name}, should not be there")
 
     def test_dataset_augment_005(self):
-        ''' Checking dataset augment: Add or Multiply more than 2 fields '''
+        """ Checking dataset augment: Add or Multiply more than 2 fields """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_augment_005.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -426,7 +540,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(15, and_4_len, f"Expecting 15 'and_4' columns, got {and_4_len}")
 
     def test_dataset_feature_importance_001(self):
-        ''' Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) '''
+        """ Checking feature importance on dataset (dataframe): Clasification test (logistic regression model) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -446,7 +560,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_feature_importance_002(self):
-        ''' Checking feature importance on dataset (dataframe)
+        """ Checking feature importance on dataset (dataframe)
         Model type: clasification
         Feature importance method:
             - Permutation
@@ -454,7 +568,7 @@ class TestLogMl(unittest.TestCase):
             - Single iteration
             - No p-value
             - No cross-validation
-        '''
+        """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -464,7 +578,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -472,7 +586,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_feature_importance_003(self):
-        ''' Checking feature importance on dataset (dataframe): Regression test (linear) '''
+        """ Checking feature importance on dataset (dataframe): Regression test (linear) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -482,7 +596,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'regression', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_REGRESSION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -492,7 +606,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[2] == 'x3', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_feature_importance_004(self):
-        ''' Checking feature importance on dataset (dataframe): Reression test (linear regression model) '''
+        """ Checking feature importance on dataset (dataframe): Reression test (linear regression model) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_004.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -512,7 +626,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.p_values['x5'] > 0.1, f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_feature_importance_005(self):
-        ''' Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) '''
+        """ Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_005.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -532,7 +646,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(np.isnan(lrw.p_values['x5']), f"p-value = {lrw.p_values['x5']}")
 
     def test_dataset_feature_importance_006(self):
-        ''' Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) '''
+        """ Checking feature importance on dataset (dataframe): Clasification test (multi-class logistic regression) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_006.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -560,7 +674,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(lrw.best_category[3] == 'med', f"coefficients = {lrw.best_category[3]}")
 
     def test_dataset_feature_importance_007(self):
-        '''
+        """
         Checking feature importance on dataset (dataframe)
         Model type: clasification
         Feature importance method:
@@ -569,7 +683,7 @@ class TestLogMl(unittest.TestCase):
             - Multiple-iterations
             - Calculate p-value
             - No cross-validation
-        '''
+        """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_007.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -579,7 +693,7 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -587,7 +701,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_feature_importance_008(self):
-        '''
+        """
         Checking feature importance on dataset (dataframe)
         Model type: classification
         Feature importance method:
@@ -596,18 +710,18 @@ class TestLogMl(unittest.TestCase):
             - Multiple-iterations
             - Calculate p-value
             - Use cross-validation
-        '''
+        """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_008.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        ds = DatasetsCv(config, ds)
+        ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -615,7 +729,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_feature_importance_009(self):
-        '''
+        """
         Checking feature importance on dataset (dataframe)
         Model type: classification
         Feature importance method:
@@ -624,18 +738,18 @@ class TestLogMl(unittest.TestCase):
             - Multiple-iterations
             - Calculate p-value
             - Use cross-validation
-        '''
+        """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_009.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        ds = DatasetsCv(config, ds)
+        ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
-        fi = DataFeatureImportance(config, ds, 'classification', 'unit_test')
+        fi = DataFeatureImportance(config, ds, MODEL_TYPE_CLASSIFICATION, 'unit_test')
         ret = fi()
         self.assertTrue(ret)
         # Make sure we can select x1 and x2 as important varaibles
@@ -643,7 +757,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
     def test_dataset_preprocess_001(self):
-        ''' Checking dataset preprocess for dataframe: Normalization '''
+        """ Checking dataset preprocess for dataframe: Normalization """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_001.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -682,7 +796,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(abs(x7_std - 1) <= 0.001)
 
     def test_dataset_preprocess_002(self):
-        ''' Checking dataset preprocess for dataframe: Imputation '''
+        """ Checking dataset preprocess for dataframe: Imputation """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_002.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -717,7 +831,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
 
     def test_dataset_preprocess_003(self):
-        ''' Checking dataset preprocess for dataframe: Imputation '''
+        """ Checking dataset preprocess for dataframe: Imputation """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_003.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -747,11 +861,11 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(abs(df[var][idx] - expected) < epsilon, f"df.{var}[{idx}] = {df[var][idx]}")
 
     def test_dataset_preprocess_004(self):
-        ''' Checking dataset preprocess for dataframe: Balance '''
+        """ Checking dataset preprocess for dataframe: Balance """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_004.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
-        ds = DatasetsDf(config, model_type='classification')
+        ds = DatasetsDf(config, model_type=MODEL_TYPE_CLASSIFICATION)
         rm(ds.get_file_name())
         ret = ds()
         df = ds.dataset
@@ -763,7 +877,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue((np.abs(perc - expected) < epsilon).all(), f"Unbalanced percentage: {perc}, counts={counts}, cathegories={uniq}")
 
     def test_dataset_preprocess_005(self):
-        ''' Checking dataset preprocess: Remove missing output rows '''
+        """ Checking dataset preprocess: Remove missing output rows """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_005.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -775,7 +889,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(df.shape[0] < 990)
 
     def test_dataset_preprocess_006(self):
-        ''' Checking dataset preprocess: Remove missing output rows '''
+        """ Checking dataset preprocess: Remove missing output rows """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_006.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -788,7 +902,7 @@ class TestLogMl(unittest.TestCase):
             self.assertTrue(x.isna().sum() == 0, f"Column {c} has {x.isna().sum()} missing elements")
 
     def test_dataset_preprocess_007(self):
-        ''' Checking dataset preprocess: Remove missing column '''
+        """ Checking dataset preprocess: Remove missing column """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_007.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -802,7 +916,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('d1' in cols)
 
     def test_dataset_preprocess_008(self):
-        ''' Checking dataset preprocess: Convert fields to categories (matching regex on field names) '''
+        """ Checking dataset preprocess: Convert fields to categories (matching regex on field names) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_008.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -816,7 +930,7 @@ class TestLogMl(unittest.TestCase):
             self.assertTrue(field in cols, f"Field {field} not found")
 
     def test_dataset_preprocess_009(self):
-        ''' Checking dataset preprocess: Remove duplicate inputs '''
+        """ Checking dataset preprocess: Remove duplicate inputs """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_009.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -832,7 +946,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse('x3r' in cols)
 
     def test_dataset_preprocess_010(self):
-        ''' Checking dataset preprocess: Shuffle data '''
+        """ Checking dataset preprocess: Shuffle data """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_010.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -846,7 +960,7 @@ class TestLogMl(unittest.TestCase):
         self.assertFalse(is_sorted(df.y.to_numpy()), f"Data should not be sorted:\ndf.y={df.y}")
 
     def test_dataset_preprocess_011(self):
-        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        """ Checking dataset preprocess: Binary categorical data with NAs as -1 """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_011.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -875,14 +989,14 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
-        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        col, c_min, c_max, unique_expected = 'y', 1, 3, [1, 2, 3]
         self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
 
     def test_dataset_preprocess_012(self):
-        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        """ Checking dataset preprocess: Binary categorical data with NAs as -1 """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_012.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -911,14 +1025,14 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
-        col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        col, c_min, c_max, unique_expected = 'y', 1, 3, [1, 2, 3]
         self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
 
     def test_dataset_preprocess_013(self):
-        ''' Checking dataset preprocess: Binary categorical data with NAs as -1 '''
+        """ Checking dataset preprocess: Binary categorical data with NAs as -1 """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_013.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
@@ -948,6 +1062,42 @@ class TestLogMl(unittest.TestCase):
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
         col, c_min, c_max, unique_expected = 'y', 0, 2, [0, 1, 2]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+
+    def test_dataset_preprocess_014(self):
+        """ Checking dataset preprocess: Binary categorical data with NAs as -1 """
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_014.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        col, c_min, c_max, unique_expected = 'x1', -1, 0, [-1, 0]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'z2', 0, 1, [0, 0.5, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'x3', -1, 1, [-1, 0, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'a4', 0, 1, [0, 1 / 3, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'y', 0, 1, [0, 1]
         self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
         self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
         uniq = np.sort(df[col].unique())
@@ -1007,7 +1157,7 @@ class TestLogMl(unittest.TestCase):
             self.assertEqual(f.read(), test_err + '\n')
 
     def test_train_001(self):
-        ''' Check Model.__call__() '''
+        """ Check Model.__call__() """
         def test_train_001_dataset_create(num_create):
             assert num_create == 42
             ds = np.arange(100)
@@ -1060,7 +1210,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(logml._load_pickle(train_results_pkl, 'train_results'), model_expected['mean'])
 
     def test_train_002_cross_validate(self):
-        ''' Check Model.__call__() '''
+        """ Check Model.__call__() """
         def test_train_002_dataset_create(num_create):
             assert num_create == 42
             ds = np.arange(100)
@@ -1108,7 +1258,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(cv_model.eval_validate_std, 19.504326451560278)
 
     def test_train_003_hyper_opt(self):
-        ''' Check hyper-parameter optimization '''
+        """ Check hyper-parameter optimization """
         def test_train_003_dataset_create(num_create):
             assert num_create == 42
             ds = np.arange(10)
@@ -1122,7 +1272,7 @@ class TestLogMl(unittest.TestCase):
             return {'mean': 0}
 
         def test_train_003_model_train(model, x, y, mean):
-            ''' Model train: No training, it only sets the 'mean' from hyper parameter '''
+            """ Model train: No training, it only sets the 'mean' from hyper parameter """
             model['mean'] = mean
             x = np.array(x)
             rmse = np.sqrt(np.mean((x - mean)**2))
@@ -1158,7 +1308,7 @@ class TestLogMl(unittest.TestCase):
         self.assertTrue(abs(mean - 4.5) < 0.5)
 
     def test_train_004_hyper_opt_create(self):
-        ''' Check hyper-parameter optimization for 'dataset create' parameters '''
+        """ Check hyper-parameter optimization for 'dataset create' parameters """
         def test_train_004_dataset_create(num_create):
             ds = np.arange(num_create)
             return ds
@@ -1171,7 +1321,7 @@ class TestLogMl(unittest.TestCase):
             return {'len': 0}
 
         def test_train_004_model_train(model, x, y, mean):
-            ''' Model train: No training, it only sets the dataset length from hyper parameter '''
+            """ Model train: No training, it only sets the dataset length from hyper parameter """
             return 1.0 - len(x) / 10.0
 
         def test_train_004_model_evaluate(model, x, y, param):
@@ -1200,7 +1350,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(dlen, 87)
 
     def test_train_005_metrics(self):
-        ''' Check Model.__call__() with a custom metric '''
+        """ Check Model.__call__() with a custom metric """
         def test_train_005_dataset_create(num_create):
             assert num_create == 42
             ds = np.arange(9) + 1

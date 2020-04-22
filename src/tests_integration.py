@@ -29,7 +29,7 @@ class TestLogMlIntegration(unittest.TestCase):
         MlRegistry().reset()
 
     def test_linear3(self):
-        ''' Simple linear model (without any noise) '''
+        """ Simple linear model (without any noise) """
         config_file = os.path.join('tests', 'integration', 'config', 'linear3.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
@@ -56,7 +56,7 @@ class TestLogMlIntegration(unittest.TestCase):
         self.assertEqual(modsearch_first.validation, 0.0)
 
     def test_linear3c(self):
-        ''' Linear model (with noise and missing values) '''
+        """ Linear model (with noise and missing values) """
         config_file = os.path.join('tests', 'integration', 'config', 'linear3c.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()
@@ -93,7 +93,7 @@ class TestLogMlIntegration(unittest.TestCase):
         self.assertTrue(modsearch_first.validation < 0.1)
 
     def test_class3(self):
-        ''' Classification problem (with noise and missing values) '''
+        """ Classification problem (with noise and missing values) """
         config_file = os.path.join('tests', 'integration', 'config', 'class3.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         ret = config()

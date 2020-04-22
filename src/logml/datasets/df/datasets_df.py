@@ -12,12 +12,12 @@ from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_d
 
 
 def _copy_df(df):
-    ''' Copy a DataFrame '''
+    """ Copy a DataFrame """
     return df.copy() if df is not None else None
 
 
 def _copy_inout(inout):
-    ''' Copy an InOut object '''
+    """ Copy an InOut object """
     return InOut(_copy_df(inout.x), _copy_df(inout.y)) if inout is not None else InOut(None, None)
 
 
@@ -26,10 +26,10 @@ def shape_or_none(df):
 
 
 class DatasetsDf(Datasets):
-    '''
+    """
     A dataset based on a Pandas DataFrame
     (i.e. type(self.dataset) = DataFrame)
-    '''
+    """
     def __init__(self, config, model_type=None, set_config=True):
         super().__init__(config, set_config=False)
         self.count_na = dict()  # Count missing values for each field
@@ -73,14 +73,14 @@ class DatasetsDf(Datasets):
         return cols_na
 
     def create(self):
-        ''' Create dataset '''
+        """ Create dataset """
         ret = super().create()
         if ret:
             return True
         return self._create_from_csv()
 
     def _create_from_csv(self):
-        ''' Create from CSV: Load CSV dataframe '''
+        """ Create from CSV: Load CSV dataframe """
         # Loading from CSV
         self._debug("Start")
         ret = self._load_from_csv()
@@ -95,7 +95,7 @@ class DatasetsDf(Datasets):
         return True
 
     def default_in_out(self, df, name):
-        ''' Get inputs and outputs '''
+        """ Get inputs and outputs """
         self._debug(f"Default method, inputs & outputs from dataset '{name}'")
         outs = self.outputs
         if outs:
@@ -122,7 +122,7 @@ class DatasetsDf(Datasets):
         return True
 
     def default_save(self):
-        ''' Default implementation of '@dataset_save' '''
+        """ Default implementation of '@dataset_save' """
         super().default_save()
         filename = self.get_file_name(ext='preproc_augment.csv')
         self._info(f"Saving dataframe to '{filename}'")
@@ -194,7 +194,7 @@ class DatasetsDf(Datasets):
         return self.dataset.iloc[key].copy()
 
     def _load_from_csv(self):
-        ''' Load dataframe from CSV '''
+        """ Load dataframe from CSV """
         csv_file = self.get_file_name(ext='csv')
         self._debug(f"Loading csv file '{csv_file}'")
         self.dataset = pd.read_csv(csv_file, low_memory=False, parse_dates=self.dates)
@@ -215,9 +215,9 @@ class DatasetsDf(Datasets):
         rows_to_remove = self.dataset[name].isna()
         if rows_to_remove.sum() > 0:
             self._debug(f"Remove samples with missing '{name}': {rows_to_remove.sum()} rows to remove")
-            orishape - self.dataset.shape
+            orishape = self.dataset.shape
             self.dataset = self.dataset.loc[~rows_to_remove].copy()
-            self._info(f"Remove samples with missing '{names}': Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {orishape}, new shape: {self.dataset.shape}")
+            self._info(f"Remove samples with missing '{name}': Removed {rows_to_remove.sum()} rows, dataFrame previous shape: {orishape}, new shape: {self.dataset.shape}")
         else:
             self._debug(f"Remove samples with missing '{name}': Nothing to remove")
 

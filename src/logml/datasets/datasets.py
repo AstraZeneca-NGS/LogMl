@@ -10,7 +10,7 @@ from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET
 
 
 class Datasets(DatasetsBase):
-    '''
+    """
     Datasets class cotaining trainig, test and validation datasets
         self.dataset             : Original dataset
         self.dataset_test        : Test dataset (split from self.dataset)
@@ -19,7 +19,7 @@ class Datasets(DatasetsBase):
         self.dataset_train_xy    : Train dataset inputs and outputs
         self.dataset_validate    : Valiation dataset (split from self.dataset)
         self.dataset_validate_xy : Validation dataset inputs and outputs
-    '''
+    """
     def __init__(self, config, set_config=True):
         super().__init__(config, set_config)
 
@@ -31,10 +31,10 @@ class Datasets(DatasetsBase):
         return self.default_augment()
 
     def __call__(self):
-        '''
+        """
         Load (or create) dataset, then augment, proprocess and split
         Save at each step for faster processing / consistency
-        '''
+        """
         if not self.enable:
             self._debug(f"Dataset disabled, skipping (enable='{self.enable}')")
             return True
@@ -61,10 +61,10 @@ class Datasets(DatasetsBase):
         return True
 
     def _config_sanity_check(self):
-        '''
+        """
         Check parameters from config.
         Return True on success, False if there are errors
-        '''
+        """
         if self.dataset_path is None:
             self._fatal_error("Missing 'dataset_path' parameters in config file '{self.config.config_file}', section {CONFIG_DATASET}")
         if self.dataset_name is None:
@@ -78,7 +78,7 @@ class Datasets(DatasetsBase):
         return False
 
     def default_in_out(self, ds, name):
-        ''' Default method for getting inputs / outputs '''
+        """ Default method for getting inputs / outputs """
         if self.is_use_all_inputs:
             # Use all inputs, no output (e.g. unsupervised learning)
             return InOut(ds, None)
@@ -86,7 +86,7 @@ class Datasets(DatasetsBase):
         return InOut(None, None)
 
     def default_load(self):
-        ''' Load dataset from pickle file. Return new dataset '''
+        """ Load dataset from pickle file. Return new dataset """
         if self.do_not_load_pickle:
             return False
         file_name = self.get_file_name()
@@ -108,11 +108,11 @@ class Datasets(DatasetsBase):
         return False
 
     def default_save(self):
-        ''' Default implementation of '@dataset_save' '''
+        """ Default implementation of '@dataset_save' """
         return self._save_pickle(self.get_file_name(), 'Save dataset', self)
 
     def default_split(self):
-        '''
+        """
         Default implementation for '@dataset_split'
         Assumptions:
             1) self.dataset object is iterable
@@ -121,7 +121,7 @@ class Datasets(DatasetsBase):
                 2.b) split_validate >= 0
                 2.c) split_test + split_validate < 1
         It returns three list of 'samples': train, validate, test
-        '''
+        """
         # Is datasets iterable?
         self._debug(f"Using default split method")
         # Are split parameters defined?
@@ -147,7 +147,7 @@ class Datasets(DatasetsBase):
         return self.split_idx(idx_train, idx_validate, idx_test)
 
     def do(self, op):
-        ''' Perform an abstract operation on a dataset '''
+        """ Perform an abstract operation on a dataset """
         self._debug(f"Dataset operation '{op}': Start")
         if op in self.operations_done:
             self._debug(f"Operation '{op}' has been done. Skipping")
@@ -173,10 +173,10 @@ class Datasets(DatasetsBase):
         return self.dataset[key]
 
     def _in_out(self, ds, name):
-        '''
+        """
         Split dataset inputs and outputs from dataset 'ds'
         Returns an InOut named tuple
-        '''
+        """
         if ds is None:
             return InOut(None, None)
         self._debug(f"Get inputs & outputs from dataset '{name}'")
@@ -190,7 +190,7 @@ class Datasets(DatasetsBase):
         return InOut(None, None)
 
     def in_outs(self, all=True):
-        ''' Get inputs & outputs for all datasets '''
+        """ Get inputs & outputs for all datasets """
         if all:
             self.dataset_xy = self._in_out(self.dataset, 'all')
         self.dataset_test_xy = self._in_out(self.dataset_test, 'test')
@@ -257,7 +257,7 @@ class Datasets(DatasetsBase):
         return 0 if self.dataset is None else len(self.dataset)
 
     def load(self):
-        ''' Try to load dataset, first from pickle otherwise from user defined function '''
+        """ Try to load dataset, first from pickle otherwise from user defined function """
         if self.default_load():
             self.should_save = False
             return True
@@ -276,7 +276,7 @@ class Datasets(DatasetsBase):
         return False
 
     def reset(self, soft=False):
-        ''' Reset fields '''
+        """ Reset fields """
         self.dataset = None
         self.dataset_test = None
         self.dataset_train = None
@@ -292,7 +292,7 @@ class Datasets(DatasetsBase):
             self.should_save = False
 
     def save(self):
-        ''' Try to save dataset, first use user defined function otherwise save to pickle otherwise'''
+        """ Try to save dataset, first use user defined function otherwise save to pickle otherwise"""
         if self.do_not_save:
             return False
         return True if self.invoke_save() else self.default_save()
@@ -308,7 +308,7 @@ class Datasets(DatasetsBase):
         return False
 
     def split_idx(self, idx_train, idx_validate, idx_test=None):
-        ''' Split dataset using an index list / array '''
+        """ Split dataset using an index list / array """
         len_test = len(idx_test) if idx_test is not None else 0
         len_validate = len(idx_validate) if idx_validate is not None else 0
         self._debug(f"Split dataset by idx. Lengths, train: {len(idx_train)}, validate: {len(idx_validate)}, test:{len_test}")

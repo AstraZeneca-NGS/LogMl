@@ -19,7 +19,7 @@ from ..datasets import InOut
 
 def get_categories(x):
     cats = x.replace([np.inf, -np.inf], np.nan).unique()
-    return cats[~np.isnan(cats)]
+    return np.sort(cats[~np.isnan(cats)])
 
 
 def fdr_with_nas(pvals):
@@ -38,9 +38,9 @@ def fdr_with_nas(pvals):
 
 
 class PvalueFdr(MlFiles):
-    '''
+    """
     Estimate p-values and correct for FDR
-    '''
+    """
 
     def __init__(self, datasets, null_model_variables, tag):
         self.datasets = datasets
@@ -89,7 +89,7 @@ class PvalueFdr(MlFiles):
         return len(self.p_values) > 0
 
     def _drop_na_inf(self, cols):
-        ''' Remove 'na' and 'inf' values from x '''
+        """ Remove 'na' and 'inf' values from x """
         x_cols = self.x[cols]
         keep = ~(pd.isna(x_cols.replace([np.inf, -np.inf], np.nan)).any(axis=1).values)
         x, y = x_cols.iloc[keep].copy(), self.y.iloc[keep].copy()
@@ -100,12 +100,12 @@ class PvalueFdr(MlFiles):
         self.rejected, self.p_values_corrected = fdr_with_nas(self.get_pvalues())
 
     def filter_null_variables(self):
-        '''
+        """
         Filter null model variables, only keep the ones in the dataset
         Returns:
             True if there are remaining variables or the initial list was empty
             False if, after filtering, there are no remaining variables in the list
-        '''
+        """
         if len(self.null_model_variables) == 0:
             return True
         x_vars = set(self.x.columns)
@@ -119,7 +119,7 @@ class PvalueFdr(MlFiles):
         return len(null_vars) > 0
 
     def fit_null_model(self):
-        ''' Fit null model '''
+        """ Fit null model """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_pvalues(self):
@@ -174,9 +174,9 @@ class PvalueFdr(MlFiles):
 
 
 class LogisticRegressionWilks(PvalueFdr):
-    '''
+    """
     Estimate p-value from logistic regression (Wilks)
-    '''
+    """
 
     def __init__(self, datasets, null_model_variables, tag, class_to_analyze=None):
         super().__init__(datasets, null_model_variables, tag)
@@ -202,7 +202,7 @@ class LogisticRegressionWilks(PvalueFdr):
         return (y == self.class_to_analyze).astype('float'), True
 
     def fit_null_model(self):
-        ''' Fit 'null' model '''
+        """ Fit 'null' model """
         self.model_null, self.model_null_results = self.model_fit()
         if self.model_null is None:
             self._error(f"{self.algorithm} ({self.tag}): Could not fit null model, skipping")
@@ -305,12 +305,12 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
         # Add 'best class'. Get best index, map to category number, then map categoy number to category name
         best_category_idx = pvals_corr.argmin(axis=0)
         category_number = np.array(self.classes)
-        self.best_category_num = category_number[best_category_idx]
+        self.best_category_num = category_number[best_category_idx].astype('int')
         output_name = self.datasets.outputs[0]  # We assume that there is only one output for this analysis
         output_category = self.datasets.dataset_preprocess.category_column.get(output_name)
         if output_category is not None:
             category_name = output_category.cat.categories
-            self.best_category = category_name[self.best_category_num]
+            self.best_category = list(category_name[best_category_idx])
         else:
             self.best_category = self.best_category_num
         # Assign 'rejected': Use 'or' across comparissons (i.e. 'any')
@@ -323,9 +323,9 @@ class MultipleLogisticRegressionWilks(PvalueFdr):
 
 
 class PvalueLinear(PvalueFdr):
-    '''
+    """
     Estimate p-values based on a linear model
-    '''
+    """
 
     def __init__(self, datasets, null_model_variables, tag):
         super().__init__(datasets, null_model_variables, tag)

@@ -6,7 +6,8 @@ import pandas as pd
 import re
 import traceback
 
-from collections import namedtuple
+from .category import CategoriesPreprocess
+from ...core import MODEL_TYPE_CLASSIFICATION
 from ...core.config import CONFIG_DATASET_PREPROCESS
 from ...core.log import MlLog
 from .df_normalize import DfNormalize
@@ -15,7 +16,7 @@ from ...util.sanitize import sanitize_name
 
 
 class DfPreprocess(MlLog):
-    '''
+    """
     DataFrame preprocessing: convet categorical, one-hot encoding, impute
     missing data, normalize.
 
@@ -23,7 +24,7 @@ class DfPreprocess(MlLog):
     Calculate some field (i.e. dataframe column) transformations
     and store the results in 'columns_to_add' and 'columns_to_remove'. Then
     apply these changes to the original dataframe to create a new dataframe.
-    '''
+    """
 
     def __init__(self, datasets, config, outputs, model_type, set_config=True):
         super().__init__(config, CONFIG_DATASET_PREPROCESS)
@@ -55,11 +56,11 @@ class DfPreprocess(MlLog):
             self._set_from_config()
 
     def _add_datepart(self, field_name, prefix=None, time=True):
-        '''
+        """
         Helper function that creates a new dataframe with all columns relevant to
         a date in the column `field_name`.
         Source: fast.ai
-        '''
+        """
         self._info(f"Converting to date: field '{field_name}'")
         self._make_date(self.df, field_name)
         field = self.df[field_name]
@@ -87,7 +88,7 @@ class DfPreprocess(MlLog):
         if not self.balance:
             self._debug(f"Balance: Disabled, skipping")
             return True
-        if self.model_type != 'classification':
+        if self.model_type != MODEL_TYPE_CLASSIFICATION:
             self._debug(f"Balance: Cannot balance for model type '{self.model_type}', skipping")
             return False
         y = self.df[self.outputs]
@@ -138,11 +139,6 @@ class DfPreprocess(MlLog):
         self._debug(f"Preprocessing dataframe: End. Shape: {self.df.shape}")
         return self.df
 
-    def set_df(self, df):
-        self.df = df
-        self.datasets.dataset = self.df
-        return self.df
-
     def create(self):
         """ Create a new dataFrame based on the previously calculated conversions """
         self._debug(f"Creating transformed dataset: Start")
@@ -163,108 +159,20 @@ class DfPreprocess(MlLog):
         return df_new
 
     def create_categories(self):
-        '''
+        """
         Create categories as defined in YAML file.
         This creates both number categories as well as one_hot encoding
-        '''
-        # Forced categories from YAML config
-        self._debug(f"Converting to categorical: Start")
-        self.category_re_expand()
-        one_hot_added = set()
-        for field_name in self.df.columns:
-            if not self.is_categorical_column(field_name):
-                continue
-            if field_name in self.categories:
-                self._create_category(field_name)
-            elif field_name in self.one_hot:
-                one_hot_added.add(field_name)
-                self._create_one_hot(field_name)
-            elif self.should_be_one_hot(field_name):
-                self._create_one_hot(field_name)
-            else:
-                self._create_category(field_name)
-        # Sanity check: Make sure all variables defined in 'categories' have been converted
-        categories_defined = set(self.categories.keys())
-        categories_created = set(self.category_column.keys())
-        categories_diff = categories_defined.difference(categories_created)
-        if categories_diff:
-            self._fatal_error(f"Some variables were not converted to categories: {categories_diff}. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', sub-section 'categories'.")
-        # Sanity check: Make sure all variables defined in 'one_hot' have been converted
-        one_hot_diff = [f for f in self.one_hot if f not in one_hot_added]
-        if one_hot_diff:
-            self._fatal_error(f"Some variables were not converted to one_hot: {one_hot_diff}. Config file '{self.config.config_file}', section '{CONFIG_DATASET_PREPROCESS}', sub-section 'one_hot'.")
-        self._debug(f"Converting to categorical: End")
-
-    def _create_category(self, field_name):
-        " Convert field to category numbers "
-        is_input = field_name not in self.outputs
-        cat_values = self.categories.get(field_name)
-        categories, one_based, scale, strict = None, True, is_input, True
-        if isinstance(cat_values, list):
-            categories = cat_values
-        elif isinstance(cat_values, dict):
-            categories = cat_values.get('values')
-            one_based = cat_values.get('one_based', True)
-            scale = cat_values.get('scale', True)
-            strict = cat_values.get('strict', True)
-        self._debug(f"Converting to category: field '{field_name}', categories: {categories}")
-        xi = self.df[field_name]
-        xi_cat = xi.astype('category').cat.as_ordered()
-        # Categories can be either 'None' or a list
-        if categories:
-            cats_derived = set(xi_cat.cat.categories)
-            cats = set(categories)
-            if cats != cats_derived:
-                if strict:
-                    self._fatal_error(f"Field '{field_name}' categories {cats_derived} do not match the expected ones {cats} from config file.")
-                else:
-                    self._debug(f"Field '{field_name}' categories {cats_derived} do not match the expected ones {cats} from config file. Converting to 'missing' values")
-            xi_cat.cat.set_categories(categories, ordered=True, inplace=True)
-        self.category_column[field_name] = xi_cat
-        df_cat = pd.DataFrame()
-        codes = xi_cat.cat.codes
-        add_to_codes = 0
-        missing_values = codes < 0
-        if np.any(missing_values):
-            # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
-            add_to_codes = 1 if one_based else 0
-            self._debug(f"Converting to category field '{field_name}': Missing values, there are {(codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if one_based else -1}'")
-        # Offset codes
-        codes += add_to_codes
-        # Scale values to range [0, 1]
-        if scale:
-            scale_factor = len(xi_cat.cat.categories) - 1 + add_to_codes
-            codes /= scale_factor
-            self._debug(f"Scaling to category field '{field_name}' by {scale_factor}")
-            # Fix missing values
-            codes[missing_values] = np.nan
-        else:
-            # Fix missing values. Since NaN is only for floats, when using
-            # integer numbers for codes we map missing to 0 or -1
-            codes[missing_values] = 0 if one_based else -1
-        df_cat[field_name] = codes
-        # Add to replace and remove operations
-        self.columns_to_add[field_name] = df_cat
-        self.columns_to_remove.add(field_name)
-        self.skip_nas.add(field_name)
-        self._info(f"Converted to category: field '{field_name}', categories: {list(xi_cat.cat.categories)}")
-
-    def _create_one_hot(self, field_name):
-        " Create a one hot encodig for 'field_name' "
-        self._info(f"Converting to one-hot: field '{field_name}'")
-        has_na = self.df[field_name].isna().sum() > 0
-        self._debug(f"Converting to one-hot: field '{field_name}', has missing data: {has_na}")
-        df_one_hot = pd.get_dummies(self.df[field_name], dummy_na=has_na)
-        self.rename_category_cols(df_one_hot, f"{field_name}:")
-        if has_na:
-            self.na_columns.add(f"{field_name}:nan")
-        # Add to transformations
-        self.columns_to_add[field_name] = df_one_hot
-        self.columns_to_remove.add(field_name)
-        self.skip_nas.add(field_name)
+        """
+        create_cats = CategoriesPreprocess(self.df, self.categories, self.outputs, self.dates, self.one_hot, self.one_hot_max_cardinality)
+        create_cats()
+        self.columns_to_add.update(create_cats.columns_to_add)
+        self.columns_to_remove.update(create_cats.columns_to_remove)
+        self.category_column.update(create_cats.category_column)
+        self.na_columns.update(create_cats.na_columns)
+        self.skip_nas.update(create_cats.skip_nas)
 
     def convert_dates(self):
-        ''' Convert all dates '''
+        """ Convert all dates """
         self._debug(f"Converting to 'date/time' values: fields {self.dates}")
         count = 0
         for field in self.dates:
@@ -315,10 +223,6 @@ class DfPreprocess(MlLog):
         self.df.drop(to_remove, axis=1, inplace=True)
         self._debug(f"Dropping columns with low standard deviation: End")
 
-    def is_categorical_column(self, field_name):
-        " Is column 'field_name' a categorical column in the dataFrame? "
-        return (self.df[field_name].dtype == 'O') and (field_name not in self.dates)
-
     def _make_date(self, df, date_field):
         " Make sure `df[field_name]` is of the right date type. Source: fast.ai "
         field_dtype = df[date_field].dtype
@@ -326,28 +230,6 @@ class DfPreprocess(MlLog):
             field_dtype = np.datetime64
         if not np.issubdtype(field_dtype, np.datetime64):
             df[date_field] = pd.to_datetime(df[date_field], infer_datetime_format=True)
-
-    def category_re_expand(self):
-        """
-        Find all matches for regular expressions and update self.categories with matched values
-        """
-        categories_add, categories_del = dict(), set()
-        for regex in self.categories:
-            if len(regex) < 1:
-                self._debug(f"Bad entry for 'categories': {regex}")
-                continue
-            for fname in self.df.columns:
-                try:
-                    if re.fullmatch(regex, fname) is not None:
-                        self._debug(f"Field name '{fname}' matches regular expression '{regex}': Using values {self.categories[regex]}")
-                        categories_add[fname] = self.categories[regex]
-                        if fname != regex:
-                            categories_del.add(regex)
-                except Exception as e:
-                    self._error(f"Category regex: Error trying to match regular expression: '{regex}'\nException: {e}\n{traceback.format_exc()}")
-        # Update dictionary with regex matched values
-        [self.categories.pop(k) for k in categories_del]
-        self.categories.update(categories_add)
 
     def nas(self):
         " Add 'missing value' indicators (i.e. '*_na' columns) "
@@ -378,19 +260,19 @@ class DfPreprocess(MlLog):
         return True
 
     def _remove_columns(self):
-        ''' Remove columns (before transformations) '''
+        """ Remove columns (before transformations) """
         self.df_ori = self.df
         self._info(f"Removing columns (before): {self.remove_columns}")
         self.df.drop(self.remove_columns, inplace=True, axis=1)
 
     def _remove_columns_after(self):
-        ''' Remove columns (after transformations) '''
+        """ Remove columns (after transformations) """
         self.df_ori = self.df
         self._info(f"Removing columns (after): {self.remove_columns_after}")
         self.df.drop(self.remove_columns_after, inplace=True, axis=1)
 
     def _remove_rows_with_missing_outputs(self):
-        ''' Remove rows if output variable/s have missing values c'''
+        """ Remove rows if output variable/s have missing values c"""
         if not self.remove_missing_outputs:
             self._debug("Remove missing outputs disabled, skipping")
             return
@@ -400,19 +282,8 @@ class DfPreprocess(MlLog):
         return self.datasets.dataset
         self._debug(f"Remove samples with missing outputs: End")
 
-    def rename_category_cols(self, df, prepend):
-        '''
-        Rename dataFrame columns by prepending a string and sanitizing the name
-        Used to rename columns of a 'one hot' encoding
-        '''
-        names = dict()
-        for c in df.columns:
-            name = f"{prepend}{sanitize_name(c)}"
-            names[c] = name
-        df.rename(columns=names, inplace=True)
-
     def _sanitize_column_names(self):
-        ''' Sanitize all column names '''
+        """ Sanitize all column names """
         if not self.is_sanitize_column_names:
             self._debug("Sanitize column names disabled, skipping")
             return
@@ -424,15 +295,10 @@ class DfPreprocess(MlLog):
             if cols_new[i] != cols_ori[i]:
                 self._info(f"Sanitize column names: Changed '{cols_ori[i]}' to '{cols_new[i]}'")
 
-    def should_be_one_hot(self, field_name):
-        " Should we convert to 'one hot' encoding? "
-        if field_name in self.outputs:
-            return False
-        xi = self.df[field_name]
-        xi_cat = xi.astype('category')
-        count_cats = len(xi_cat.cat.categories)
-        # Note: If there are only two categories, it already is "one-hot"
-        return count_cats > 2 and count_cats <= self.one_hot_max_cardinality
+    def set_df(self, df):
+        self.df = df
+        self.datasets.dataset = self.df
+        return self.df
 
     def _shuffle(self):
         """ Shuffle samples in dataset """

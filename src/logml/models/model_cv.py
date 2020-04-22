@@ -13,7 +13,7 @@ def _id(obj):
 
 
 def mean_std(losses):
-    '''  Calculat the mean and stdev for a loist of values '''
+    """  Calculat the mean and stdev for a loist of values """
     losses = [l for l in losses if l is not None]
     losses = np.array(losses)
     if len(losses) == 0:
@@ -22,9 +22,9 @@ def mean_std(losses):
 
 
 class ModelCv(Model):
-    '''
+    """
     A Model with cross-validation capabilities
-    '''
+    """
     def __init__(self, config, datasets=None, set_config=True):
         super().__init__(config, datasets, set_config)
         # Get cross-validation parameters

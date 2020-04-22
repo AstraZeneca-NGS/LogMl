@@ -76,33 +76,33 @@ class DatasetsBase(MlFiles):
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def __call__(self) -> bool:
-        '''
+        """
         Load (or create) dataset, then augment, proprocess and split
         Save at each step for faster processing / consistency
         Returns: True on success, False otherwise
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def clone(self, deep=False):
-        ''' Create a copy of this Datasets object
+        """ Create a copy of this Datasets object
         Arguments:
             deep: If true, perform deep copy, otherwise, shallow copy
         Returns: A copy if this Datasets object
-        '''
+        """
         return copy.deepcopy(self) if deep else copy.copy(self)
 
     def create(self) -> bool:
         return self.invoke_create()
 
     def default_in_out(self, ds, name) -> InOut:
-        '''
+        """
         Default method for getting inputs / outputs
         Returns: An InOut containing input and output data
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_load(self) -> bool:
-        '''
+        """
         Load dataset from pickle file.
         It should set the following dataset values:
             self.dataset
@@ -112,7 +112,7 @@ class DatasetsBase(MlFiles):
             self.operations
             self.operations_done
         Returns: True on success, False otherwise
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_preprocess(self) -> bool:
@@ -123,11 +123,11 @@ class DatasetsBase(MlFiles):
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_save(self):
-        ''' Default implementation of '@dataset_save' '''
+        """ Default implementation of '@dataset_save' """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def default_split(self):
-        '''
+        """
         Default implementation for '@dataset_split'
         Assumptions:
             1) self.dataset object is iterable
@@ -136,11 +136,11 @@ class DatasetsBase(MlFiles):
                 2.b) split_validate >= 0
                 2.c) split_test + split_validate < 1
         Returns: A tuple with three lists of 'samples' (train, validate, test)
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def get_file_name(self, dataset_type=None, ext='pkl'):
-        ''' Create a file name for dataset '''
+        """ Create a file name for dataset """
         self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
         return self._get_file_name(self.dataset_path, self.dataset_name, dataset_type, ext)
 
@@ -224,22 +224,22 @@ class DatasetsBase(MlFiles):
         return self.dataset_xy
 
     def _in_out(self, ds, name) -> InOut:
-        '''
+        """
         Split dataset inputs and outputs from a 'raw dataset'
         Args:
             ds: A 'raw dataset'
             name: The name of the dataset, to be used in log messages
         Returns:
             InOut with the inputs (InOut.x) and outputs (InOut.y)
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def in_outs(self, all=True) -> None:
-        '''
+        """
         Get inputs & outputs for all datasets (train, validate, test)
         Args:
             all: A boolean indicating whether 'self.datasets' should also be split
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def invoke_augment(self):
@@ -315,14 +315,14 @@ class DatasetsBase(MlFiles):
         return 0 if self.dataset is None else len(self.dataset)
 
     def load(self):
-        ''' Try to load dataset.
+        """ Try to load dataset.
         Attempts to load a dataset, first from pickle otherwise from user defined
         function.
         It should set `self.should_save` properly, e.g. if the dataset was
         loaded from a pickle file, there is no need to save it again to the
         same pickle file.
         Returns: True if the dataset is loaded, False otherwise
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def preprocess(self):
@@ -403,14 +403,14 @@ class DatasetsBase(MlFiles):
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def split_idx(self, idx_train, idx_validate, idx_test=None) -> bool:
-        ''' Split datasets.
+        """ Split datasets.
         First split into train, validate and test datasets. Then split inputs
         and outputs (i.e. should invoke `self.in_outs()`).
         Args:
             idx_train: Index (list or array) indicating samples in train dataset
             idx_validate: Index (list or array) indicating samples in validate dataset
             idx_test: Index (list or array) indicating samples in test dataset
-        '''
+        """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
     def zero_input(self, name, restore):

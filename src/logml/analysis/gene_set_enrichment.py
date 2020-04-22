@@ -18,7 +18,7 @@ class GeneSetEnrichmnet(MlFiles):
             self._set_from_dict(config_analysis[CONFIG_ANALYSIS_GENE_SET_ENRICHMENT])
 
     def __call__(self):
-        ''' Perform the analysis '''
+        """ Perform the analysis """
         if not self.enable:
             self._debug(f"Analysis '{type(self).__name__}' disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_ANALYSIS}', sub-section '{CONFIG_ANALYSIS_GENE_SET_ENRICHMENT}', enable='{self.enable}'")
             return True

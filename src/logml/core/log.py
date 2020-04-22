@@ -8,7 +8,7 @@ from IPython import display
 
 
 def _create_logml_logger():
-    ''' Create and set-up a logml_logger for this module '''
+    """ Create and set-up a logml_logger for this module """
     logml_logger = logging.getLogger("LogMl")
     handler = logging.StreamHandler(sys.stderr)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -23,10 +23,10 @@ logml_logger = _create_logml_logger()
 
 
 class Tee:
-    '''
+    """
     Tee functionality in a class
     Reference: http://code.activestate.com/recipes/580767-unix-tee-like-functionality-via-a-python-class/
-    '''
+    """
     def __init__(self, tee_filename, is_stderr=False):
         self.is_stderr = is_stderr
         try:
@@ -53,11 +53,11 @@ class Tee:
             error_exit("Caught Exception: {}".format(repr(e)))
 
     def __del__(self):
-        ''' Restore stdout/stderr '''
+        """ Restore stdout/stderr """
         self.restore()
 
     def restore(self):
-        ''' Restore stdout/stderr '''
+        """ Restore stdout/stderr """
         if self.std is not None:
             if self.is_stderr:
                 sys.stderr = self.std
@@ -78,52 +78,52 @@ class Tee:
 
 
 class MlLogMessages:
-    ''' ML Log: Log events and redirect STDOUT/STDERR to files '''
+    """ ML Log: Log events and redirect STDOUT/STDERR to files """
     def __init__(self):
         pass
 
     def _context(self, frame_number=2):
-        ''' Return a string representing the caller function context (used for log messages) '''
+        """ Return a string representing the caller function context (used for log messages) """
         frame = inspect.stack()[frame_number]
         fbase = os.path.basename(frame.filename)
         return f"{type(self).__name__}.{frame.function} ({fbase}:{frame.lineno})"
 
     def _debug(self, msg):
-        ''' Show a debug message '''
+        """ Show a debug message """
         logml_logger.debug(f"{self._context()}: {msg}")
         sys.stderr.flush()
 
     def _error(self, msg):
-        ''' Show an error message '''
+        """ Show an error message """
         logml_logger.error(f"{self._context()}: {msg}")
         sys.stderr.flush()
 
     def _fatal_error(self, msg):
-        ''' Show an error message and exit '''
+        """ Show an error message and exit """
         logml_logger.error(f"{self._context()}: {msg}")
         sys.stderr.flush()
-        if self.config.exit_on_fatal_error:
+        if 'config' not in self.__dict__ or self.config.exit_on_fatal_error:
             sys.exit(1)
 
     def _info(self, msg):
-        ''' Show an INFO message '''
+        """ Show an INFO message """
         logml_logger.info(f"{msg}")
         sys.stderr.flush()
 
     def set_log_level(self, level):
-        ''' A shortcut to setting log level '''
+        """ A shortcut to setting log level """
         logml_logger.setLevel(level)
 
     def _warning(self, msg):
-        ''' Show a warning message '''
+        """ Show a warning message """
         logml_logger.warning(f"{self._context()}: {msg}")
         sys.stderr.flush()
 
 
 class MlLog(MlLogMessages):
-    '''
+    """
     ML Log: Log events and redirect STDOUT/STDERR to files
-    '''
+    """
     def __init__(self, config=None, config_section=None):
         self.config = config
         self.config_section = config_section
@@ -135,19 +135,19 @@ class MlLog(MlLogMessages):
         self.tee_stderr = None
 
     def _config_sanity_check(self):
-        '''
+        """
         Check parameters from config.
         Return True on success, False if there are errors
-        '''
+        """
         pass
 
     def _html(self, msg):
         display.HTML(msg)
 
     def _set_from_config(self):
-        '''
+        """
         Set object variables from 'self.config'
-        '''
+        """
         if ('config' not in self.__dict__) or (self.config is None):
             self._debug("No config object found, skipping")
             return False
@@ -162,7 +162,7 @@ class MlLog(MlLogMessages):
         return self._config_sanity_check() and ret
 
     def _set_from_dict(self, parameters):
-        ''' Set object parameters from 'parameters' dictionary '''
+        """ Set object parameters from 'parameters' dictionary """
         ok = False
         if parameters is None:
             return False
@@ -182,7 +182,7 @@ class MlLog(MlLogMessages):
         display.HTML(f"<h3>{msg}</h3>")
 
     def tee(self, close=False):
-        ''' Copy STDOUT / STDERR to file '''
+        """ Copy STDOUT / STDERR to file """
         if close:
             # Close tees
             if self.tee_stdout:

@@ -12,9 +12,14 @@ dataset_preprocess:
   categories:
     'x.*':
         values: ['WT', 'MUT']
-        one_based: False
-    'z.*': ['WT', 'MUT']
-    'a.*': ['WT', 'UNK', 'MUT']
+        one_based: false
+        scale: true
+    'z.*':
+        values: ['WT', 'MUT']
+        scale: true
+    'a.*':
+        values: ['WT', 'UNK', 'MUT']
+        scale: true
     y: ['WT', 'UNK', 'MUT']
   impute:
     skip: true

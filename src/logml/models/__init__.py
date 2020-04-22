@@ -11,5 +11,8 @@ __all__ = ["Model",
            "HYPER_PARAM_TYPES",
            "Model",
            "ModelSearch",
-           "SkLearnModel"
+           "SkLearnModel",
+           "MODEL_TYPE_CLASSIFICATION",
+           "MODEL_TYPE_REGRESSION",
+           "MODEL_TYPE_UNSUPERVISED"
            ]

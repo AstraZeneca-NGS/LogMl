@@ -10,6 +10,7 @@ from .config import CONFIG_LOGGER
 from .config import CONFIG_MODEL
 from .config import CONFIG_MODEL_SEARCH
 from .config import CONFIG_MODEL_ANALYSIS
+from .constants import MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from .log import MlLog
 from .logml import LogMl
 from .registry import dataset_augment
@@ -51,4 +52,6 @@ __all__ = ['Config',
            'model_predict',
            'model_save',
            'model_train',
+           'MODEL_TYPE_CLASSIFICATION',
+           'MODEL_TYPE_REGRESSION'
            ]
