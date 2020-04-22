@@ -1067,12 +1067,41 @@ class TestLogMl(unittest.TestCase):
         uniq = np.sort(df[col].unique())
         self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
 
-    def test_dataset_preprocess_013(self):
+    def test_dataset_preprocess_014(self):
         """ Checking dataset preprocess: Binary categorical data with NAs as -1 """
-        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_013.yaml')
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_preprocess_014.yaml')
         config = Config(argv=['logml.py', '-c', config_file])
         config()
-        self.assertTrue(False, f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        ds = DatasetsDf(config)
+        rm(ds.get_file_name())
+        ret = ds()
+        df = ds.dataset
+        cols = list(df.columns)
+        col, c_min, c_max, unique_expected = 'x1', -1, 0, [-1, 0]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'z2', 0, 1, [0, 0.5, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'x3', -1, 1, [-1, 0, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'a4', 0, 1, [0, 1 / 3, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
+        col, c_min, c_max, unique_expected = 'y', 0, 1, [0, 1]
+        self.assertTrue(df[col].min() == c_min, f"Minimum {col} is not {c_min}, it's {df[col].min()}: {df[col].values}")
+        self.assertTrue(df[col].max() == c_max, f"Maximum {col} is not {c_max}, it's {df[col].max()}: {df[col].values}")
+        uniq = np.sort(df[col].unique())
+        self.assertTrue(array_equal(unique_expected, uniq), f"Unique values '{col}' expected {unique_expected}, but got {uniq}")
 
     def test_files_001(self):
         mf = MlFiles()

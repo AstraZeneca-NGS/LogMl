@@ -12,10 +12,16 @@ dataset_preprocess:
   categories:
     'x.*':
         values: ['WT', 'MUT']
-        one_based: False
-    'z.*': ['WT', 'MUT']
-    'a.*': ['WT', 'UNK', 'MUT']
-    y: ['WT', 'UNK', 'MUT']
+        one_based: false
+    'z.*':
+        values: ['WT', 'MUT']
+        scale: true
+    'a.*':
+        values: ['WT', 'UNK', 'MUT']
+        scale: true
+    y:
+        values: ['WT', 'UNK', 'MUT']
+        one_based: false
   impute:
     minus_one: ['x.*']
     zero: ['a.*', 'z.*']
