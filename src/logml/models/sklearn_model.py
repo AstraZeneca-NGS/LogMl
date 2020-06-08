@@ -1,13 +1,10 @@
 import inspect
-import pandas as pd
 import sklearn
-import sklearn.dummy
-import sklearn.naive_bayes
 import traceback
 
 from sklearn.base import clone
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsIC
+from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsCV, LassoLarsIC, LarsCV
 
 from .model_cv import ModelCv
 from ..util.etc import camel_to_snake
@@ -151,6 +148,16 @@ class ModelSkGradientBoostingClassifier(SkLearnModel):
         return True
 
 
+class ModelSkLarsCV(SkLearnModel):
+    def __init__(self, config, datasets, cv):
+        super().__init__(config, datasets, class_name='ModelSkLarsCV', params=None, set_config=False)
+        self.cv = cv
+
+    def default_model_create(self, x, y):
+        self.model = LarsCV(cv=self.cv)
+        return True
+
+
 class ModelSkLassoCV(SkLearnModel):
     def __init__(self, config, datasets, cv):
         super().__init__(config, datasets, class_name='ModelSkLassoCV', params=None, set_config=False)
@@ -176,6 +183,16 @@ class ModelSkLassoLarsBIC(SkLearnModel):
 
     def default_model_create(self, x, y):
         self.model = LassoLarsIC(criterion='bic')
+        return True
+
+
+class ModelSkLassoLarsCV(SkLearnModel):
+    def __init__(self, config, datasets, cv):
+        super().__init__(config, datasets, class_name='ModelSkLassoLarsCV', params=None, set_config=False)
+        self.cv = cv
+
+    def default_model_create(self, x, y):
+        self.model = LassoLarsCV(cv=self.cv)
         return True
 
 
