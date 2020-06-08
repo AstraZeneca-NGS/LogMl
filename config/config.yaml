@@ -377,9 +377,10 @@ dataset_feature_importance:
 
   # Regularization methods
   # Enable regularization methods (for different models)
-  is_regularization_lasso: true
-  is_regularization_ridge: true
   is_regularization_lars: true
+  is_regularization_lasso: true
+  is_regularization_lasso_lars: true
+  is_regularization_ridge: true
   # Number of Cross-validation in regularization methods
   regularization_model_cv: 10
 
