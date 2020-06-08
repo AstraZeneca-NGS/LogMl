@@ -159,7 +159,7 @@ class DataFeatureImportance(MlFiles):
         if not fi():
             self._info(f"Could not analyze feature importance (drop column) using {model_name}")
             return
-        self._info(f"Feature importance (drop column), {model_name} , weight {fi.get_weight()}")
+        self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
         imp = fi.get_importances()
         self.results.add_col(f"importance_dropcol_{model_name}", imp)
         self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
@@ -171,7 +171,7 @@ class DataFeatureImportance(MlFiles):
         """ Feature importance using several models """
         any_model = self.is_model_permutation or self.is_model_dropcol or self.is_model_skmodel
         if not any_model:
-            self._debug(f"All model based methods disabled, skipping")
+            self._info(f"All model based methods disabled, skipping")
             return
         if self.is_fip_random_forest:
             self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
@@ -190,8 +190,9 @@ class DataFeatureImportance(MlFiles):
         """ Perform feature importance analyses based on a (trained) model """
         conf = f"is_fip_{config_tag}"
         if not self.__dict__[conf]:
-            self._debug(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            self._info(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
+        self._info(f"Feature importance {self.tag} using model '{model_name}'")
         if self.is_model_permutation:
             self.feature_importance_permutation(model, model_name, config_tag)
         if self.is_model_dropcol:
@@ -211,7 +212,7 @@ class DataFeatureImportance(MlFiles):
         if not fi():
             self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
             return
-        self._info(f"Feature importance (permutation), {model_name} , weight {fi.get_weight()}")
+        self._info(f"Feature importance (permutation), {model_name}, weight {fi.get_weight()}")
         imp = fi.get_importances()
         self.results.add_col(f"importance_permutation_{model_name}", imp)
         self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
@@ -227,7 +228,7 @@ class DataFeatureImportance(MlFiles):
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
-        self._info(f"Feature importance (sklearn): Based on '{model_name}', weight {weight}")
+        self._info(f"Feature importance (sklearn), {model_name}, weight {weight}")
         fi = model.get_feature_importances()
         self.results.add_col(f"importance_skmodel_{model_name}", fi)
         self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
