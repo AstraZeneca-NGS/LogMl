@@ -169,6 +169,10 @@ class DataFeatureImportance(MlFiles):
 
     def feature_importance_models(self):
         """ Feature importance using several models """
+        any_model = self.is_model_permutation or self.is_model_dropcol or self.is_model_skmodel
+        if not any_model:
+            self._debug(f"All model based methods disabled, skipping")
+            return
         if self.is_fip_random_forest:
             self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
         else:
