@@ -273,8 +273,12 @@ class DfExplore(MlFiles):
         count_vars = len(df.columns)
         self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=count_vars)
         # Barplot of number of misisng values
-        msno.bar(df)
-        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=count_vars)
+        self._error(f"DF: {df.head()}")
+        try:
+            msno.bar(df)
+            self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=count_vars)
+        except ValueError as ve:
+            self._debug(f"Exception when invoking missingno.bar: {ve}")
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
         self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=count_vars, count_vars_y=count_vars)
