@@ -587,11 +587,14 @@ class DataFeatureImportance(MlFiles):
         # Export the tree to a graphviz 'dot' format
         export_graphviz(skmodel.estimators_[0], out_file=file_dot, feature_names=self.x_train.columns, filled=True, rounded=True)
         self._info(f"Created dot file: '{file_dot}'")
-        # Convert 'dot' to 'png'
-        args = ['dot', '-Tpng', file_dot, '-o', file_png]
-        subprocess.run(args)
-        self._info(f"Created image: '{file_png}'")
-        self._display(Image(filename=file_png))
+        # Convert 'dot' to 'png', using graphviz command line
+        try:
+            args = ['dot', '-Tpng', file_dot, '-o', file_png]
+            subprocess.run(args)
+            self._info(f"Created image: '{file_png}'")
+            self._display(Image(filename=file_png))
+        except Exception as e:
+            self._error(f"Exception '{e}', while trying to run command line {args}. Is graphviz command line package installed?")
 
     def wilks(self):
         """ Calculate p-values using logistic regression (Wilks theorem) """
