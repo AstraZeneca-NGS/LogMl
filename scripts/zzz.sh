@@ -2,13 +2,7 @@
 set -o pipefail
 
 # Tets script 'zzz'
-
-DIR=$(cd $(dirname "$0")/..; pwd)
 clear
-
-PS1=""
-source ./bin/activate
-
 rm -rvf data/zzz/zzz.pkl data/zzz/model
 
 # Run LogMl

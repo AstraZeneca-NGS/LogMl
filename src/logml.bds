@@ -29,9 +29,9 @@ string logmlCmd(bool pre, bool gather, int n) {
     if( d ) cmd += "--debug "
     if( v ) cmd += "--verbose "
     if( !config.isEmpty() ) cmd += "--config '$config' "
-    if( pre ) cmd += "--split pre "
-    else if( gather ) cmd += "--split gather "
-    else cmd += "--split $n "
+    if( pre ) cmd += "--split $num --split_num pre "
+    else if( gather ) cmd += "--split $num --split_num gather "
+    else cmd += "--split $num --split_num $n "
 
     if( d || v ) {
         println "LogMl command to run: $cmd"

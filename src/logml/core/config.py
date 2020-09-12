@@ -1,9 +1,10 @@
 
 import argparse
+import base64
 import copy
+import hashlib
 import logging
 import sys
-import yaml
 
 from .files import MlFiles
 from .registry import MlRegistry
@@ -49,6 +50,7 @@ class Config(MlFiles):
         super().__init__(CONFIG_CONFIG)
         self.argv = argv if argv is not None else sys.argv
         self.config_file = config_file
+        self.config_hash = None
         self.parameters = parameters if parameters is not None else dict()
         self.is_debug = False
         self.exit_on_fatal_error = True
@@ -115,6 +117,8 @@ class Config(MlFiles):
         parser.add_argument('-c', '--config', help=f"Path to config (YAML) file. Default: '{DEFAULT_YAML}'", metavar='config.yaml', default=DEFAULT_YAML)
         parser.add_argument('-d', '--debug', help=f"Debug mode", action='store_true')
         parser.add_argument('-v', '--verbose', help=f"Verbose mode", action='store_true')
+        parser.add_argument('-s', '--split', help=f"Split into 'num_jobs' jobs", metavar='num_jobs', default=None)
+        parser.add_argument('-n', '--split_num', help=f"Split job number. This is job number 'n', out of 'num_jobs'. Can also be 'pre' or 'gather'", metavar='n', default=None)
 
         # Parse command line
         args = parser.parse_args(self.argv[1:])
@@ -126,6 +130,7 @@ class Config(MlFiles):
         self.is_debug = args.debug
         if self.is_debug:
             self.set_log_level(logging.DEBUG)
+        self.split, self.split_num = args.split, args.split_num
         return True
 
     def read_config_yaml(self):
@@ -135,8 +140,16 @@ class Config(MlFiles):
         """
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
-        self._debug(f"params: {self.parameters}")
+        # Hash config
+        conf_str = repr(self.parameters).encode('utf-8')  # Convert dictionary to string representation, transform into bytes
+        conf_hash = hashlib.sha256(conf_str).digest()  # Hash using SHA256
+        conf_hash64 = base64.b64encode(conf_hash).decode("utf-8")  # Convert to base64 bytes, then convert to string
+        conf_hash_safe = ''.join([c for c in conf_hash64 if c.isalnum()])  # Filter out non-alphanumeric chars, to make it 'file name safe'
+        self.config_hash = conf_hash_safe
+        # Set object's fields from config parameters
+        self._debug(f"config_hash: {self.config_hash}, params: {self.parameters}")
         self._set_from_config()
+        # Return sanity check
         return self._config_sanity_check()
 
     def set_enable(self, section, enable=True):
