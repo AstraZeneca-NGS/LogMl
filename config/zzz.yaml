@@ -1,4 +1,5 @@
 logger:
+  disable_plots: true
   plots_path: 'logml_plots/zzz'
 
 dataset:
@@ -91,5 +92,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: true
+  enable: false
   models: !include models_search/*.yaml

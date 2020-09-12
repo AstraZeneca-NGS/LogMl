@@ -1,17 +1,11 @@
 
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy
 import seaborn as sns
-import traceback
-
-from sklearn.base import clone
-from sklearn.preprocessing import MinMaxScaler
 
 from ..core.files import MlFiles
-from ..datasets import InOut
 from ..util.etc import array_to_str
 
 
@@ -20,7 +14,7 @@ class FeatureImportanceModel(MlFiles):
     Estimate feature importance based on a model.
     """
 
-    def __init__(self, model, model_type, rand_columns, num_iterations):
+    def __init__(self, model, model_type, rand_columns, num_iterations, scatter):
         self.model = model.clone()
         self.model_type = model_type
         self.datasets = model.datasets
@@ -32,6 +26,7 @@ class FeatureImportanceModel(MlFiles):
         self.importances = None
         self.verbose = False
         self.is_cv = self.model.is_cv
+        self.scatter = scatter
 
     def calc_importances(self):
         """
@@ -55,6 +50,7 @@ class FeatureImportanceModel(MlFiles):
         if self.num_iterations < 1:
             self._fatal_error("Number of iterations should be an integer number greater than 0: num_iterations={self.num_iterations}")
         # Base performance
+        self.scatter.set_subsection(f"model.{self.importance_name}.{self.model_type}")
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
         self.loss_base = self.loss(is_base=True)
@@ -64,6 +60,8 @@ class FeatureImportanceModel(MlFiles):
         cols_count = len(self.columns)
         fi_sk = self.model.get_feature_importances()
         for i, c in enumerate(self.columns):
+            if not self.scatter.should_run():
+                continue
             self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', raw importance: {fi_sk[i]}")
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:

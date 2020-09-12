@@ -1,13 +1,4 @@
 
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import traceback
-
-from sklearn.preprocessing import MinMaxScaler
-
-from ..core.files import MlFiles
 from .feature_importance_model import FeatureImportanceModel
 
 
@@ -20,8 +11,8 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
     not affect performance
     """
 
-    def __init__(self, model, model_name, rand_columns, num_iterations):
-        super().__init__(model, model_name, rand_columns, num_iterations)
+    def __init__(self, model, model_name, rand_columns, num_iterations, scatter):
+        super().__init__(model, model_name, rand_columns, num_iterations, scatter)
         self.importance_name = 'drop column'
 
     def dataset_change(self, col_name):

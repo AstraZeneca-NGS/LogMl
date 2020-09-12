@@ -1,13 +1,11 @@
 
-import inspect
-import logging
 import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
 import os
-import sys
 import yaml
 
+from pathlib import Path
 from IPython.core.display import display
 from yamlinclude import YamlIncludeConstructor
 
@@ -62,15 +60,16 @@ class MlFiles(MlLog):
         self._debug(f"path={path}, name={name}, file_type={file_type}, ext='{ext}'")
         if not path or not name:
             return None
-        os.makedirs(path, exist_ok=True)
-        fname = os.path.join(path, name)
+        path = Path(path)
+        path.mkdir(exist_ok=True)
+        fname = name
         if file_type:
             fname = f"{fname}.{file_type}"
         if _id:
             fname = f"{fname}.{_id}"
         if ext:
             fname = f"{fname}.{ext}"
-        return fname
+        return path / fname
 
     def _load_pickle(self, file_pickle, tag):
         """ Load a pickle file, return data (on success) or None (on failure) """

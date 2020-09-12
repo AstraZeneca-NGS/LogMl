@@ -29,6 +29,14 @@ CONFIG_MODEL_SEARCH = 'model_search'
 CONFIG_MODEL_ANALYSIS = 'model_analysis'
 
 
+def is_int(n):
+    try:
+        int(n)
+        return True
+    except:
+        return False
+
+
 def update_dict(d, u):
     """ Recursively update dictionary 'd' using items in 'u' """
     for k, v in u.items():
@@ -53,7 +61,8 @@ class Config(MlFiles):
         self.config_hash = None
         self.parameters = parameters if parameters is not None else dict()
         self.is_debug = False
-        self.exit_on_fatal_error = True
+        # self.exit_on_fatal_error = True
+        self.split, self.split_num = None, None
         if log_level:
             self.set_log_level(log_level)
 
@@ -72,6 +81,7 @@ class Config(MlFiles):
         """ Create a copy of the config, disable all sections if 'disable_all' is true """
         conf = copy.deepcopy(self)
         if disable_all:
+            conf.split, conf.split_num = None, None
             for sec in [CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH]:
                 conf.set_enable(sec, enable=False)
         return conf
@@ -131,6 +141,20 @@ class Config(MlFiles):
         if self.is_debug:
             self.set_log_level(logging.DEBUG)
         self.split, self.split_num = args.split, args.split_num
+        # Check split parameter
+        if self.split is not None:
+            if not is_int(self.split):
+                self._fatal_error(f"Command line option '--split' should be an integer number: '{self.split}'")
+            self.split = int(self.split)
+        if self.split < 2:
+            self._fatal_error(f"Command line option '--split' should be an integer, acceptable values are 2 or more: '{self.split}'")
+        # Check split_num parameter
+        if self.split_num not in ['pre', 'gather']:
+            if not is_int(self.split_num):
+                self._fatal_error(f"Command line option '--split_num' should be either an integer number or ['pre', 'gather']: '{self.split_num}'")
+            self.split_num = int(self.split_num)
+            if self.split_num < 0 or self.split_num >= self.split:
+                self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.split}): '{self.split_num}'")
         return True
 
     def read_config_yaml(self):

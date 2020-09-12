@@ -37,7 +37,7 @@ class ModelSearch(MlFiles):
         self._info(f"Search models: Start")
         if self.model_type is None:
             raise ValueError(f"Missing 'model_type' parameter, in config file '{self.config.config_file}', section '{CONFIG_MODEL}'")
-        # For each model in 'models' secction: Create a nea LogMl ofbjec with these parameters and run it
+        # For each model in 'models' selection: Create a nea LogMl object with these parameters and run it
         for model_def in self.models:
             name, params = next(iter(model_def.items()))
             if 'enable' in params and not params['enable']:
@@ -70,8 +70,8 @@ class ModelSearch(MlFiles):
         if not enable:
             self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
             return
-        # Disable some sections to avoid repetition (e.g. 'model_search' to avoid infinite recursion)
         # Create updated config
+        # Note: Disable all sections, e.g. disable 'model_search' to avoid infinite recursion
         conf = self.config.copy(disable_all=True)
         conf = conf.update_section(None, params)
         # Create datasets (shallow copy of datasets)
