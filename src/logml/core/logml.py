@@ -83,8 +83,10 @@ class LogMl(MlFiles):
         # Explore dataset
         if not self._dataset_explore():
             self._debug("Could not explore dataset")
+        # TODO: Scatter / gather
         if not self._feature_importance():
             self._debug("Could not perform feature importance")
+        # TODO: Scatter / gather
         if not self._feature_importance_na():
             self._debug("Could not perform feature importance of missing data")
         # Analysis
@@ -92,13 +94,16 @@ class LogMl(MlFiles):
             self._error("Could not analyze data")
             return False
         # Model Train
+        # TODO: Scatter / gather
         if not self.models_train():
             self._error("Could not train model")
             return False
         # Show model/s results
+        # TODO: This is part of the "Gather"?
         if self.display_model_results:
             self.model_results.sort(['validation', 'train', 'time'])
             self.model_results.print()
+        # TODO: When is this NOT SAVED? (only config)
         if self.save_model_results and self.model_results is not None:
             m = self.model_ori if self.model is None else self.model
             file_csv = m.get_file_name('models', ext=f"csv")

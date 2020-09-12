@@ -26,7 +26,7 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
+  enable: true
   enable_na: false
   is_dropcol_extra_trees: false
   is_dropcol_gradient_boosting: false
@@ -91,5 +91,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: false
+  enable: true
   models: !include models_search/*.yaml
