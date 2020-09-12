@@ -10,7 +10,7 @@ v := false          help Verbose mode
 
 #------------------------------------------------------------------------------
 # Create a logml command line
-# Parametres:
+# Parameters:
 #   pre    : This is the first command to run (prepare datatsets)
 #   n      : Partition number 'n' (scatter processing)
 #   gather : This is the last command to run (gather results)
@@ -34,14 +34,14 @@ string logmlCmd(bool pre, bool gather, int n) {
     else cmd += "--split $n "
 
     if( d || v ) {
-        println "LogMl commnad to run: $cmd"
+        println "LogMl command to run: $cmd"
     }
 
     return cmd
 }
 
 #------------------------------------------------------------------------------
-# Parse commnad line options
+# Parse command line options
 #------------------------------------------------------------------------------
 void parseCmdLine() {
     if( path.isEmpty() ) path = programPath.pathName().dirName()
@@ -56,12 +56,12 @@ void parseCmdLine() {
     }
 
     if( d || v ) {
-        println "Command line options:"
+        println "Parameters:"
+        println "\tNumber of jobs       : $num"
         println "\tConfig file          : '$config'"
         println "\tLogMl path           : '$path'"
         println "\tLogMl program        : '$logml'"
         println "\tActivate (venv) file : '$activate'"
-        println "\tNumber of jobs       : $num"
         println "\tDebug                : $d"
         println "\tVerbose              : $v"
     }
@@ -98,3 +98,5 @@ parseCmdLine()
 # Run LogMl
 runLogMl(num)
 
+wait
+println "Done $programPath!"
