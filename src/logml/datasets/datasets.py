@@ -1,12 +1,9 @@
-import copy
+
 import numpy as np
 import random
 
 from .datasets_base import DatasetsBase, InOut, DATASET_OPS
-from collections import namedtuple
-from ..core.config import CONFIG_DATASET
-from ..core.files import MlFiles
-from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT
+from ..core.registry import DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT
 
 
 class Datasets(DatasetsBase):
@@ -56,6 +53,7 @@ class Datasets(DatasetsBase):
         self.in_outs()
         # Save
         if self.should_save:
+            self._debug("Should save = {self.should_save}, saving dataset")
             self.save()
         self._debug("End")
         return True
@@ -100,6 +98,7 @@ class Datasets(DatasetsBase):
             self.dataset_validate = ds.dataset_validate
             self.operations = ds.operations
             self.operations_done = ds.operations_done
+            self._debug(f"Load dataset done, file '{file_name}'")
         return ds is not None
 
     def default_preprocess(self):
@@ -147,11 +146,15 @@ class Datasets(DatasetsBase):
         return self.split_idx(idx_train, idx_validate, idx_test)
 
     def do(self, op):
-        """ Perform an abstract operation on a dataset """
+        """
+        Perform an abstract operation on a dataset
+        Return True if the dataset operation has been applied (i.e. the dataset changed)
+        """
         self._debug(f"Dataset operation '{op}': Start")
+        ok = False
         if op in self.operations_done:
             self._debug(f"Operation '{op}' has been done. Skipping")
-            return True
+            return False
         if op == DATASET_AUGMENT:
             ok = self.augment()
         elif op == DATASET_CREATE:
@@ -196,6 +199,7 @@ class Datasets(DatasetsBase):
         self.dataset_test_xy = self._in_out(self.dataset_test, 'test')
         self.dataset_train_xy = self._in_out(self.dataset_train, 'train')
         self.dataset_validate_xy = self._in_out(self.dataset_validate, 'validate')
+        return True
 
     def invoke_augment(self):
         " Invoke user defined function for '@dataset_augment' "

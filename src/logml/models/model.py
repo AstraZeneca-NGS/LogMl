@@ -3,13 +3,12 @@ import copy
 import datetime
 import math
 import numpy as np
-import sklearn
 import time
 import traceback
 
 from ..core.config import CONFIG_MODEL
 from ..core.files import MlFiles
-from ..core.registry import MlRegistry, MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_SAVE, MODEL_TRAIN
+from ..core.registry import MODEL_CREATE, MODEL_EVALUATE, MODEL_PREDICT, MODEL_SAVE, MODEL_TRAIN
 from ..util.results_df import ResultsDf
 
 

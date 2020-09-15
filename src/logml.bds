@@ -4,7 +4,8 @@ activate := ""      help Shell script to activate virtual environment"
 config := ""        help LogMl config file
 d := false          help Debug mode
 logml := ""         help Path to LogMl's Python program
-num := 100          help Split to 'num' jobs
+num := -1           help Split to 'num' jobs
+numDefault := 100   help Default number of jobs, when 'num' is not set (non 'local' systems only)
 path := ""          help Path to project's home (path to 'data' and 'config' parent dir)
 v := false          help Verbose mode
 
@@ -40,7 +41,7 @@ string logmlCmd(bool pre, bool gather, int n) {
         println "LogMl command to run: $cmd"
     }
 
-    logFile := "$path/scatter.$num\.$nstr"
+    logFile := "$path/logml.scatter.$num\.$nstr"
 
     return cmd + " 2>&1 | tee '$logFile'"
 }
@@ -60,11 +61,14 @@ void parseCmdLine() {
         }
     }
 
+    # Set number of jobs, if not already set
+    if( num < 0 )   num = (system == 'local' ? cpusLocal : numDefault)
+
     if( d || v ) {
         println "Parameters:"
         println "\tNumber of jobs       : $num"
+        println "\tPath                 : '$path'"
         println "\tConfig file          : '$config'"
-        println "\tLogMl path           : '$path'"
         println "\tLogMl program        : '$logml'"
         println "\tActivate (venv) file : '$activate'"
         println "\tDebug                : $d"
@@ -78,19 +82,26 @@ void parseCmdLine() {
 void runLogMl(int num) {
     # Run initial task
     cmd := logmlCmd(true, false, -1)
-    task $cmd
+    pkl := "$path/data/zzz/zzz.pkl"
+    task(pkl <- config, taskName := "logml_pre") {
+        sys $cmd
+    }
 
     # Scatter
     wait
     for(int n=0; n < num; n++) {
         cmd = logmlCmd(false, false, n)
-        task $cmd
+        task(taskName := "logml_split_$n\_$num") {
+            sys $cmd
+        }
     }
     wait
 
     # Gather
     cmd = logmlCmd(false, true, -1)
-    task $cmd
+    task(taskName := "logml_gather") {
+        sys $cmd
+    }
 }
 
 #------------------------------------------------------------------------------

@@ -29,25 +29,39 @@ class Scatter:
     def is_scatter_n(self):
         return self.n == self.split_num
 
-    def file_name(self):
+    def _file_name(self, section, subsection, _id):
         """ Create a file name for saving scatter number 'n' """
         path = self.config.get_parameters_section(CONFIG_DATASET, 'dataset_path', '.')
         path = Path(path) / f"scatter.{self.split}.{self.config_hash}"
-        return self.config._get_file_name(path, self.section, file_type=self.subsection, _id=self.n)
+        return self.config._get_file_name(path, section, file_type=subsection, _id=_id)
 
-    def set_section(self, section, subsection=None):
-        self.section, self.subsection = section, subsection
+    def file_name_n(self):
+        """ Create a file name for saving scatter number 'n' """
+        return self._file_name(self.section, self.subsection, self.n)
+
+    def file_name_section(self):
+        """ Create a file name for saving scatter section 'section' """
+        return self._file_name(self.section, None, None)
+
+    def set_section(self, section):
+        """ Set section name and reset scatter split counter """
+        self.section = section
+        self.n = 0
 
     def set_subsection(self, subsection):
         self.subsection = subsection
 
-    def should_run(self):
+    def should_run(self, section=None, subsection=None):
         """ This should run only if this is the appropriate scatter number and the results file does not exists """
+        if section is not None:
+            self.set_section(section)
+        if subsection is not None:
+            self.set_subsection(subsection)
         if not self.is_enabled():
             return True  # All steps run in a single process when scatter is not enabled, so 'should_run() always returns 'True'
         self.inc()
         if not self.is_scatter_n():
             return False
-        fname = self.file_name()
-        self.config._debug(f"Scatter section: '{self.section}', subsection: '{self.subsection}', number {self.n}, file '{fname}', file exists {fname.exists()}")
+        fname = self.file_name_n()
+        self.config._debug(f"Scatter file: section '{self.section}', subsection '{self.subsection}', number {self.n}, file '{fname}', file exists {fname.exists()}")
         return not fname.exists()

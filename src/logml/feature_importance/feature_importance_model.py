@@ -66,8 +66,10 @@ class FeatureImportanceModel(MlFiles):
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
                 self.losses(c)
-        self.calc_importances()
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
+        self._error("SAVE PARTIAL RESULTS")
+        self._error("MOVE THIS TO GATHER STEP")
+        # self.calc_importances()
+        # self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
         return True
 
     def dataset_change(self, col_name):

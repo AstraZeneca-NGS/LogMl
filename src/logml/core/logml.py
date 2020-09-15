@@ -63,7 +63,7 @@ class LogMl(MlFiles):
         if not self._is_scatter_n_or_none():
             self._debug(f"Analysis: Should not do it (scatter split = '{self.config.split_num}'), skipping")
             return True
-        self.analysis = AnalysisDf(self.config, self.datasets)
+        self.analysis = AnalysisDf(self.config, self.datasets, self.scatter)
         return self.analysis()
 
     def __call__(self):
@@ -197,7 +197,7 @@ class LogMl(MlFiles):
         if self.hyper_parameter_optimization is None:
             self.hyper_parameter_optimization = HyperOpt(self)
         if self.model_search is None:
-            self.model_search = ModelSearch(self)
+            self.model_search = ModelSearch(self, self.scatter)
         # Table width
         pd.set_option('display.max_columns', self.display_max_columns)
         pd.set_option('display.max_rows', self.display_max_rows)
@@ -258,14 +258,16 @@ class LogMl(MlFiles):
             self._debug(f"Models train: Should not do it (scatter split = '{self.config.split_num}'), skipping")
             return True
         if self.model_search.enable:
-            self._debug(f"Model search")
             return self.model_search()
         elif self.hyper_parameter_optimization.enable:
-            self._debug(f"Hyper-parameter optimization: single model")
-            return self.hyper_parameter_optimization()
+            if self.scatter.should_run(section='hyper_parameter_optimization'):
+                self._debug(f"Hyper-parameter optimization: single model")
+                return self.hyper_parameter_optimization()
         else:
-            self._debug(f"Create and train: single model")
-            return self.model_train()
+            if self.scatter.should_run(section='model_train'):
+                self._debug(f"Create and train: single model")
+                return self.model_train()
+        return True
 
     def _new_dataset(self):
         model_type = self.model_ori.model_type

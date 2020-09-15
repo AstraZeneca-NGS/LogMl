@@ -1,7 +1,6 @@
 
 import hyperopt
 import hyperopt.hp
-import copy
 import numpy as np
 
 from ..core.config import CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_FUNCTIONS, CONFIG_MODEL

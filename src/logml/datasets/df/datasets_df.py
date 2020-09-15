@@ -7,9 +7,6 @@ from ..datasets_base import InOut
 from .df_augment import DfAugment
 from .df_preprocess import DfPreprocess
 
-from sklearn.ensemble import RandomForestRegressor
-from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
-
 
 def _copy_df(df):
     """ Copy a DataFrame """

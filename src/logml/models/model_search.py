@@ -1,11 +1,8 @@
 
-import copy
 import logml
-import yaml
 
-from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH
+from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
-from .sklearn_model import SkLearnModel
 
 
 class ModelSearch(MlFiles):
@@ -13,9 +10,10 @@ class ModelSearch(MlFiles):
     ModelSearch: Build several (base) models and fit the data
     Explore different combinations of models and hyper parameters
     """
-    def __init__(self, logml):
+    def __init__(self, logml, scatter):
         super().__init__(logml.config, CONFIG_MODEL_SEARCH)
         self.logml = logml
+        self.scatter = scatter
         self.config = logml.config
         self.model_type = logml.model_ori.model_type
         self.models = list()
@@ -27,6 +25,7 @@ class ModelSearch(MlFiles):
         if not self.enable:
             self._info(f"Model search disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_MODEL_SEARCH}', enable='{self.enable}'")
             return True
+        self.scatter.set_section(f"model_search")
         ret = self.search()
         self._info(f"Model search: End")
         return ret

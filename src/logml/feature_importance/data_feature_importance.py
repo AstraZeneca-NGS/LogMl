@@ -159,11 +159,12 @@ class DataFeatureImportance(MlFiles):
             self._info(f"Could not analyze feature importance (drop column) using {model_name}")
             return
         self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
-        imp = fi.get_importances()
-        self.results.add_col(f"importance_dropcol_{model_name}", imp)
-        self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
-        self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
-        fi.plot()
+        self._error("MOVE THIS TO GATHER STEP")
+        # imp = fi.get_importances()
+        # self.results.add_col(f"importance_dropcol_{model_name}", imp)
+        # self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+        # self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
+        # fi.plot()
         return True
 
     def feature_importance_models(self):
@@ -212,11 +213,12 @@ class DataFeatureImportance(MlFiles):
             self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
             return
         self._info(f"Feature importance (permutation), {model_name}, weight {fi.get_weight()}")
-        imp = fi.get_importances()
-        self.results.add_col(f"importance_permutation_{model_name}", imp)
-        self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
-        self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
-        fi.plot()
+        self._error("MOVE THIS TO GATHER STEP")
+        # imp = fi.get_importances()
+        # self.results.add_col(f"importance_permutation_{model_name}", imp)
+        # self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+        # self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
+        # fi.plot()
         return True
 
     def feature_importance_skmodel(self, model, model_name, config_tag):
@@ -227,9 +229,10 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance (sklearn), {model_name}, weight {weight}")
-        fi = model.get_feature_importances()
-        self.results.add_col(f"importance_skmodel_{model_name}", fi)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
+        self._error("MOVE THIS TO GATHER STEP")
+        # fi = model.get_feature_importances()
+        # self.results.add_col(f"importance_skmodel_{model_name}", fi)
+        # self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
 
     def fit_extra_trees(self, n_estimators=100, cv_enable=None):
         """ Create a ExtraTrees model """
@@ -477,8 +480,6 @@ class DataFeatureImportance(MlFiles):
     def regularization_model(self, model, model_name=None):
         """ Fit a modularization model and show non-zero coefficients """
         self.scatter.set_subsection(f"regularization_model_{self.tag}_{model_name}")
-        if not self.scatter.should_run():
-            return
         skmodel = model.model
         weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:
