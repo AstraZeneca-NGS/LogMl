@@ -33,7 +33,6 @@ class FeatureImportanceModel(MlFiles):
         Calculate all feature importances, based on performance results
         """
         # Calculate importance based an all results
-        rand_cols_set = set(self.rand_columns)
         null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
         self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
         self.importances = [self._calc_importance(c) for c in self.columns]
@@ -100,7 +99,7 @@ class FeatureImportanceModel(MlFiles):
         """
         perf, loss = list(), list()
         for i in range(self.num_iterations):
-            # Change dataset, evaluate performance, restore originl dataset
+            # Change dataset, evaluate performance, restore original dataset
             ori = self.dataset_change(column_name)
             loss_i = self.loss()
             self.dataset_restore(column_name, ori)

@@ -128,7 +128,8 @@ class DataFeatureImportance(MlFiles):
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
         self.results = ResultsRankDf(inputs)
         self.feature_importance_models()
-        # FIXME:  self.boruta()
+        # FIXME: Boruta algorithm not working properly
+        # self.boruta()
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()

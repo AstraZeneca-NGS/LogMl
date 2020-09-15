@@ -160,7 +160,7 @@ class LogMl(MlFiles):
 
     def _feature_importance_na(self):
         """ Feature importance / feature selection """
-        if not self._is_scatter_n_or_none():
+        if self._is_scatter_gather():
             self._debug(f"Feature importance of missing values: Should not do it (scatter split = '{self.config.split_num}'), skipping")
             return True
         if not self.is_dataset_df():
@@ -212,19 +212,6 @@ class LogMl(MlFiles):
         """ Is a 'df' type of dataset? """
         ds_type = self.config.get_parameters(CONFIG_DATASET).get('dataset_type')
         return ds_type == 'df'
-
-    def _is_scatter_gather_or_none(self):
-        return self.config.split is None or self.config.split_num == 'gather'
-
-    def _is_scatter_n_or_none(self):
-        if self.config.split is None:
-            return True
-        if self.config.split_num == 'pre' or self.config.split_num == 'gather':
-            return False
-        return True
-
-    def _is_scatter_pre_or_none(self):
-        return self.config.split is None or self.config.split_num == 'pre'
 
     def models_results(self):
         """ Gather models resouts and or show them """

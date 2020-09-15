@@ -8,6 +8,7 @@ import sys
 
 from .files import MlFiles
 from .registry import MlRegistry
+from ..util.etc import is_int
 
 
 DEFAULT_YAML = "config.yaml"
@@ -27,14 +28,6 @@ CONFIG_LOGGER = 'logger'
 CONFIG_MODEL = 'model'
 CONFIG_MODEL_SEARCH = 'model_search'
 CONFIG_MODEL_ANALYSIS = 'model_analysis'
-
-
-def is_int(n):
-    try:
-        int(n)
-        return True
-    except:
-        return False
 
 
 def update_dict(d, u):
