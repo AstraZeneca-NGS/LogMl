@@ -121,7 +121,7 @@ class DatasetsDf(Datasets):
     def default_save(self):
         """ Default implementation of '@dataset_save' """
         super().default_save()
-        filename = self.get_file_name(ext='preproc_augment.csv')
+        filename = self.get_file(ext='preproc_augment.csv')
         self._info(f"Saving dataframe to '{filename}'")
         return self._save_csv(filename, "Save as CSV", self.dataset, save_index=True)
 
@@ -192,7 +192,7 @@ class DatasetsDf(Datasets):
 
     def _load_from_csv(self):
         """ Load dataframe from CSV """
-        csv_file = self.get_file_name(ext='csv')
+        csv_file = self.get_file(ext='csv')
         self._debug(f"Loading csv file '{csv_file}'")
         self.dataset = pd.read_csv(csv_file, low_memory=False, parse_dates=self.dates)
         return len(self.dataset) > 0

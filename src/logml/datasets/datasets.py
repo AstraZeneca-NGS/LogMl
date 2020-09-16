@@ -87,7 +87,7 @@ class Datasets(DatasetsBase):
         """ Load dataset from pickle file. Return new dataset """
         if self.do_not_load_pickle:
             return False
-        file_name = self.get_file_name()
+        file_name = self.get_file()
         self._debug(f"Load dataset from file '{file_name}'")
         ds = self._load_pickle(file_name, 'Load dataset')
         if ds:
@@ -108,7 +108,7 @@ class Datasets(DatasetsBase):
 
     def default_save(self):
         """ Default implementation of '@dataset_save' """
-        return self._save_pickle(self.get_file_name(), 'Save dataset', self)
+        return self._save_pickle(self.get_file(), 'Save dataset', self)
 
     def default_split(self):
         """

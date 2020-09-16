@@ -178,8 +178,8 @@ class TestLogMl(unittest.TestCase):
         mltrain = Model(config, mldataset)
         self.assertTrue(ret)
         self.assertEqual(mltrain.model_name, 'model_001')
-        self.assertEqual(mldataset.get_file_name(), os.path.join('tests', 'tmp', 'test_001.pkl'))
-        self.assertEqual(mltrain.get_file_name(), os.path.join('tests', 'tmp', 'model', f"model_001.{mltrain._id}.pkl"))
+        self.assertEqual(mldataset.get_file(), os.path.join('tests', 'tmp', 'test_001.pkl'))
+        self.assertEqual(mltrain.get_file(), os.path.join('tests', 'tmp', 'model', f"model_001.{mltrain._id}.pkl"))
         self.assertEqual(logml.hyper_parameter_optimization.enable, False)
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
 
@@ -254,7 +254,7 @@ class TestLogMl(unittest.TestCase):
         # Create dataset
         ds = Datasets(config)
         # Cleanup old files
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         # Check values
         self.assertTrue(ret)
@@ -303,7 +303,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Create dataset
         ds = Datasets(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         self.assertEqual(ds.dataset, [1, 2, 3, 4, 5, 6])
@@ -324,7 +324,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Create dataset
         ds = Datasets(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         random.seed(20190705)
         ret = ds()
         dataset_expected = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -360,7 +360,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_006.yaml'), argv=list())
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check categories
@@ -380,7 +380,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(os.path.join('tests', 'unit', 'config', 'test_dataset_007.yaml'), argv=list())
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check that columns having zero std are dropped
@@ -394,7 +394,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check augmented variables
@@ -424,7 +424,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and augment dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check augmented variables
@@ -466,7 +466,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and augment dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check augmented variables
@@ -490,7 +490,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and augment dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check augmented variables
@@ -529,7 +529,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and augment dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         self.assertTrue(ret)
         # Check augmented variables
@@ -546,7 +546,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -574,7 +574,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -592,7 +592,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -612,7 +612,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -632,7 +632,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -652,7 +652,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -689,7 +689,7 @@ class TestLogMl(unittest.TestCase):
         config()
         # Load and preprocess dataset
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -717,7 +717,7 @@ class TestLogMl(unittest.TestCase):
         # Load and preprocess dataset
         ds = DatasetsDf(config)
         ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -745,7 +745,7 @@ class TestLogMl(unittest.TestCase):
         # Load and preprocess dataset
         ds = DatasetsDf(config)
         ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Do feature importance using logistic regression p-values
@@ -762,7 +762,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # x1
@@ -801,7 +801,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Check results
@@ -836,7 +836,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Check results
@@ -866,7 +866,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config, model_type=MODEL_TYPE_CLASSIFICATION)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Check results
@@ -882,7 +882,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         # Check that rows in 'y' have been removed
@@ -894,7 +894,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         for c in ['d1:year', 'd1:month', 'd1:week', 'd1:day', 'd1:dayofweek', 'd1:dayofyear', 'd1:is_month_end', 'd1:is_month_start', 'd1:is_quarter_end', 'd1:is_quarter_start', 'd1:is_year_end', 'd1:is_year_start', 'd1:hour', 'd1:minute', 'd1:second', 'd1:elapsed']:
@@ -907,7 +907,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         cols = list(ds.dataset.columns)
         self.assertTrue('x2' in cols)
@@ -921,7 +921,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         cols = list(ds.dataset.columns)
         self.assertTrue('x1' in cols)
@@ -935,7 +935,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         cols = list(ds.dataset.columns)
         self.assertTrue('x1' in cols)
@@ -951,7 +951,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         cols = list(df.columns)
@@ -965,7 +965,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         cols = list(df.columns)
@@ -1001,7 +1001,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         cols = list(df.columns)
@@ -1037,7 +1037,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         cols = list(df.columns)
@@ -1073,7 +1073,7 @@ class TestLogMl(unittest.TestCase):
         config = Config(argv=['logml.py', '-c', config_file])
         config()
         ds = DatasetsDf(config)
-        rm(ds.get_file_name())
+        rm(ds.get_file())
         ret = ds()
         df = ds.dataset
         cols = list(df.columns)

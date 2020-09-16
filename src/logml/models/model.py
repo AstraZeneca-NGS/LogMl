@@ -173,7 +173,7 @@ class Model(MlFiles):
     def get_file_name(self, file_type=None, ext='pkl'):
         """ Create a file name for training data """
         self._debug(f"file_type={file_type}, ext='{ext}'")
-        return self._get_file_name(self.model_path, f"{self.model_name}.{self.model_class}", file_type, ext, _id=self._id)
+        return self.get_file_path(self.model_path, f"{self.model_name}.{self.model_class}", file_type, ext, _id=self._id)
 
     def fit(self, x, y):
         """ Fit a model (a.k.a model_train) """

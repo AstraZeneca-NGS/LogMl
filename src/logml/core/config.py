@@ -55,7 +55,7 @@ class Config(MlFiles):
         self.parameters = parameters if parameters is not None else dict()
         self.is_debug = False
         # self.exit_on_fatal_error = True
-        self.split, self.split_num = None, None
+        self.scatter, self.scatter_num = None, None
         if log_level:
             self.set_log_level(log_level)
 
@@ -120,8 +120,8 @@ class Config(MlFiles):
         parser.add_argument('-c', '--config', help=f"Path to config (YAML) file. Default: '{DEFAULT_YAML}'", metavar='config.yaml', default=DEFAULT_YAML)
         parser.add_argument('-d', '--debug', help=f"Debug mode", action='store_true')
         parser.add_argument('-v', '--verbose', help=f"Verbose mode", action='store_true')
-        parser.add_argument('-s', '--split', help=f"Split into 'num_jobs' jobs", metavar='num_jobs', default=None)
-        parser.add_argument('-n', '--split_num', help=f"Split job number. This is job number 'n', out of 'num_jobs'. Can also be 'pre' or 'gather'", metavar='n', default=None)
+        parser.add_argument('-s', '--scatter_total', help=f"Scatter into 'num_jobs' jobs", metavar='num_jobs', default=None)
+        parser.add_argument('-n', '--scatter_num', help=f"Scatter job number. This is job number 'n', out of 'scatter_total'. Can also be 'pre' or 'gather'", metavar='n', default=None)
 
         # Parse command line
         args = parser.parse_args(self.argv[1:])
@@ -133,21 +133,21 @@ class Config(MlFiles):
         self.is_debug = args.debug
         if self.is_debug:
             self.set_log_level(logging.DEBUG)
-        self.split, self.split_num = args.split, args.split_num
+        self.scatter, self.scatter_num = args.scatter, args.scatter_num
         # Check split parameter
-        if self.split is not None:
-            if not is_int(self.split):
-                self._fatal_error(f"Command line option '--split' should be an integer number: '{self.split}'")
-            self.split = int(self.split)
-        if self.split < 2:
-            self._fatal_error(f"Command line option '--split' should be an integer, acceptable values are 2 or more: '{self.split}'")
+        if self.scatter is not None:
+            if not is_int(self.scatter):
+                self._fatal_error(f"Command line option '--split' should be an integer number: '{self.scatter}'")
+            self.scatter = int(self.scatter)
+        if self.scatter < 2:
+            self._fatal_error(f"Command line option '--split' should be an integer, acceptable values are 2 or more: '{self.scatter}'")
         # Check split_num parameter
-        if self.split_num not in ['pre', 'gather']:
-            if not is_int(self.split_num):
-                self._fatal_error(f"Command line option '--split_num' should be either an integer number or ['pre', 'gather']: '{self.split_num}'")
-            self.split_num = int(self.split_num)
-            if self.split_num < 0 or self.split_num >= self.split:
-                self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.split}): '{self.split_num}'")
+        if self.scatter_num not in ['pre', 'gather']:
+            if not is_int(self.scatter_num):
+                self._fatal_error(f"Command line option '--split_num' should be either an integer number or ['pre', 'gather']: '{self.scatter_num}'")
+            self.scatter_num = int(self.scatter_num)
+            if self.scatter_num < 0 or self.scatter_num >= self.scatter:
+                self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.scatter}): '{self.scatter_num}'")
         return True
 
     def read_config_yaml(self):

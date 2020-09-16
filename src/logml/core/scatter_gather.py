@@ -1,35 +1,76 @@
 
+import pickle
+
 from pathlib import Path
 
 from .config import CONFIG_DATASET
 from ..util.etc import is_int
 
 
+class ScatterCounter:
+    """
+    This class is only used to "decide" if we are on scatter number "n" and should execute that part of the processing.
+    """
+    def __init__(self, total, num):
+        self.total, self.num = total, num
+        self.n = -1
+        if not(self.num in ['pre', 'gather'] or is_int(self.num)):
+            raise ValueError(f"Split number should be either 'pre', 'gather' or an int number")
+
+    def __bool__(self):
+        """
+        Should we execute this split number?
+        Execute all if splitting disabled, execute split 'num' if enabled
+        Return 'is_scatter_n' if enabled, always true if disabled
+        """
+        return self.is_scatter_num() if self.is_enabled() else True
+
+    def inc(self):
+        """ Increment split counter, modulo 'split_num' """
+        self.n = (self.n + 1) % self.total
+
+    def is_enabled(self):
+        """ Is scatter enabled? I.e. are scatter parameters set? """
+        return self.total is not None and self.num is not None
+
+    def is_gather(self):
+        return self.num == 'gather'
+
+    def is_pre(self):
+        return self.num == 'pre'
+
+    def is_scatter(self):
+        return self.is_enabled() and self.num != 'pre' and self.num != 'gather'
+
+    def is_scatter_num(self):
+        return self.n == self.num
+
+
 class Scatter:
     """
     Utility class to scatter processing
-
-    This class is only used to "decide" if we are on scatter number "n" and should execute
-    that part of the processing. Also decide on "pre" and "gather" steps.
 
     It also helps to keep track of partial results using file backed "data shards" which
     can be later retrieved and combined during a "gather" step.
 
     During "gather" steps, the data will be gathered in the appropriate "data shard".
+
+    This object is a context manager that returns a data shard or None, depending on
+    whether se section should be executed or not
+
+    if scatter(section, subsection):
+        with scatter as shard:
+            shard[name] = results
     """
 
     def __init__(self, config, section='logml', subsection=None):
         self.config = config
-        self.split, self.split_num = config.split, config.split_num
-        if self.config is not None:
-            self.config_hash = config.config_hash
-            self.section, self.subsection = section, subsection
-        self.n = -1
+        self.config_hash = config.config_hash
+        self.section, self.subsection = section, subsection
+        self.scatter_counter = ScatterCounter(config.scatter_total, config.scatter_num)
         self.pre_sections = set()
         self.gather_sections = set()
         self.shards = dict()
-        if not(self.split_num in ['pre', 'gather'] or is_int(self.split_num)):
-            raise ValueError(f"Split number should be either 'pre', 'gather' or an int number")
 
     def add_pre(self, section):
         """ Add section to 'pre' """
@@ -39,62 +80,49 @@ class Scatter:
         """ Add section to 'gather' """
         self.gather_sections.add(section)
 
-    def inc(self):
-        """ Increment split counter, modulo 'split_num' """
-        self.n = (self.n + 1) % self.split
+    def __call__(self, section=None, subsection=None):
+        """
+        Check if a scatter should run
+        For the scatter to run, it should:
+            - if scatter is disabled, always run
+            - Be the appropriate scatter number (i.e. self.scatter_counter evaluates to True)
+            - And the corresponding shard file does not exist
+        """
+        self.set(section, subsection)
+        self.scatter_counter.inc()
+        if self.scatter_counter:
+            sfile = self.shard_file()
+            self.config._debug(f"Scatter: section '{self.section}', subsection '{self.subsection}', number {self.scatter_counter.n}, file '{sfile}', file exists {sfile.exists()}")
+            return not sfile.exists()
+        return False
 
-    def is_enabled(self):
-        """ Is scatter enabled? I.e. are scatter parameters set? """
-        return self.split is not None and self.split_num is not None
+    def __enter__(self):
+        """ Enter context manager, create a new shard """
+        sfname = self.shard_file()
+        self.shard = DataShard(sfname)
+        self.config._debug(f"Scatter: Enter context manager. Shard file '{self.shard.file_name}'")
+        return self.shard
 
-    def _is_gather(self):
-        return self.split_num == 'gather'
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Exit context manager, save current shard
+        Return True, so any exceptions will by thrown
+        """
+        self.config._debug(f"Scatter: Exit context manager. Shard file '{self.shard.file_name}'")
+        self.shard.save()
+        return True
 
-    def _is_pre(self):
-        return self.split_num == 'pre'
-
-    def _is_scatter(self):
-        return self.is_enabled() and self.split_num != 'pre' and self.split_num != 'gather'
-
-    def is_scatter_n(self):
-        return self.n == self.split_num
-
-    def _file_name(self, section, subsection, _id):
-        """ Create a file name for saving scatter number 'n' """
+    def shard_file(self):
+        """ Create a file name for a data shard """
         path = self.config.get_parameters_section(CONFIG_DATASET, 'dataset_path', '.')
-        path = Path(path) / f"scatter.{self.split}.{self.config_hash}"
-        return self.config._get_file_name(path, section, file_type=subsection, _id=_id)
+        path = Path(path) / f"scatter.{self.scatter_counter.num}.{self.config_hash}"
+        return self.config.get_file_path(path, self.section, file_type=self.subsection, _id=self.scatter_counter.n)
 
-    def file_name_n(self):
-        """ Create a file name for saving scatter number 'n' """
-        return self._file_name(self.section, self.subsection, self.n)
-
-    def file_name_section(self):
-        """ Create a file name for saving scatter section 'section' """
-        return self._file_name(self.section, None, None)
-
-    def set_section(self, section):
-        """ Set section name and reset scatter split counter """
-        self.section = section
-        self.n = 0
-
-    def set_subsection(self, subsection):
-        self.subsection = subsection
-
-    def should_run(self, section=None, subsection=None):
-        """ This should run only if this is the appropriate scatter number and the results file does not exists """
-        if not self.is_enabled():
-            return True  # All steps run in a single process when scatter is not enabled, so 'should_run() always returns 'True'
-        if section is not None:
-            self.set_section(section)
-        if subsection is not None:
-            self.set_subsection(subsection)
-        self.inc()
-        if not self.is_scatter_n():
-            return False
-        fname = self.file_name_n()
-        self.config._debug(f"Scatter file: section '{self.section}', subsection '{self.subsection}', number {self.n}, file '{fname}', file exists {fname.exists()}")
-        return not fname.exists()
+    def set(self, section, subsection=None):
+        if section:
+            self.section = section
+        if subsection:
+            self.subsection = subsection
 
 
 class DataShard:
@@ -107,8 +135,9 @@ class DataShard:
     A shard is implemented using a simple dictionary.
     Combining shards is just updating the dictionary while checking that key/value pairs are not overwritten.
     """
-    def __init__(self):
+    def __init__(self, file_name):
         self.data = dict()
+        self.file_name = file_name
 
     def __getitem__(self, key):
         print(f"GET ITEM: {key}")
@@ -124,13 +153,23 @@ class DataShard:
         return iter(self.data)
 
     def load(self):
-        pass
+        """
+        Load data from file, update all dictionary entries
+        Raise ValueError if a key already exists in the current shard (i.e. do not overwrite values)
+        """
+        with open(self.file_name, 'rb') as input:
+            data = pickle.load(input)
+            for k, v in data.items():
+                if k in self.data:
+                    raise ValueError(f"Key '{k}' already exists in shard, file: '{self.file_name}'")
+                self.data[k] = data[k]
 
     def __len__(self):
         return len(self.data)
 
     def save(self):
-        pass
+        with open(self.file_name, 'wb') as output:
+            pickle.dump(self.data, output)
 
     def __setitem__(self, key, value):
         print(f"SET ITEM: {key} = {value}")

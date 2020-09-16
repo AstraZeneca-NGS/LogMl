@@ -478,6 +478,30 @@ class DataFeatureImportance(MlFiles):
             lars_bic = self.regularization_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
             self.plot_lars(lars_aic, lars_bic)
 
+    def regularization_models(self):
+        """ Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) """
+        if not self.is_regression():
+            return
+        self._debug(f"Feature importance {self.tag}: Regularization")
+        if self.scatter(f"regularization_models_{self.tag}"):
+            !!!!!!!!!!
+            # LassoCV
+            if self.is_regularization_lasso and self.scatter.should_run():
+                lasso_cv = self.regularization_model(self.fit_lasso(cv_enable=False))
+                self.plot_lasso_alphas(lasso_cv)
+            # RidgeCV
+            if self.is_regularization_ridge and self.scatter.should_run():
+                self.regularization_model(self.fit_ridge(cv_enable=False))
+            # LARS
+            if self.is_regularization_lars and self.scatter.should_run():
+                self.regularization_model(self.fit_lars(cv_enable=False))
+            # LASSO / LARS
+            if self.is_regularization_lasso_lars and self.scatter.should_run():
+                self.regularization_model(self.fit_lasso_lars(cv_enable=False))
+                lars_aic = self.regularization_model(self.fit_lasso_lars_aic(cv_enable=False), 'Lars_AIC')
+                lars_bic = self.regularization_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
+                self.plot_lars(lars_aic, lars_bic)
+
     def regularization_model(self, model, model_name=None):
         """ Fit a modularization model and show non-zero coefficients """
         self.scatter.set_subsection(f"regularization_model_{self.tag}_{model_name}")
@@ -581,11 +605,11 @@ class DataFeatureImportance(MlFiles):
             return
         # Show and save main results table
         self.results.print(f"Feature importance {self.tag}")
-        fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
+        fimp_csv = self.datasets.get_file(f'feature_importance_{self.tag}', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}'")
         self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
         # Show and save weights table
-        fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
+        fimp_weights_csv = self.datasets.get_file(f'feature_importance_{self.tag}_weights', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()
         if loss_ori:
@@ -602,8 +626,8 @@ class DataFeatureImportance(MlFiles):
         if not self.scatter.should_run():
             return
         self._info(f"Tree graph {self.tag}: Random Forest")
-        file_dot = self.datasets.get_file_name(f'tree_graph_{self.tag}', ext=f"dot") if file_dot is None else file_dot
-        file_png = self.datasets.get_file_name(f'tree_graph_{self.tag}', ext=f"png") if file_png is None else file_png
+        file_dot = self.datasets.get_file(f'tree_graph_{self.tag}', ext=f"dot") if file_dot is None else file_dot
+        file_png = self.datasets.get_file(f'tree_graph_{self.tag}', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
         model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False, cv_enable=False)
         skmodel = model.model

@@ -166,7 +166,7 @@ class HyperOpt(MlLog):
     def save_results(self):
         """ Save hyper parameter search results to picle file """
         mltrain = self.logml.model
-        file_name = mltrain.get_file_name('hyper_param_search')
+        file_name = mltrain.get_file('hyper_param_search')
         self._debug(f"Save hyper-parameter search results: Saving to pickle file '{file_name}'")
         results = {'best': self.best, 'trials': self.trials, 'max_evals': self.trials}
         self.logml._save_pickle(file_name, 'hyper_param_search', results)

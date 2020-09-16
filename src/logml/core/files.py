@@ -52,8 +52,9 @@ class MlFiles(MlLog):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', None):
             display(obj)
 
-    def _get_file_name(self, path, name, file_type=None, ext='pkl', _id=None):
-        """ Create a file name
+    def get_file_path(self, path, name, file_type=None, ext='pkl', _id=None):
+        """
+        Create a file path
         Make sure all intermediate directories exists, so
         that the file can be created
         """
@@ -137,7 +138,7 @@ class MlFiles(MlLog):
             return False
         self._debug(f"{tag}: Saving pickle file '{file_pickle}'")
         with open(file_pickle, 'wb') as output:
-            dataset = pickle.dump(data, output)
+            pickle.dump(data, output)
             return True
 
     def _save_yaml(self, file_name, data):

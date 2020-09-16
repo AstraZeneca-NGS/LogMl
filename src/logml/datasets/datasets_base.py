@@ -137,10 +137,10 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
-    def get_file_name(self, dataset_type=None, ext='pkl'):
+    def get_file(self, dataset_type=None, ext='pkl'):
         """ Create a file name for dataset """
         self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
-        return self._get_file_name(self.dataset_path, self.dataset_name, dataset_type, ext)
+        return self.get_file_path(self.dataset_path, self.dataset_name, dataset_type, ext)
 
     def __getitem__(self, key):
         """ Get item/s from the dataset.

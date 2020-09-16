@@ -60,9 +60,6 @@ class LogMl(MlFiles):
         if not self.is_dataset_df():
             self._debug("Analysis: Only available for dataset type 'df', skipping")
             return True
-        if not self._is_scatter_n_or_none():
-            self._debug(f"Analysis: Should not do it (scatter split = '{self.config.split_num}'), skipping")
-            return True
         self.analysis = AnalysisDf(self.config, self.datasets, self.scatter)
         return self.analysis()
 
@@ -134,13 +131,13 @@ class LogMl(MlFiles):
         ok = True
         # Explore original dataset
         if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori', True):
-            files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
+            files_base = self.datasets.get_file(f"dataset_explore.original", ext='')
             self.dataset_explore_original = DfExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         else:
             self._debug("Dataset Explore: Exploring 'original' datasets disables ('is_use_ori'=False), skipping")
         # Explore pre-processed dataset
-        files_base = self.datasets.get_file_name(f"dataset_explore.preprocessed", ext='')
+        files_base = self.datasets.get_file(f"dataset_explore.preprocessed", ext='')
         self.dataset_explore_preprocessed = DfExplore(self.datasets.get(), 'preprocessed', self.config, files_base)
         ok = self.dataset_explore_preprocessed() and ok
         self._debug("Dataset Explore: End")
@@ -148,9 +145,6 @@ class LogMl(MlFiles):
 
     def _feature_importance(self):
         """ Feature importance / feature selection """
-        if not self._is_scatter_n_or_none():
-            self._debug(f"Feature importance: Should not do it (scatter split = '{self.config.split_num}'), skipping")
-            return True
         if not self.is_dataset_df():
             self._debug("Dataset feature importance only available for dataset type 'df'")
             return True
@@ -160,9 +154,6 @@ class LogMl(MlFiles):
 
     def _feature_importance_na(self):
         """ Feature importance / feature selection """
-        if self._is_scatter_gather():
-            self._debug(f"Feature importance of missing values: Should not do it (scatter split = '{self.config.split_num}'), skipping")
-            return True
         if not self.is_dataset_df():
             self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
             return True
@@ -223,7 +214,7 @@ class LogMl(MlFiles):
             self.model_results.print()
         if self.save_model_results and self.model_results is not None:
             m = self.model_ori if self.model is None else self.model
-            file_csv = m.get_file_name('models', ext=f"csv")
+            file_csv = m.get_file('models', ext=f"csv")
             self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
 
     def model_train(self, config=None, dataset=None):
@@ -241,17 +232,12 @@ class LogMl(MlFiles):
 
     def models_train(self):
         """ Train (several) models """
-        if not self._is_scatter_n_or_none():
-            self._debug(f"Models train: Should not do it (scatter split = '{self.config.split_num}'), skipping")
-            return True
         if self.model_search.enable:
             return self.model_search()
         elif self.hyper_parameter_optimization.enable:
-            if self.scatter.should_run(section='hyper_parameter_optimization'):
-                self._debug(f"Hyper-parameter optimization: single model")
-                return self.hyper_parameter_optimization()
+            return self.hyper_parameter_optimization()
         else:
-            if self.scatter.should_run(section='model_train'):
+            if self.scatter(section='model_train'):
                 self._debug(f"Create and train: single model")
                 return self.model_train()
         return True
