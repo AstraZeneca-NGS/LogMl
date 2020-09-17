@@ -559,13 +559,17 @@ class DataFeatureImportance(MlFiles):
         if self.results.is_empty():
             self._debug(f"Feature importance {self.tag}: Enpty resutls, nothing to show or save")
             return
+
+        # Get current timestamp ############
+        dt = datetime.datetime.utcnow().isoformat(sep='.').replace(':', '').replace('-', '') ############
+                    
         # Show and save main results table
         self.results.print(f"Feature importance {self.tag}")
-        fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}', ext=f"csv")
+        fimp_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_{dt}', ext=f"csv") ############
         self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}'")
         self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
         # Show and save weights table
-        fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_weights', ext=f"csv")
+        fimp_weights_csv = self.datasets.get_file_name(f'feature_importance_{self.tag}_{dt}_weights', ext=f"csv") ############
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()
         if loss_ori:
