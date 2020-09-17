@@ -147,8 +147,12 @@ class DfExplore(MlFiles):
             # Create histogram. Only show 'kernel density estimate' if there are more than 'self.describe_min_kde_count' unique values
             show_kde = (count_uniq >= self.describe_kde_min_uniq_values)
             if bins > 0:
-                sns.distplot(xi_no_na, kde=show_kde, bins=bins)
-                self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
+                try:
+                    sns.distplot(xi_no_na, kde=show_kde, bins=bins)
+                    self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
+                except Exception as e:
+                    self._error(f"Exception '{e}', when plotting variable '{c}': {xi_no_na}")
+
         descr.print(f"Describe variables {self.name}")
 
     def describe(self, x, field_name):
@@ -273,8 +277,11 @@ class DfExplore(MlFiles):
         count_vars = len(df.columns)
         self._plot_show(f"Missing value dataFrame plot", f'dataset_explore.{self.name}', count_vars_x=count_vars)
         # Barplot of number of misisng values
-        msno.bar(df)
-        self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=count_vars)
+        try:
+            msno.bar(df)
+            self._plot_show(f"Missing value by column", f'dataset_explore.{self.name}', count_vars_x=count_vars)
+        except ValueError as ve:
+            self._debug(f"Exception when invoking missingno.bar: {ve}")
         # Heatmap: Correlation of missing values
         msno.heatmap(df)
         self._plot_show(f"Nullity correlation", f'dataset_explore.{self.name}', count_vars_x=count_vars, count_vars_y=count_vars)

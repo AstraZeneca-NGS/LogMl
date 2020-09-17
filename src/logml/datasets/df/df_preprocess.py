@@ -15,6 +15,44 @@ from .df_impute import DfImpute
 from ...util.sanitize import sanitize_name
 
 
+def datetime_to_elapsed(dtimes):
+    """
+    Convert a numpy array of date_times into an 'epoch'
+    If there are no missing values, an int64 is returned.
+    Otherwise a float64 is used, so we can set missing to 'nan'
+    """
+    nanosec = 10 ** 9
+    if dtimes.isnull().sum() > 0:
+        # Use float, so we can use NaN in missing values
+        elap = np.zeros(len(dtimes))
+        is_null = dtimes.isnull()
+        not_null = np.logical_not(is_null)
+        elap[not_null] = dtimes[not_null].astype(np.int64) / nanosec
+        elap[is_null] = np.nan
+    else:
+        # No missing values, we can safely use an int64
+        elap = dtimes.astype(np.int64) // nanosec
+    return elap
+
+
+def bool_to_int_or_float(x):
+    """
+    Convert a numpy array of bool to a number
+    If there are no missing values, an int8 is returned.
+    Otherwise a float16 is used, so we can set missing to 'nan'
+    """
+    if x.isnull().sum() > 0:
+        # Use float, so we can use NaN in missing values
+        xf = np.zeros(len(x), dtype='float16')
+        is_null = x.isnull()
+        not_null = np.logical_not(is_null)
+        xf[not_null] = x[not_null].astype(np.int8)
+        xf[is_null] = np.nan
+    else:
+        # No missing values, we can safely use an int8
+        return x.astype('int8')
+
+
 class DfPreprocess(MlLog):
     """
     DataFrame preprocessing: convet categorical, one-hot encoding, impute
@@ -61,7 +99,8 @@ class DfPreprocess(MlLog):
         a date in the column `field_name`.
         Source: fast.ai
         """
-        self._info(f"Converting to date: field '{field_name}'")
+        has_na = self.df[field_name].isnull().sum() > 0
+        self._info(f"Converting to date: field '{field_name}', dtype: {self.df[field_name].dtype}, has NA / NaT / Null: {has_na}")
         self._make_date(self.df, field_name)
         field = self.df[field_name]
         prefix = prefix if prefix else re.sub('[Dd]ate$', '', field_name)
@@ -74,10 +113,12 @@ class DfPreprocess(MlLog):
             dpname = f"{prefix}:{n}"
             xi = getattr(field.dt, n.lower())
             if pd.api.types.is_bool_dtype(xi):
-                xi = xi.astype('int8')
+                xi = bool_to_int_or_float(xi)
             df[dpname] = xi
             self._info(f"Adding date part '{dpname}', type {df[dpname].dtype}, for field '{field_name}'")
-        df[f'{prefix}:elapsed'] = field.astype(np.int64) // 10 ** 9
+        dpname = f"{prefix}:elapsed"
+        df[dpname] = datetime_to_elapsed(field)
+        self._info(f"Adding date part '{dpname}', type {df[dpname].dtype}, for field '{field_name}'")
         # Add to replace and remove operations
         self.columns_to_add[field_name] = df
         self.columns_to_remove.add(field_name)
@@ -230,6 +271,7 @@ class DfPreprocess(MlLog):
             field_dtype = np.datetime64
         if not np.issubdtype(field_dtype, np.datetime64):
             df[date_field] = pd.to_datetime(df[date_field], infer_datetime_format=True)
+            self._debug(f"Converted field '{date_field}' to {df[date_field].dtype}")
 
     def nas(self):
         " Add 'missing value' indicators (i.e. '*_na' columns) "

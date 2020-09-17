@@ -198,7 +198,7 @@ class CategoricalFieldPreprocessing(MlLogMessages):
         # Note: Make cartegories one-based instead of zero based (e.g. if we want to represent "missing" as zero instead of "-1"
         # We can represent missing values as either zero or minus one
         add_to_codes = 1 if self.one_based else 0
-        self._debug(f"Converting to category field '{self.field_name}': Missing values, there are {(self.codes < 0).sum()} codes < 0). Adding {add_to_codes} to convert missing values to '{0 if self.one_based else -1}'")
+        self._debug(f"Converting to category field '{self.field_name}': Missing values, there are {(self.codes < 0).sum()} codes < 0. Adding {add_to_codes} to convert missing values to '{0 if self.one_based else -1}'")
         self.codes += add_to_codes
         # Scale values to range [0, 1]
         if self.scale:
@@ -224,7 +224,8 @@ class CategoricalFieldPreprocessing(MlLogMessages):
         """
         self._categories()
         self._adjust_codes()
-        self._info(f"Converted to category: field '{self.field_name}', categories: {list(self.xi_cat.cat.categories)}")
+        cs = list(self.xi_cat.cat.categories)
+        self._info(f"Converted to category: field '{self.field_name}', categories ({len(cs)}): {cs}")
 
     def _categories(self):
         """

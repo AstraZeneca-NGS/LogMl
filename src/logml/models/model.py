@@ -139,12 +139,11 @@ class Model(MlFiles):
         try:
             ret = self.loss_(x, y)
             if ret is None:
-                self._warning("No default loss function found ('metric_class' parameter is not configured), returning np.inf")
-                ret = np.inf
+                ret = np.nan
+                self._warning(f"No default loss function found ('metric_class' parameter is not configured), returning {ret}")
         except Exception as e:
             self._error(f"Exception: {e}\n{traceback.format_exc()}")
-            # traceback.print_stack()
-            ret = math.inf
+            ret = np.nan
         self._debug(f"Model evaluate {name} (default): Loss = {ret}")
         return ret
 
@@ -175,7 +174,7 @@ class Model(MlFiles):
     def get_file_name(self, file_type=None, ext='pkl'):
         """ Create a file name for training data """
         self._debug(f"file_type={file_type}, ext='{ext}'")
-        return self._get_file_name(self.model_path, self.model_name, file_type, ext, _id=self._id)
+        return self._get_file_name(self.model_path, f"{self.model_name}.{self.model_class}", file_type, ext, _id=self._id)
 
     def fit(self, x, y):
         """ Fit a model (a.k.a model_train) """
