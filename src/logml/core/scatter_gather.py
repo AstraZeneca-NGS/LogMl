@@ -7,172 +7,166 @@ from .config import CONFIG_DATASET
 from ..util.etc import is_int
 
 
-class ScatterCounter:
-    """
-    This class is only used to "decide" if we are on scatter number "n" and should execute that part of the processing.
-    """
-    def __init__(self, total, num):
-        self.total, self.num = total, num
-        self.n = -1
-        if not(self.num in ['pre', 'gather'] or is_int(self.num)):
-            raise ValueError(f"Split number should be either 'pre', 'gather' or an int number")
+scatter_gather = None
 
-    def __bool__(self):
-        """
-        Should we execute this split number?
-        Execute all if splitting disabled, execute split 'num' if enabled
-        Return 'is_scatter_n' if enabled, always true if disabled
-        """
-        return self.is_scatter_num() if self.is_enabled() else True
+
+def init_scatter_gather(split_num=0, total=-1, pre=False, gather=False, data_path='.'):
+    global scatter_gather
+    scatter_gather = ScatterGather(split_num=0, total=-1, pre=False, gather=False, data_path='.')
+
+
+class ScatterGather:
+    """
+    Scatter & Gather
+
+    Processing is scattered into 'split_total' number of processes. This class helps to
+    provides tracking of the scatter & gather processing, as well as caching of results
+
+    The workflow for scatter & gather is:
+        - One 'pre' process is executed, which takes care of initialization steps.
+
+        - A number of 'split_total' processes, are exectured, each one initialized with a
+          different 'split_num'. Each of these processes executes one part (1 / split_total) of
+          the processing. The results are saved to (cache) pickle files.
+          Usually several scatter processes are executed in parallel, e.g. in a large server or a cluster.
+
+        - One 'gather' process is executed. This process loads the results from each 'scatter'
+          (previous step) and performs some processing with all the data.
+
+    Note: The implicit assumption is that overall the execution times are similar. If one
+    scatter process takes much longer than others, spreading processing this way will not be efficient.
+
+    Note: When the scatter & gather processing is disabled, all parts are always executed. No caching,
+    loading or saving is performed (i.e. is equivalent to not having any scatter & gather at all)
+
+    Parameters:
+        split_num: Split number. During a scatter, only one out of split_total function calls will be invoked, see 'should_run()'
+        split_total: Number of processes. -1 means that scatter & gather is disabled
+        pre: Set 'pre' mode
+        gather: Set 'gather' mode
+        data_path: Path for saving cached results
+    """
+    def __init__(self, split_num=0, split_total=-1, pre=False, gather=False, data_path='.'):
+        self.pre = pre
+        self.gather = gather
+        self.count = -1
+        self.split_num = split_num
+        self.total = split_total
+        self.data_path = Path(data_path)
+        if not self.is_disabled() and self.split_num >= self.total:
+            raise ValueError(
+                f"ScatterGather: 'split_num' ({self.split_num}) cannot be higher than 'total' ({self.total})")
+        if pre and gather:
+            raise ValueError(f"ScatterGather: 'pre' and 'gather' cannot be True at the same time")
+
+    def file(self, state):
+        """ File for saving (caching) results """
+        return self.data_path / f"{state}_{self.count}_{self.total}.pkl"
+
+    def is_disabled(self):
+        """ Is scatter & gather disabled? """
+        return self.total <= 1
 
     def inc(self):
-        """ Increment split counter, modulo 'split_num' """
-        self.n = (self.n + 1) % self.total
+        """ Increment counter """
+        self.count += 1
 
-    def is_enabled(self):
-        """ Is scatter enabled? I.e. are scatter parameters set? """
-        return self.total is not None and self.num is not None
+    def load(self, state='scatter'):
+        """
+        Load data from cache file
+        """
+        if self.is_disabled():
+            raise ValueError("Attempt to load in disabled 'ScatterGather'")
+        fn = self.file(state)
+        print(f"Loading data from '{fn}'")
+        with open(fn, 'rb') as input:
+            return pickle.load(input)
 
-    def is_gather(self):
-        return self.num == 'gather'
+    def save(self, data, state='scatter'):
+        """
+        Save data to cache file
+        """
+        if self.is_disabled():
+            raise ValueError("Attempt to load in disabled 'ScatterGather'")
+        fn = self.file(state)
+        print(f"Saving data to '{fn}'")
+        with open(fn, 'wb') as output:
+            pickle.dump(data, output)
 
-    def is_pre(self):
-        return self.num == 'pre'
+    def should_run(self):
+        """ Should this scatter method be executed? """
+        return self.count % self.total == self.split_num
 
-    def is_scatter(self):
-        return self.is_enabled() and self.num != 'pre' and self.num != 'gather'
+    def __repr__(self):
+        if self.pre:
+            return "ScatterGather(pre=True)"
+        if self.gather:
+            return "ScatterGather(gather=True)"
+        return f"ScatterGather(count={self.count}, split_num={self.split_num}, total={self.total})"
 
-    def is_scatter_num(self):
-        return self.n == self.num
 
-
-class Scatter:
+def gather(g):
     """
-    Utility class to scatter processing
-
-    It also helps to keep track of partial results using file backed "data shards" which
-    can be later retrieved and combined during a "gather" step.
-
-    During "gather" steps, the data will be gathered in the appropriate "data shard".
-
-    This object is a context manager that returns a data shard or None, depending on
-    whether se section should be executed or not
-
-    if scatter(section, subsection):
-        with scatter as shard:
-            shard[name] = results
+    Methods annotated as '@gather' are only executed in the 'gather' stage of a scatter/gather
     """
+    def scatter_gather_wrapper(self, *args, **kwargs):
+        ret = None
+        scatter_gather.inc()
+        if scatter_gather.is_disabled():
+            ret = g(self, *args, **kwargs)
+        elif scatter_gather.gather:
+            print(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
+            ret = g(self, *args, **kwargs)
+        else:
+            print(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
+        return ret
 
-    def __init__(self, config, section='logml', subsection=None):
-        self.config = config
-        self.config_hash = config.config_hash
-        self.section, self.subsection = section, subsection
-        self.scatter_counter = ScatterCounter(config.scatter_total, config.scatter_num)
-        self.pre_sections = set()
-        self.gather_sections = set()
-        self.shards = dict()
-
-    def add_pre(self, section):
-        """ Add section to 'pre' """
-        self.pre_sections.add(section)
-
-    def add_gather(self, section):
-        """ Add section to 'gather' """
-        self.gather_sections.add(section)
-
-    def __call__(self, section=None, subsection=None):
-        """
-        Check if a scatter should run
-        For the scatter to run, it should:
-            - if scatter is disabled, always run
-            - Be the appropriate scatter number (i.e. self.scatter_counter evaluates to True)
-            - And the corresponding shard file does not exist
-        """
-        self.set(section, subsection)
-        self.scatter_counter.inc()
-        if self.scatter_counter:
-            sfile = self.shard_file()
-            self.config._debug(f"Scatter: section '{self.section}', subsection '{self.subsection}', number {self.scatter_counter.n}, file '{sfile}', file exists {sfile.exists()}")
-            return not sfile.exists()
-        return False
-
-    def __enter__(self):
-        """ Enter context manager, create a new shard """
-        sfname = self.shard_file()
-        self.shard = DataShard(sfname)
-        self.config._debug(f"Scatter: Enter context manager. Shard file '{self.shard.file_name}'")
-        return self.shard
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """
-        Exit context manager, save current shard
-        Return True, so any exceptions will by thrown
-        """
-        self.config._debug(f"Scatter: Exit context manager. Shard file '{self.shard.file_name}'")
-        self.shard.save()
-        return True
-
-    def shard_file(self):
-        """ Create a file name for a data shard """
-        path = self.config.get_parameters_section(CONFIG_DATASET, 'dataset_path', '.')
-        path = Path(path) / f"scatter.{self.scatter_counter.num}.{self.config_hash}"
-        return self.config.get_file_path(path, self.section, file_type=self.subsection, _id=self.scatter_counter.n)
-
-    def set(self, section, subsection=None):
-        if section:
-            self.section = section
-        if subsection:
-            self.subsection = subsection
+    return scatter_gather_wrapper
 
 
-class DataShard:
+def pre(g):
     """
-    A shard of data that can be saved to a file.
-
-    Many shards can be retrieved from files and combined into a larger shard. This is usually
-    performed during the "gather" step of a "scatter / gather" processing
-
-    A shard is implemented using a simple dictionary.
-    Combining shards is just updating the dictionary while checking that key/value pairs are not overwritten.
+    Methods annotated as '@pre' are executed in the 'pre' stage of a scatter/gather
+    Otherwise the data is loaded from a (cached) result
     """
-    def __init__(self, file_name):
-        self.data = dict()
-        self.file_name = file_name
+    def scatter_gather_wrapper(self, *args, **kwargs):
+        ret = None
+        scatter_gather.inc()
+        if scatter_gather.is_disabled():
+            ret = g(self, *args, **kwargs)
+        elif scatter_gather.pre:
+            print(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
+            ret = g(self, *args, **kwargs)
+            scatter_gather.save(ret, state='pre')
+        else:
+            print(f"ScatteGather: {scatter_gather}, loading '{g.__name__}'")
+            ret = scatter_gather.load(state='pre')
+        return ret
 
-    def __getitem__(self, key):
-        print(f"GET ITEM: {key}")
-        return self.data[key]
-
-    def __contains__(self, item):
-        return self.data.__contains__(item)
-
-    def __delattr__(self, item):
-        del self.data[item]
-
-    def __iter__(self, item):
-        return iter(self.data)
-
-    def load(self):
-        """
-        Load data from file, update all dictionary entries
-        Raise ValueError if a key already exists in the current shard (i.e. do not overwrite values)
-        """
-        with open(self.file_name, 'rb') as input:
-            data = pickle.load(input)
-            for k, v in data.items():
-                if k in self.data:
-                    raise ValueError(f"Key '{k}' already exists in shard, file: '{self.file_name}'")
-                self.data[k] = data[k]
-
-    def __len__(self):
-        return len(self.data)
-
-    def save(self):
-        with open(self.file_name, 'wb') as output:
-            pickle.dump(self.data, output)
-
-    def __setitem__(self, key, value):
-        print(f"SET ITEM: {key} = {value}")
-        self.data[key] = value
+    return scatter_gather_wrapper
 
 
+def scatter(g):
+    """
+    Methods annotated with '@scatter' are executed in the 'scatter' stage of a scatter/gather
+    Otherwise the data is loaded from a (cached) result
+    """
+    def scatter_gather_wrapper(self, *args, **kwargs):
+        ret = None
+        scatter_gather.inc()
+        if scatter_gather.is_disabled():
+            ret = g(self, *args, **kwargs)
+        elif scatter_gather.pre:
+            print(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
+        elif scatter_gather.gather:
+            print(f"ScatteGather: {scatter_gather}, loading '{g.__name__}'")
+            ret = scatter_gather.load()
+        elif scatter_gather.should_run():
+            print(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
+            ret = g(self, *args, **kwargs)
+            scatter_gather.save(ret)
+        else:
+            print(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
+        return ret
+
+    return scatter_gather_wrapper

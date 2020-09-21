@@ -5,7 +5,6 @@ import pandas as pd
 
 from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
-from .scatter_gather import Scatter
 from .registry import MODEL_CREATE
 from ..analysis import AnalysisDf
 from ..datasets import Datasets, DatasetsCv, DatasetsDf, DfExplore
@@ -50,7 +49,6 @@ class LogMl(MlFiles):
         self.show_plots = True
         self.cv_enable = False
         self._set_from_config()
-        self.scatter = None
         if self.config is not None:
             self.initialize()
         self.model_results = ResultsDf()
@@ -149,7 +147,7 @@ class LogMl(MlFiles):
             self._debug("Dataset feature importance only available for dataset type 'df'")
             return True
         model_type = self.model_ori.model_type
-        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type, 'all', self.scatter)
+        self.dataset_feature_importance = DataFeatureImportance(self.config, self.datasets, model_type, 'all')
         return self.dataset_feature_importance()
 
     def _feature_importance_na(self):
@@ -168,7 +166,7 @@ class LogMl(MlFiles):
             self._debug("Dataset feature importance (missing data): There are no missing values, skipping. datasets_na={datasets_na}")
             return True
         self._debug("Dataset feature importance (missing data): datasets_na={datasets_na}")
-        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type, 'na', self.scatter)
+        self.dataset_feature_importance_na = DataFeatureImportance(self.config, datasets_na, model_type, 'na')
         return self.dataset_feature_importance_na()
 
     def get_model_eval_test(self):
@@ -188,7 +186,7 @@ class LogMl(MlFiles):
         if self.hyper_parameter_optimization is None:
             self.hyper_parameter_optimization = HyperOpt(self)
         if self.model_search is None:
-            self.model_search = ModelSearch(self, self.scatter)
+            self.model_search = ModelSearch(self)
         # Table width
         pd.set_option('display.max_columns', self.display_max_columns)
         pd.set_option('display.max_rows', self.display_max_rows)
@@ -196,7 +194,6 @@ class LogMl(MlFiles):
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
         self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
         # Scatter gather helper object
-        self.scatter = Scatter(self.config)
         return self._config_sanity_check()
 
     def is_dataset_df(self):
