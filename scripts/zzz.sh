@@ -5,6 +5,8 @@ set -o pipefail
 clear
 rm -rvf data/zzz/zzz.pkl data/zzz/model logml.scatter.* logml.bds.*
 
+rm -rvf scatter_*_*
+
 # Run LogMl
 time ./src/logml.bds -d -v -config config/zzz.yaml 2>&1 | tee zzz.out
 

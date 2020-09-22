@@ -13,8 +13,8 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     randomly shuffled columns
     """
 
-    def __init__(self, model, model_name, rand_columns, num_iterations, scatter):
-        super().__init__(model, model_name, rand_columns, num_iterations, scatter)
+    def __init__(self, model, model_name, rand_columns, num_iterations):
+        super().__init__(model, model_name, rand_columns, num_iterations)
         self.importance_name = 'permutation'
 
     def dataset_change(self, col_name):
@@ -27,7 +27,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         self.datasets.shuffle_input(col_name, col_ori)
 
     def initialize(self):
-        """ Initialzie the model (the model is trained only once) """
+        """ Initialize the model (the model is trained only once) """
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")
         self.model.model_train()
 

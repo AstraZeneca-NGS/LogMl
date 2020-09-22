@@ -3,6 +3,7 @@ import logml
 
 from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
+from ..core.scatter_gather import scatter
 
 
 class ModelSearch(MlFiles):
@@ -10,10 +11,9 @@ class ModelSearch(MlFiles):
     ModelSearch: Build several (base) models and fit the data
     Explore different combinations of models and hyper parameters
     """
-    def __init__(self, logml, scatter):
+    def __init__(self, logml):
         super().__init__(logml.config, CONFIG_MODEL_SEARCH)
         self.logml = logml
-        self.scatter = scatter
         self.config = logml.config
         self.model_type = logml.model_ori.model_type
         self.models = list()
@@ -25,7 +25,6 @@ class ModelSearch(MlFiles):
         if not self.enable:
             self._info(f"Model search disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_MODEL_SEARCH}', enable='{self.enable}'")
             return True
-        self.scatter.set_section(f"model_search")
         ret = self.search()
         self._info(f"Model search: End")
         return ret
@@ -69,6 +68,10 @@ class ModelSearch(MlFiles):
         if not enable:
             self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
             return
+        self._search_model(model_class, params)
+
+    @scatter
+    def _search_model(self, model_class, params):
         # Create updated config
         # Note: Disable all sections, e.g. disable 'model_search' to avoid infinite recursion
         conf = self.config.copy(disable_all=True)

@@ -9,6 +9,7 @@ import sys
 from .files import MlFiles
 from .registry import MlRegistry
 from ..util.etc import is_int
+from ..core.scatter_gather import init_scatter_gather
 
 
 DEFAULT_YAML = "config.yaml"
@@ -55,7 +56,7 @@ class Config(MlFiles):
         self.parameters = parameters if parameters is not None else dict()
         self.is_debug = False
         # self.exit_on_fatal_error = True
-        self.scatter, self.scatter_num = None, None
+        self.scatter_total, self.scatter_num = None, None
         if log_level:
             self.set_log_level(log_level)
 
@@ -133,20 +134,20 @@ class Config(MlFiles):
         self.is_debug = args.debug
         if self.is_debug:
             self.set_log_level(logging.DEBUG)
-        self.scatter, self.scatter_num = args.scatter, args.scatter_num
+        self.scatter_total, self.scatter_num = args.scatter_total, args.scatter_num
         # Check split parameter
-        if self.scatter is not None:
-            if not is_int(self.scatter):
-                self._fatal_error(f"Command line option '--split' should be an integer number: '{self.scatter}'")
-            self.scatter = int(self.scatter)
-        if self.scatter < 2:
-            self._fatal_error(f"Command line option '--split' should be an integer, acceptable values are 2 or more: '{self.scatter}'")
+        if self.scatter_total is not None:
+            if not is_int(self.scatter_total):
+                self._fatal_error(f"Command line option '--scatter_total' should be an integer number: '{self.scatter_total}'")
+            self.scatter_total = int(self.scatter_total)
+            if self.scatter_total < 2:
+                self._fatal_error(f"Command line option '--scatter_total' should be an integer, acceptable values are 2 or more: '{self.scatter_total}'")
         # Check split_num parameter
         if self.scatter_num not in ['pre', 'gather']:
             if not is_int(self.scatter_num):
-                self._fatal_error(f"Command line option '--split_num' should be either an integer number or ['pre', 'gather']: '{self.scatter_num}'")
+                self._fatal_error(f"Command line option '--scatter_num' should be either an integer number or ['pre', 'gather']: '{self.scatter_num}'")
             self.scatter_num = int(self.scatter_num)
-            if self.scatter_num < 0 or self.scatter_num >= self.scatter:
+            if self.scatter_num < 0 or self.scatter_num >= self.scatter_total:
                 self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.scatter}): '{self.scatter_num}'")
         return True
 

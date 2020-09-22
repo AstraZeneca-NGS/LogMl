@@ -12,6 +12,7 @@ from sklearn.tree import export_graphviz
 from ..core import MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from ..core.config import CONFIG_DATASET_FEATURE_IMPORTANCE
 from ..core.files import MlFiles
+from ..core.scatter_gather import pre, scatter, gather
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
 from .pvalue_fdr import get_categories, LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
@@ -37,10 +38,9 @@ class DataFeatureImportance(MlFiles):
     models.
     """
 
-    def __init__(self, config, datasets, model_type, tag, scatter, set_config=True):
+    def __init__(self, config, datasets, model_type, tag, set_config=True):
         super().__init__(config, CONFIG_DATASET_FEATURE_IMPORTANCE)
         self.datasets = datasets
-        self.scatter = scatter
         self.enable_na = True
         self.dropcol_iterations_extra_trees = 1
         self.dropcol_iterations_gradient_boosting = 1
@@ -101,15 +101,18 @@ class DataFeatureImportance(MlFiles):
         if not self.is_classification():
             self._debug("Boruta algorithm only for classification")
             return
-        self.scatter.set_subsection(f"boruta_{self.tag}")
-        if not self.scatter.should_run():
-            return
+        b = self._boruta()
+        if b is not None:
+            self.results.add_col('boruta_support', b.support_)
+            self.results.add_col_rank('boruta_rank', b.ranking_)
+
+    @scatter
+    def _boruta(self):
         self._info(f"Feature importance {self.tag}: Boruta algorithm")
         model = self.fit_random_forest()
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
         boruta.fit(self.x_train, self.y_train)
-        self.results.add_col('boruta_support', boruta.support_)
-        self.results.add_col_rank('boruta_rank', boruta.ranking_)
+        return boruta
 
     def __call__(self):
         """ Feature importance """
@@ -119,9 +122,8 @@ class DataFeatureImportance(MlFiles):
         if self.tag == 'na' and not self.enable_na:
             self._debug(f"Feature importance {self.tag} disabled, skipping. Config file '{self.config.config_file}', section '{CONFIG_DATASET_FEATURE_IMPORTANCE}', enable_na='{self.enable_na}'")
             return True
-        self.scatter.set_section(f"feature_importance_{self.tag}")
         # Add random inputs (shuffled columns)
-        self.random_inputs_added = self.random_inputs_add()
+        self.random_inputs_added, self.datasets = self.random_inputs_add()
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_xy()
         self.x_train, self.y_train = self.datasets.get_train_xy()
@@ -155,17 +157,15 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
         num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
-        fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations, self.scatter)
-        if not fi():
-            self._info(f"Could not analyze feature importance (drop column) using {model_name}")
-            return
-        self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
-        self._error("MOVE THIS TO GATHER STEP")
-        # imp = fi.get_importances()
-        # self.results.add_col(f"importance_dropcol_{model_name}", imp)
-        # self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
-        # self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
-        # fi.plot()
+        fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        res = fi()
+        if res:
+            imp = fi.get_importances()
+            self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
+            self.results.add_col(f"importance_dropcol_{model_name}", imp)
+            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+            self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
+            fi.plot()
         return True
 
     def feature_importance_models(self):
@@ -209,19 +209,17 @@ class DataFeatureImportance(MlFiles):
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
         num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
-        fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations, self.scatter)
-        if not fi():
-            self._info(f"Could not analyze feature importance (permutation) using {model.model_name}")
-            return
-        self._info(f"Feature importance (permutation), {model_name}, weight {fi.get_weight()}")
-        self._error("MOVE THIS TO GATHER STEP")
-        # imp = fi.get_importances()
-        # self.results.add_col(f"importance_permutation_{model_name}", imp)
-        # self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
-        # self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
-        # fi.plot()
+        fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        res = fi()
+        if res:
+            imp = fi.get_importances()
+            self.results.add_col(f"importance_permutation_{model_name}", imp)
+            self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+            self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
+            fi.plot()
         return True
 
+    @gather
     def feature_importance_skmodel(self, model, model_name, config_tag):
         """ Show model built-in feature importance """
         conf = f"is_skmodel_{config_tag}"
@@ -230,10 +228,9 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance (sklearn), {model_name}, weight {weight}")
-        self._error("MOVE THIS TO GATHER STEP")
-        # fi = model.get_feature_importances()
-        # self.results.add_col(f"importance_skmodel_{model_name}", fi)
-        # self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
+        fi = model.get_feature_importances()
+        self.results.add_col(f"importance_skmodel_{model_name}", fi)
+        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
 
     def fit_extra_trees(self, n_estimators=100, cv_enable=None):
         """ Create a ExtraTrees model """
@@ -372,28 +369,36 @@ class DataFeatureImportance(MlFiles):
         self._plot_show('Mean square error per fold: coordinate descent', 'dataset_feature_importance', fig)
 
     def pvalue_linear(self):
+        res = self._pvalue_linear()
+        self.pvalue_linear_add_result(res)
+
+    @scatter
+    def _pvalue_linear(self):
         """ Calculate p-values using linear regression """
         if not self.is_linear_pvalue:
-            return True
+            return None
         # Only for regression models
         if not self.is_regression():
             self._debug("Linear regression (p-value): Not a regression model, skipping")
-            return True
-        self.scatter.set_subsection(f"pvalue_linear_{self.tag}")
-        if not self.scatter.should_run():
-            return
+            return None
         self._info(f"Linear regression (p-value) {self.tag}: Start")
         plin = PvalueLinear(self.datasets, self.linear_pvalue_null_model_variables, self.tag)
         ok = plin()
-        if ok:
-            self.results.add_col(f"linear_coefficient", plin.get_coefficients())
-            self.results.add_col(f"linear_p_values", plin.get_pvalues())
-            self.results.add_col(f"linear_p_values_fdr", plin.p_values_corrected)
-            self.results.add_col(f"linear_significant", plin.rejected)
-            self.results.add_col_rank(f"linear_p_values_rank", plin.get_pvalues(), reversed=False)
         self._info(f"Linear regression (p-value) {self.tag}: End")
-        return ok
+        if ok:
+            return plin.get_coefficients(), plin.get_pvalues(), plin.p_values_corrected, plin.rejected
+        return None
 
+    @gather
+    def pvalue_linear_add_result(self, res):
+        coef, pval, pval_corr, rejected = res
+        self.results.add_col(f"linear_coefficient", coef)
+        self.results.add_col(f"linear_p_values", pval)
+        self.results.add_col(f"linear_p_values_fdr", pval_corr)
+        self.results.add_col(f"linear_significant", rejected)
+        self.results.add_col_rank(f"linear_p_values_rank", pval, reversed=False)
+
+    @pre
     def random_inputs_add(self):
         """
         Add random columns to a dataset
@@ -416,7 +421,7 @@ class DataFeatureImportance(MlFiles):
                     self._debug(f"Adding shuffled input from '{c}': '{c_new}'")
                     self.datasets.shuffle_input(c, new_name=c_new)
                     added_columns.append(c_new)
-        return added_columns
+        return added_columns, self.datasets
 
     def recursive_feature_elimination(self):
         """ Use RFE to estimate parameter importance based on model """
@@ -425,24 +430,28 @@ class DataFeatureImportance(MlFiles):
             return
         if self.is_regression():
             if self.is_rfe_model_lasso:
-                self.recursive_feature_elimination_model(self.fit_lasso(cv_enable=False), 'Lasso')
+                ret = self._rfe_model_lasso()
+                self._rfe_add_result(ret)
             if self.is_rfe_model_ridge:
-                self.recursive_feature_elimination_model(self.fit_ridge(cv_enable=False), 'Ridge')
+                ret = self._rfe_model_ridge()
+                self._rfe_add_result(ret)
             if self.is_rfe_model_lars_aic:
-                self.recursive_feature_elimination_model(self.fit_lasso_lars_aic(cv_enable=False), 'Lars_AIC')
+                ret = self._rfe_model_lars_aic()
+                self._rfe_add_result(ret)
             if self.is_rfe_model_lars_bic:
-                self.recursive_feature_elimination_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
+                ret = self._rfe_model_lars_bic()
+                self._rfe_add_result(ret)
         if self.is_rfe_model_random_forest:
-            self.recursive_feature_elimination_model(self.fit_random_forest(cv_enable=False), 'RandomForest')
+            ret = self._rfe_model_random_forest()
+            self._rfe_add_result(ret)
         if self.is_rfe_model_extra_trees:
-            self.recursive_feature_elimination_model(self.fit_extra_trees(cv_enable=False), 'ExtraTrees')
+            ret = self._rfe_model_extra_trees()
+            self._rfe_add_result(ret)
         if self.is_rfe_model_gradient_boosting:
-            self.recursive_feature_elimination_model(self.fit_gradient_boosting(cv_enable=False), 'GradientBoosting')
+            ret = self._rfe_model_gradient_boosting()
+            self._rfe_add_result(ret)
 
     def recursive_feature_elimination_model(self, model, model_name):
-        self.scatter.set_subsection(f"recursive_feature_elimination_{self.tag}_{model_name}")
-        if not self.scatter.should_run():
-            return
         """ Use RFE to estimate parameter importance based on model """
         weight = model.eval_validate if model.model_eval_validate() else None
         self._debug(f"Feature importance {self.tag}: Recursive Feature Elimination, model '{model_name}', x.shape={self.x.shape}, x.shape={self.y.shape}, weight={weight}")
@@ -453,67 +462,108 @@ class DataFeatureImportance(MlFiles):
             rfe = RFE(skmodel, n_features_to_select=1)
         fit = rfe.fit(self.x, self.y)
         self._info(f"Feature importance {self.tag}: Recursive Feature Elimination '{model_name}', weight {weight}")
-        self.results.add_col_rank(f"rfe_rank_{model_name}", fit.ranking_, weight=weight)
+        return model_name, fit.ranking_, weight
+
+    @gather
+    def _rfe_add_result(self, res):
+        model_name, ranking, weight = res
+        self.results.add_col_rank(f"rfe_rank_{model_name}", ranking, weight=weight)
+
+    @scatter
+    def _rfe_model_extra_trees(self):
+        return self.recursive_feature_elimination_model(self.fit_extra_trees(cv_enable=False), 'ExtraTrees')
+
+    @scatter
+    def _rfe_model_gradient_boosting(self):
+        return self.recursive_feature_elimination_model(self.fit_gradient_boosting(cv_enable=False), 'GradientBoosting')
+
+    @scatter
+    def _rfe_model_lars_aic(self):
+        return self.recursive_feature_elimination_model(self.fit_lasso_lars_aic(cv_enable=False), 'Lars_AIC')
+
+    @scatter
+    def _rfe_model_lars_bic(self):
+        return self.recursive_feature_elimination_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
+
+    @scatter
+    def _rfe_model_lasso(self):
+        return self.recursive_feature_elimination_model(self.fit_lasso(cv_enable=False), 'Lasso')
+
+    @scatter
+    def _rfe_model_ridge(self):
+        return self.recursive_feature_elimination_model(self.fit_ridge(cv_enable=False), 'Ridge')
+
+    @scatter
+    def _rfe_model_random_forest(self):
+        return self.recursive_feature_elimination_model(self.fit_random_forest(cv_enable=False), 'RandomForest')
 
     def regularization_models(self):
         """ Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) """
         if not self.is_regression():
             return
         self._debug(f"Feature importance {self.tag}: Regularization")
-        self.scatter.set_subsection(f"regularization_models_{self.tag}")
-        # LassoCV
-        if self.is_regularization_lasso and self.scatter.should_run():
-            lasso_cv = self.regularization_model(self.fit_lasso(cv_enable=False))
-            self.plot_lasso_alphas(lasso_cv)
-        # RidgeCV
-        if self.is_regularization_ridge and self.scatter.should_run():
-            self.regularization_model(self.fit_ridge(cv_enable=False))
-        # LARS
-        if self.is_regularization_lars and self.scatter.should_run():
-            self.regularization_model(self.fit_lars(cv_enable=False))
-        # LASSO / LARS
-        if self.is_regularization_lasso_lars and self.scatter.should_run():
-            self.regularization_model(self.fit_lasso_lars(cv_enable=False))
-            lars_aic = self.regularization_model(self.fit_lasso_lars_aic(cv_enable=False), 'Lars_AIC')
-            lars_bic = self.regularization_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
-            self.plot_lars(lars_aic, lars_bic)
+        if self.is_regularization_lars:
+            res = self._regularization_lars()
+            self.regularization_models_add_results(res)
+        if self.is_regularization_lasso:
+            res = self._regularization_lasso()
+            self.regularization_models_add_results(res)
+        if self.is_regularization_ridge:
+            res = self._regularization_ridge()
+            self.regularization_models_add_results(res)
+        if self.is_regularization_lasso_lars:
+            res = self._regularization_lasso_lars()
+            self.regularization_models_add_results(res)
+            res_aic = self._regularization_lasso_lars_aic()
+            self.regularization_models_add_results(res_aic)
+            res_bic = self._regularization_lasso_lars_bic()
+            self.regularization_models_add_results(res_bic)
+            if res_aic is not None and res_bic is not None:
+                self.plot_lars(res_aic[0], res_bic[0])
 
-    def regularization_models(self):
-        """ Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) """
-        if not self.is_regression():
-            return
-        self._debug(f"Feature importance {self.tag}: Regularization")
-        if self.scatter(f"regularization_models_{self.tag}"):
-            # LassoCV
-            if self.is_regularization_lasso and self.scatter.should_run():
-                lasso_cv = self.regularization_model(self.fit_lasso(cv_enable=False))
-                self.plot_lasso_alphas(lasso_cv)
-            # RidgeCV
-            if self.is_regularization_ridge and self.scatter.should_run():
-                self.regularization_model(self.fit_ridge(cv_enable=False))
-            # LARS
-            if self.is_regularization_lars and self.scatter.should_run():
-                self.regularization_model(self.fit_lars(cv_enable=False))
-            # LASSO / LARS
-            if self.is_regularization_lasso_lars and self.scatter.should_run():
-                self.regularization_model(self.fit_lasso_lars(cv_enable=False))
-                lars_aic = self.regularization_model(self.fit_lasso_lars_aic(cv_enable=False), 'Lars_AIC')
-                lars_bic = self.regularization_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
-                self.plot_lars(lars_aic, lars_bic)
+    @gather
+    def regularization_models_add_results(self, reg):
+        imp, weight, model_name = reg
+        self.results.add_col(f"regularization_coef_{model_name}", imp)
+        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
+
+    @scatter
+    def _regularization_lars(self):
+        return self.regularization_model(self.fit_lars(cv_enable=False), 'Lars')
+
+    @scatter
+    def _regularization_lasso(self):
+        res = self.regularization_model(self.fit_lasso(cv_enable=False), 'Lasso')
+        self.plot_lasso_alphas(res[0])
+        return res
+
+    @scatter
+    def _regularization_lasso_lars(self):
+        return self.regularization_model(self.fit_lasso_lars(cv_enable=False))
+
+    @scatter
+    def _regularization_lasso_lars_aic(self):
+        return self.regularization_model(self.fit_lasso_lars_aic(cv_enable=False), 'Lars_AIC')
+
+    @scatter
+    def _regularization_lasso_lars_bic(self):
+        return self.regularization_model(self.fit_lasso_lars_bic(cv_enable=False), 'Lars_BIC')
+
+    @scatter
+    def _regularization_ridge(self):
+        return self.regularization_model(self.fit_ridge(cv_enable=False), 'Ridge')
 
     def regularization_model(self, model, model_name=None):
         """ Fit a modularization model and show non-zero coefficients """
-        self.scatter.set_subsection(f"regularization_model_{self.tag}_{model_name}")
         skmodel = model.model
         weight = model.eval_validate if model.model_eval_validate() else None
         if not model_name:
             model_name = skmodel.__class__.__name__
         self._info(f"Feature importance {self.tag}: Regularization '{model_name}, weight {weight}'")
         imp = np.abs(skmodel.coef_)
-        self.results.add_col(f"regularization_coef_{model_name}", imp)
-        self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
-        return skmodel
+        return imp, weight, model_name
 
+    @gather
     def reweight_results(self):
         """
         Rank results according to all methods
@@ -571,14 +621,21 @@ class DataFeatureImportance(MlFiles):
             raise Exception(f"Unknown model type '{self.model_type}'")
         # Apply all functions
         for f, has_pvalue in funcs.items():
-            self.select_f(f, has_pvalue)
+            res = self.select_f(f, has_pvalue)
+            if res is not None:
+                (fname, scores, pvals, keep) = res
+                self.results.add_col(f"selectf_scores_{fname}", scores)
+                if pvals is not None:
+                    self.results.add_col(f"selectf_p_values_{fname}", pvals)
+                    self.results.add_col(f"selectf_keep_{fname}", keep)
+                    self.results.add_col_rank(f"selectf_pvalue_rank_{fname}", pvals, reversed=False)
+                else:
+                    self.results.add_col_rank(f"selectf_rank_{fname}", scores, reversed=True)
         return True
 
+    @scatter
     def select_f(self, score_function, has_pvalue):
         """ Select features using FDR (False Discovery Rate) or K-best """
-        self.scatter.set_subsection(f"select_{self.tag}_{score_function}")
-        if not self.scatter.should_run():
-            return
         fname = score_function.__name__
         if has_pvalue:
             self._debug(f"Select FDR: '{fname}'")
@@ -589,14 +646,12 @@ class DataFeatureImportance(MlFiles):
         self._debug(f"Select '{fname}': x.shape={self.x.shape}, y.shape={self.y.shape}")
         select.fit(self.x, self.y)
         keep = select.get_support()
-        self.results.add_col(f"selectf_scores_{fname}", select.scores_)
         if has_pvalue:
-            self.results.add_col(f"selectf_p_values_{fname}", select.pvalues_)
-            self.results.add_col(f"selectf_keep_{fname}", keep)
-            self.results.add_col_rank(f"selectf_pvalue_rank_{fname}", select.pvalues_, reversed=False)
+            return (fname, select.scores_, select.pvalues_, keep)
         else:
-            self.results.add_col_rank(f"selectf_rank_{fname}", select.scores_, reversed=True)
+            return (fname, select.scores_, None, None)
 
+    @gather
     def show_and_save_results(self, loss_ori):
         """ Show and save resutl tables """
         if self.results.is_empty():
@@ -617,12 +672,10 @@ class DataFeatureImportance(MlFiles):
         weights.print(f"Feature importance {self.tag} weights")
         self._save_csv(fimp_weights_csv, f"Feature importance {self.tag} weights", weights.df, save_index=True)
 
+    @scatter
     def tree_graph(self, file_dot=None, file_png=None):
         """ Simple tree representation """
         if not self.is_tree_graph:
-            return
-        self.scatter.set_subsection(f"tree_graph_{self.tag}")
-        if not self.scatter.should_run():
             return
         self._info(f"Tree graph {self.tag}: Random Forest")
         file_dot = self.datasets.get_file(f'tree_graph_{self.tag}', ext=f"dot") if file_dot is None else file_dot
@@ -643,24 +696,26 @@ class DataFeatureImportance(MlFiles):
             self._error(f"Exception '{e}', while trying to run command line {args}. Is graphviz command line package installed?")
 
     def wilks(self):
+        res = self._wilks()
+        self.wilks_add_results(res)
+
+    @scatter
+    def _wilks(self):
         """ Calculate p-values using logistic regression (Wilks theorem) """
         if not self.is_wilks:
-            return True
+            return None
         # Wilks p-value only for (binary) classification models
         if not self.is_classification():
             self._debug("Logistic Regression (Wilks p-value): Not a classification model, skipping")
-            return True
+            return None
         if not self.wilks_null_model_variables:
             self._info("Logistic Regression (Wilks p-value): Null model variables undefined (config 'wilks_null_model_variables'), skipping")
-            return False
-        self.scatter.set_subsection(f"wilks_{self.tag}")
-        if not self.scatter.should_run():
-            return True
+            return None
         cats = get_categories(self.y)
         self._info(f"Logistic regression, Wilks {self.tag}: Start. Categories: {cats}")
         if len(cats) < 2:
             self._error(f"Logistic regression, Wilks {self.tag}: At least two categories required. Categories: {cats}")
-            return False
+            return None
         is_multiclass = len(cats) > 2
         if is_multiclass:
             self._info(f"Logistic regression, Wilks {self.tag}: Using multiple logistic regression, {len(cats)} categories")
@@ -668,13 +723,19 @@ class DataFeatureImportance(MlFiles):
         else:
             wilks = LogisticRegressionWilks(self.datasets, self.wilks_null_model_variables, self.tag)
         ok = wilks()
-        if ok:
-            self.results.add_col(f"wilks_coefficient", wilks.get_coefficients())
-            self.results.add_col(f"wilks_p_values", wilks.get_pvalues())
-            self.results.add_col(f"wilks_p_values_fdr", wilks.p_values_corrected)
-            self.results.add_col(f"wilks_significant", wilks.rejected)
-            self.results.add_col_rank(f"wilks_p_values_rank", wilks.get_pvalues(), reversed=False)
-            if is_multiclass:
-                self.results.add_col(f"wilks_best_category", wilks.best_category)
         self._info(f"Logistic regression, Wilks {self.tag}: End")
-        return ok
+        if ok:
+            best_cat = wilks.best_category if is_multiclass else None
+            return wilks.get_coefficients(), wilks.get_pvalues(), wilks.p_values_corrected, wilks.rejected, best_cat
+        return None
+
+    @gather
+    def wilks_add_results(self, res):
+        coef, pvals, pvals_corr, rejected, best_category = res
+        self.results.add_col(f"wilks_coefficient", coef)
+        self.results.add_col(f"wilks_p_values", pvals)
+        self.results.add_col(f"wilks_p_values_fdr", pvals_corr)
+        self.results.add_col(f"wilks_significant", rejected)
+        self.results.add_col_rank(f"wilks_p_values_rank", pvals, reversed=False)
+        if best_category is not None:
+            self.results.add_col(f"wilks_best_category", best_category)

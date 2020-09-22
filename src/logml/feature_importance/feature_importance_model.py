@@ -6,6 +6,7 @@ import scipy
 import seaborn as sns
 
 from ..core.files import MlFiles
+from ..core.scatter_gather import pre, scatter, gather
 from ..util.etc import array_to_str
 
 
@@ -14,7 +15,7 @@ class FeatureImportanceModel(MlFiles):
     Estimate feature importance based on a model.
     """
 
-    def __init__(self, model, model_type, rand_columns, num_iterations, scatter):
+    def __init__(self, model, model_type, rand_columns, num_iterations):
         self.model = model.clone()
         self.model_type = model_type
         self.datasets = model.datasets
@@ -26,50 +27,30 @@ class FeatureImportanceModel(MlFiles):
         self.importances = None
         self.verbose = False
         self.is_cv = self.model.is_cv
-        self.scatter = scatter
-
-    def calc_importances(self):
-        """
-        Calculate all feature importances, based on performance results
-        """
-        # Calculate importance based an all results
-        null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
-        self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
-        self.importances = [self._calc_importance(c) for c in self.columns]
-        self.pvalues = [self.pvalue(c, null_values) for c in self.columns]
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
-        return True
-
-    def _calc_importance(self, col_name):
-        """ Calculate one feature importance, for column col_name """
-        results = np.array(self.performance[col_name]).ravel()
-        return results.mean()
 
     def __call__(self):
         if self.num_iterations < 1:
             self._fatal_error("Number of iterations should be an integer number greater than 0: num_iterations={self.num_iterations}")
         # Base performance
-        self.scatter.set_subsection(f"model.{self.importance_name}.{self.model_type}")
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
-        self.loss_base = self.loss(is_base=True)
+        self.loss_base = self._loss_base()
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {array_to_str(self.loss_base)}")
         # Shuffle each column
         self.columns = self.datasets.get_input_names()
         cols_count = len(self.columns)
         fi_sk = self.model.get_feature_importances()
         for i, c in enumerate(self.columns):
-            if not self.scatter.should_run():
-                continue
-            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', raw importance: {fi_sk[i]}")
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
-                self.losses(c)
-        self._error("SAVE PARTIAL RESULTS")
-        self._error("MOVE THIS TO GATHER STEP")
-        # self.calc_importances()
-        # self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
-        return True
+                perf = self.performances(c)
+                if perf is not None:
+                    self.performance[c] = perf
+                    self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', performances: {perf}")
+        self.importances = self._importances()
+        self.pvalues = self._pvalues()
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
+        return self.importances
 
     def dataset_change(self, col_name):
         """ Change datasets for column 'col_name' """
@@ -89,15 +70,25 @@ class FeatureImportanceModel(MlFiles):
         """ Weight used when combinig different models for feature importance """
         return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
 
+    def _importance(self, col_name):
+        """ Calculate one feature importance, for column col_name """
+        results = np.array(self.performance[col_name]).ravel()
+        return results.mean()
+
+    @gather
+    def _importances(self):
+        """ Calculate all feature importances, based on performance results """
+        return [self._importance(c) for c in self.columns]
+
     def initialize(self):
         pass
 
     def losses(self, column_name):
         """
-        Calculate loss after changing the dataset for 'column_name'.
+        Calculate loss and perfor values after changing the dataset for 'column_name'.
         Repeat 'num_iterations' and store results.
         """
-        perf, loss = list(), list()
+        loss, perf = list(), list()
         for i in range(self.num_iterations):
             # Change dataset, evaluate performance, restore original dataset
             ori = self.dataset_change(column_name)
@@ -111,7 +102,11 @@ class FeatureImportanceModel(MlFiles):
             perf.append(perf_i)
             loss.append(perf_i)
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
-        self.performance[column_name] = perf
+        return loss, perf
+
+    @pre
+    def _loss_base(self):
+        return self.loss(is_base=True)
 
     def loss(self, is_base=False):
         """
@@ -121,8 +116,13 @@ class FeatureImportanceModel(MlFiles):
         """
         raise Exception("Unimplemented!")
 
+    @scatter
+    def performances(self, column_name):
+        loss, perf = self.losses(column_name)
+        return perf
+
     def plot(self):
-        " Plot importance distributions "
+        """ Plot importance distributions """
         names = np.array([self.columns])
         imp = np.array(self.importances)
         # Show bar plot
@@ -163,3 +163,11 @@ class FeatureImportanceModel(MlFiles):
         except ValueError as v:
             self._warning(f"Error calculating Mann-Whitney's U-statistic, column '{col_name}': {v}. Results: {results}")
         return 1.0
+
+    @gather
+    def _pvalues(self):
+        """ Calculate all pvalues """
+        null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
+        self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
+        return [self.pvalue(c, null_values) for c in self.columns]
+

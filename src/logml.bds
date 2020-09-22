@@ -35,7 +35,7 @@ string logmlCmd(bool pre, bool gather, int n) {
     if( pre )   nstr = 'pre'
     else if( gather )   nstr = 'gather'
 
-    cmd += "--split $num --split_num $nstr "
+    cmd += "--scatter_total $num --scatter_num $nstr "
 
     if( d || v ) {
         println "LogMl command to run: $cmd"
@@ -79,6 +79,14 @@ void parseCmdLine() {
 #------------------------------------------------------------------------------
 # Run LogMl in "scatter & gather" mode
 #------------------------------------------------------------------------------
+void runLogMl_ZZZ(int num) {
+    # Gather
+    cmd := logmlCmd(false, true, -1)
+    task(taskName := "logml_gather") {
+        sys $cmd
+    }
+}
+
 void runLogMl(int num) {
     # Run initial task
     cmd := logmlCmd(true, false, -1)
@@ -86,9 +94,9 @@ void runLogMl(int num) {
     task(pkl <- config, taskName := "logml_pre") {
         sys $cmd
     }
+    wait
 
     # Scatter
-    wait
     for(int n=0; n < num; n++) {
         cmd = logmlCmd(false, false, n)
         task(taskName := "logml_split_$n\_$num") {

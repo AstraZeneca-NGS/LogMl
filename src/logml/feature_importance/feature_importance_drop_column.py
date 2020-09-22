@@ -11,8 +11,8 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
     not affect performance
     """
 
-    def __init__(self, model, model_name, rand_columns, num_iterations, scatter):
-        super().__init__(model, model_name, rand_columns, num_iterations, scatter)
+    def __init__(self, model, model_name, rand_columns, num_iterations):
+        super().__init__(model, model_name, rand_columns, num_iterations)
         self.importance_name = 'drop column'
 
     def dataset_change(self, col_name):

@@ -3,9 +3,12 @@
 import logging
 import pandas as pd
 
+from pathlib import Path
+
 from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
+from .scatter_gather import init_scatter_gather, pre, scatter, gather
 from ..analysis import AnalysisDf
 from ..datasets import Datasets, DatasetsCv, DatasetsDf, DfExplore
 from ..feature_importance import DataFeatureImportance
@@ -58,7 +61,7 @@ class LogMl(MlFiles):
         if not self.is_dataset_df():
             self._debug("Analysis: Only available for dataset type 'df', skipping")
             return True
-        self.analysis = AnalysisDf(self.config, self.datasets, self.scatter)
+        self.analysis = AnalysisDf(self.config, self.datasets)
         return self.analysis()
 
     def __call__(self):
@@ -80,23 +83,23 @@ class LogMl(MlFiles):
             return False
         # Explore dataset
         if not self._dataset_explore():
-            self._debug("Could not explore dataset")
+            self._debug("Dataset not explored")
         # Feature importance
         if not self._feature_importance():
             self._debug("Could not perform feature importance")
-        # Feature importance is missing values
-        if not self._feature_importance_na():
-            self._debug("Could not perform feature importance of missing data")
-        # Analysis
-        if not self._analysis():
-            self._error("Could not analyze data")
-            return False
-        # Models Train
-        if not self.models_train():
-            self._error("Could not train model")
-            return False
-        # Gather or show models results
-        self.models_results()
+        # # Feature importance is missing values
+        # if not self._feature_importance_na():
+        #     self._debug("Could not perform feature importance of missing data")
+        # # Analysis
+        # if not self._analysis():
+        #     self._error("Could not analyze data")
+        #     return False
+        # # Models Train
+        # if not self.models_train():
+        #     self._error("Could not train model")
+        #     return False
+        # # Gather or show models results
+        # self.models_results()
         self._info(f"LogMl: End")
         return True
 
@@ -117,13 +120,11 @@ class LogMl(MlFiles):
             return False
         return True
 
+    @pre
     def _dataset_explore(self):
         """ Explore dataset """
         if not self.is_dataset_df():
             self._debug("Dataset Explore: Only available for dataset type 'df', skipping")
-            return True
-        if not self._is_scatter_pre_or_none():
-            self._debug(f"Dataset Explore: Should not do it (scatter split = '{self.config.split_num}'), skipping")
             return True
         self._debug("Dataset Explore: Start")
         ok = True
@@ -181,6 +182,9 @@ class LogMl(MlFiles):
         """ Initialize objects after config is setup """
         if self.config is not None:
             self._set_from_config()
+            self.config.get_parameters_section(CONFIG_DATASET, "")
+            scatter_path = Path('.') / f"scatter_{self.config.scatter_total}_{self.config.config_hash}"
+            init_scatter_gather(scatter_num=self.config.scatter_num, scatter_total=self.config.scatter_total, data_path=scatter_path, force=False)
         if self.model_ori is None:
             self.model_ori = Model(self.config)
         if self.hyper_parameter_optimization is None:
@@ -193,7 +197,6 @@ class LogMl(MlFiles):
         # Set plots options
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
         self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
-        # Scatter gather helper object
         return self._config_sanity_check()
 
     def is_dataset_df(self):
@@ -203,9 +206,6 @@ class LogMl(MlFiles):
 
     def models_results(self):
         """ Gather models resouts and or show them """
-        if not self._is_scatter_gather_or_none():
-            self._debug(f"Model results: Should not do it (scatter split = '{self.config.split_num}'), skipping")
-            return True
         if self.display_model_results:
             self.model_results.sort(['validation', 'train', 'time'])
             self.model_results.print()
@@ -216,9 +216,6 @@ class LogMl(MlFiles):
 
     def model_train(self, config=None, dataset=None):
         """ Train a single model """
-        if not self._is_scatter_n_or_none():
-            self._debug(f"Model train: Should not do it (scatter split = '{self.config.split_num}'), skipping")
-            return True
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
@@ -234,10 +231,7 @@ class LogMl(MlFiles):
         elif self.hyper_parameter_optimization.enable:
             return self.hyper_parameter_optimization()
         else:
-            if self.scatter(section='model_train'):
-                self._debug(f"Create and train: single model")
-                return self.model_train()
-        return True
+            return self.model_train()
 
     def _new_dataset(self):
         model_type = self.model_ori.model_type

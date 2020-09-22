@@ -170,8 +170,8 @@ class Model(MlFiles):
         self._error("No (default) method for model train available")
         return False
 
-    def get_file_name(self, file_type=None, ext='pkl'):
-        """ Create a file name for training data """
+    def get_file(self, file_type=None, ext='pkl'):
+        """ File for model data """
         self._debug(f"file_type={file_type}, ext='{ext}'")
         return self.get_file_path(self.model_path, f"{self.model_name}.{self.model_class}", file_type, ext, _id=self._id)
 
