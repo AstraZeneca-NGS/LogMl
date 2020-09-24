@@ -60,8 +60,8 @@ class Model(MlFiles):
             return True
         ret = False
         try:
-            self.file_stdout = self.get_file_name(ext="stdout")
-            self.file_stderr = self.get_file_name(ext="stderr")
+            self.file_stdout = self.get_file(ext="stdout")
+            self.file_stderr = self.get_file(ext="stderr")
             self._debug(f"Redirecting stdout '{self.file_stdout}', stderr: '{self.file_stderr}'")
             self.tee()  # Open tees to log stdout/err to files
             ret = self._call()
@@ -154,13 +154,13 @@ class Model(MlFiles):
         " Default implementation for '@model_save' "
         if self.is_save_model_pickle:
             # Try using a pickle file to save the model
-            file_model = self.get_file_name('model')
+            file_model = self.get_file('model')
             self._debug(f"Save model: Saving to pickle file '{file_model}'")
             self._save_pickle(file_model, 'model', self.model)
             return True
         # Does the model have a 'save' function?
         if self.is_save_model_method and 'save' in dir(self.model):
-            file_model = self.get_file_name('model', ext=self.is_save_model_method_ext)
+            file_model = self.get_file('model', ext=self.is_save_model_method_ext)
             self._debug(f"Invoking model.save('{file_model}')")
             self.model.save(file_model)
         return False
@@ -235,7 +235,7 @@ class Model(MlFiles):
 
     def load_test_results(self):
         """ Load test results from pickle file """
-        file_name = self.get_file_name('test_results')
+        file_name = self.get_file('test_results')
         self._debug(f"Load test results: Loading pickle file '{file_name}'")
         res = self._load_pickle(file_name, 'test_results')
         return res
@@ -354,7 +354,7 @@ class Model(MlFiles):
             return True
         cname = type(self).__name__.lower()
         _id = self._id if self._id else ''
-        file_yaml = self.get_file_name('parameters', ext=f"yaml")
+        file_yaml = self.get_file('parameters', ext=f"yaml")
         if not file_yaml:
             return False
         self._debug(f"file_yaml='{file_yaml}'")
@@ -368,7 +368,7 @@ class Model(MlFiles):
             return True
         if self.train_results is None:
             return False
-        file_name = self.get_file_name('train_results')
+        file_name = self.get_file('train_results')
         self._debug(f"Saving to pickle file '{file_name}'")
         self._save_pickle(file_name, 'train_results', self.train_results)
         return True
@@ -381,7 +381,7 @@ class Model(MlFiles):
         if self.eval_test is None:
             self._debug(f"No test results available, skiping")
             return False
-        file_name = self.get_file_name('test_results')
+        file_name = self.get_file('test_results')
         self._debug(f"Saving to pickle file '{file_name}'")
         self._save_pickle(file_name, 'test_results', self.eval_test)
         return True
@@ -394,7 +394,7 @@ class Model(MlFiles):
         if self.eval_validate is None:
             self._debug(f"No test results available, skiping")
             return False
-        file_name = self.get_file_name('validate_results')
+        file_name = self.get_file('validate_results')
         self._debug(f"Saving to pickle file '{file_name}'")
         self._save_pickle(file_name, 'validate_results', self.eval_validate)
         return True

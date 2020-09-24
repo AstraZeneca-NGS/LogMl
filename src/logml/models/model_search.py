@@ -81,19 +81,20 @@ class ModelSearch(MlFiles):
     def _search_model(self, model_class, params):
         # Create updated config
         # Note: Disable all sections, e.g. disable 'model_search' to avoid infinite recursion
+        self._info(f"Searching model: Model {model_class}")
         conf = self.config.copy(disable_all=True)
         conf = conf.update_section(None, params)
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
         datasets = self.logml.datasets.clone()
-        datasets.enable = False  # We don't want to build dataset again
+        datasets.enable = False  # We don't want to build a dataset again
         # Create LogMl
         self._debug(f"Creating new LogMl")
-        lml = logml.LogMl(config=conf, datasets=datasets)
+        lml = logml.LogMl(config=conf, datasets=datasets, debug=self.logml.is_debug, verbose=self.logml.is_verbose)
         # Don't display or save (partial) results each time
         lml.display_model_results = False
         lml.save_model_results = False
-        lml.disable_scatter_model = True  # We are already in a scatter/gather
+        lml.disable_scatter_model = True  # We are already in a scatter/gather, disable further scatter
         # Run model
         self._debug(f"Running new LogMl")
         lml()

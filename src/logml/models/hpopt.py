@@ -141,6 +141,7 @@ class HyperOpt(MlLog):
         Objective function invoked in hyper-parameter tunning
         It invokes training & test, then returns the test result metric to minimize
         """
+        self._debug(f"OBJECTIVE FUNCTION: {self.iteration}")
         self.iteration += 1
         # Create a new config with updated parameters
         params_ml = self._space2params(params)

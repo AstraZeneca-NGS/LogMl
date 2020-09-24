@@ -26,12 +26,17 @@ class LogMl(MlFiles):
             config = Config(config_file=config_file)
             config()
         if config is not None:
-            if debug:
+            self.is_debug = debug or config.is_debug
+            self.is_verbose = verbose or config.is_verbose
+            if self.is_debug:
                 config.set_log_level(logging.DEBUG)
-            elif verbose:
+            elif self.is_verbose:
                 config.set_log_level(logging.INFO)
             else:
                 config.set_log_level(logging.WARNING)
+        else:
+            self.is_debug = debug
+            self.is_verbose = verbose
         super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
@@ -83,7 +88,8 @@ class LogMl(MlFiles):
             self._error("Could not load or create dataset")
             return False
         # Explore dataset
-        if not self._dataset_explore():
+        ret = self._dataset_explore()
+        if ret is not None and not ret:
             self._debug("Dataset not explored")
         # Feature importance
         if not self._feature_importance():
@@ -135,7 +141,7 @@ class LogMl(MlFiles):
             self.dataset_explore_original = DfExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         else:
-            self._debug("Dataset Explore: Exploring 'original' datasets disables ('is_use_ori'=False), skipping")
+            self._debug("Dataset Explore: Exploring 'original' datasets disabled ('is_use_ori'=False), skipping")
         # Explore pre-processed dataset
         files_base = self.datasets.get_file(f"dataset_explore.preprocessed", ext='')
         self.dataset_explore_preprocessed = DfExplore(self.datasets.get(), 'preprocessed', self.config, files_base)
