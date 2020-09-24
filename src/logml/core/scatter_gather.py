@@ -84,27 +84,35 @@ class ScatterGather(MlLogMessages):
         """ Increment counter """
         self.count += 1
 
-    def load(self, state='scatter'):
+    def load(self, object, method, state='scatter'):
         """
         Load data from cache file
         """
         if self.is_disabled():
             raise ValueError("Attempt to load in disabled 'ScatterGather'")
         fn = self.file(state)
-        self._debug(f"Loading data from '{fn}'")
+        method_name = f"{type(object).__name__}.{method.__name__}"
+        self._debug(f"Loading {method_name} results from '{fn}'")
         with open(fn, 'rb') as input:
-            return pickle.load(input)
+            data_method = pickle.load(input)
+        (data, method_name_ori) = data_method
+        # Check that the data is loaded from the same class.method that was originally saved from
+        if method_name != method_name_ori:
+            raise ValueError(f"Scatter & Gather error: The data in file '{fn}' was saved from method '{method_name_ori}', but it's being retrieved from method '{method_name}'")
+        return data
 
-    def save(self, data, state='scatter'):
+    def save(self, data, object, method, state='scatter'):
         """
         Save data to cache file
         """
         if self.is_disabled():
             raise ValueError("Attempt to load in disabled 'ScatterGather'")
         fn = self.file(state)
-        self._debug(f"Saving data to '{fn}'")
+        method_name = f"{type(object).__name__}.{method.__name__}"
+        data_method = (data, method_name)
+        self._debug(f"Saving {method_name} results to '{fn}'")
         with open(fn, 'wb') as output:
-            pickle.dump(data, output)
+            pickle.dump(data_method, output)
 
     def should_run(self):
         """ Should this scatter method be executed? """
@@ -154,10 +162,10 @@ def pre(g):
         elif scatter_gather.pre:
             scatter_gather._debug(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
             ret = g(self, *args, **kwargs)
-            scatter_gather.save(ret, state='pre')
+            scatter_gather.save(ret, self, g, state='pre')
         else:
             scatter_gather._debug(f"ScatteGather: {scatter_gather}, loading '{g.__name__}'")
-            ret = scatter_gather.load(state='pre')
+            ret = scatter_gather.load(self, g, state='pre')
         return ret
 
     return pre_wrapper
@@ -177,11 +185,11 @@ def scatter(g):
             scatter_gather._debug(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
         elif scatter_gather.gather:
             scatter_gather._debug(f"ScatteGather: {scatter_gather}, loading '{g.__name__}'")
-            ret = scatter_gather.load()
+            ret = scatter_gather.load(self, g)
         elif scatter_gather.should_run():
             scatter_gather._debug(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
             ret = g(self, *args, **kwargs)
-            scatter_gather.save(ret)
+            scatter_gather.save(ret, self, g)
         else:
             scatter_gather._debug(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
         return ret

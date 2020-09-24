@@ -28,34 +28,34 @@ dataset_explore:
 
 dataset_feature_importance:
   enable: true
-  enable_na: false
-  is_dropcol_extra_trees: false
-  is_dropcol_gradient_boosting: false
-  is_dropcol_random_forest: false
-  is_fip_random_forest: false
-  is_fip_extra_trees: false
-  is_fip_gradient_boosting: false
-  is_permutation_extra_trees: false
-  is_permutation_gradient_boosting: false
-  is_permutation_random_forest: false
-  is_regularization_lasso: false
-  is_regularization_ridge: false
-  is_regularization_lars: false
-  is_rfe_model: false
-  is_rfe_model_lasso: false
-  is_rfe_model_ridge: false
-  is_rfe_model_lars_aic: false
-  is_rfe_model_lars_bic: false
-  is_rfe_model_random_forest: false
-  is_rfe_model_extra_trees: false
-  is_rfe_model_gradient_boosting: false
-  is_skmodel_extra_trees: false
-  is_skmodel_gradient_boosting: false
-  is_skmodel_random_forest: false
-  is_select: false
-  is_linear_pvalue: false
+  enable_na: true
+  is_dropcol_extra_trees: true
+  is_dropcol_gradient_boosting: true
+  is_dropcol_random_forest: true
+  is_fip_random_forest: true
+  is_fip_extra_trees: true
+  is_fip_gradient_boosting: true
+  is_permutation_extra_trees: true
+  is_permutation_gradient_boosting: true
+  is_permutation_random_forest: true
+  is_regularization_lasso: true
+  is_regularization_ridge: true
+  is_regularization_lars: true
+  is_rfe_model: true
+  is_rfe_model_lasso: true
+  is_rfe_model_ridge: true
+  is_rfe_model_lars_aic: true
+  is_rfe_model_lars_bic: true
+  is_rfe_model_random_forest: true
+  is_rfe_model_extra_trees: true
+  is_rfe_model_gradient_boosting: true
+  is_skmodel_extra_trees: true
+  is_skmodel_gradient_boosting: true
+  is_skmodel_random_forest: true
+  is_select: true
+  is_linear_pvalue: true
   is_tree_graph: true
-  is_wilks: false
+  is_wilks: true
 
   permutation_iterations_gradient_boosting: 3
   permutation_iterations_extra_trees: 3
@@ -68,7 +68,7 @@ cross_validation:
     # Set to 'false' to disable cross validation
     enable: true
     KFold:
-        n_splits: 2
+        n_splits: 10
 
 analysis:
   enable: true

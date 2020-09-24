@@ -689,14 +689,14 @@ class DataFeatureImportance(MlFiles):
         model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False, cv_enable=False)
         skmodel = model.model
         # Export the tree to a graphviz 'dot' format
-        export_graphviz(skmodel.estimators_[0], out_file=file_dot, feature_names=self.x_train.columns, filled=True, rounded=True)
+        export_graphviz(skmodel.estimators_[0], out_file=str(file_dot), feature_names=self.x_train.columns, filled=True, rounded=True)
         self._info(f"Created dot file: '{file_dot}'")
         # Convert 'dot' to 'png', using graphviz command line
         try:
             args = ['dot', '-Tpng', file_dot, '-o', file_png]
             subprocess.run(args)
             self._info(f"Created image: '{file_png}'")
-            self._display(Image(filename=file_png))
+            self._display(Image(filename=str(file_png)))
         except Exception as e:
             self._error(f"Exception '{e}', while trying to run command line {args}. Is graphviz command line package installed?")
 
