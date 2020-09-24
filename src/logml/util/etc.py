@@ -3,6 +3,8 @@ import re
 
 
 def array_to_str(x):
+    if x is None:
+        return 'None'
     if isinstance(x, list):
         return '[' + ' '.join([str(xi) for xi in x]) + ']'
     return '[' + ' '.join([str(xi) for xi in x.ravel()]) + ']'

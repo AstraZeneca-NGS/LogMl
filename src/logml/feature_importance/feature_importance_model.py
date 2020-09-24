@@ -6,7 +6,7 @@ import scipy
 import seaborn as sns
 
 from ..core.files import MlFiles
-from ..core.scatter_gather import pre, scatter, gather
+from ..core.scatter_gather import scatter, scatter_all, gather
 from ..util.etc import array_to_str
 
 
@@ -67,7 +67,7 @@ class FeatureImportanceModel(MlFiles):
         return pd.Series(self.pvalues, index=self.columns)
 
     def get_weight(self):
-        """ Weight used when combinig different models for feature importance """
+        """ Weight used when combining different models for feature importance """
         return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
 
     def _importance(self, col_name):
@@ -104,6 +104,7 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
         return loss, perf
 
+    @scatter_all
     def _loss_base(self):
         return self.loss(is_base=True)
 

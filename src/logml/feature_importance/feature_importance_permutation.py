@@ -1,4 +1,5 @@
 
+from ..core.scatter_gather import scatter, scatter_all, gather
 from .feature_importance_model import FeatureImportanceModel
 
 
@@ -26,6 +27,7 @@ class FeatureImportancePermutation(FeatureImportanceModel):
         """ Restore column 'col_name' using values 'col_ori' """
         self.datasets.shuffle_input(col_name, col_ori)
 
+    @scatter_all
     def initialize(self):
         """ Initialize the model (the model is trained only once) """
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")

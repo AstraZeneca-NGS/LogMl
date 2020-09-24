@@ -140,10 +140,10 @@ def gather(g):
         if scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.gather:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, gather: {scatter_gather}, executing '{g.__name__}'")
             ret = g(self, *args, **kwargs)
         else:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, gather: {scatter_gather}, skipping '{g.__name__}'")
         return ret
 
     return gather_wrapper
@@ -160,11 +160,11 @@ def pre(g):
         if scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.pre:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, pre: {scatter_gather}, executing '{g.__name__}'")
             ret = g(self, *args, **kwargs)
             scatter_gather.save(ret, self, g, state='pre')
         else:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, loading '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, pre: {scatter_gather}, loading '{g.__name__}'")
             ret = scatter_gather.load(self, g, state='pre')
         return ret
 
@@ -182,16 +182,39 @@ def scatter(g):
         if scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.pre:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, scatter: {scatter_gather}, skipping '{g.__name__}'")
         elif scatter_gather.gather:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, loading '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, scatter: {scatter_gather}, loading '{g.__name__}'")
             ret = scatter_gather.load(self, g)
         elif scatter_gather.should_run():
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, executing '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, scatter: {scatter_gather}, executing '{g.__name__}'")
             ret = g(self, *args, **kwargs)
             scatter_gather.save(ret, self, g)
         else:
-            scatter_gather._debug(f"ScatteGather: {scatter_gather}, skipping '{g.__name__}'")
+            scatter_gather._debug(f"ScatteGather, scatter: {scatter_gather}, skipping '{g.__name__}'")
         return ret
 
     return scatter_wrapper
+
+
+def scatter_all(g):
+    """
+    Methods annotated with '@scatter_all' are executed in all 'scatter' steps.
+    """
+    def scatter_all_wrapper(self, *args, **kwargs):
+        ret = None
+        scatter_gather.inc()
+        if scatter_gather.is_disabled():
+            ret = g(self, *args, **kwargs)
+        elif scatter_gather.pre:
+            scatter_gather._debug(f"ScatteGather, scatter_all: {scatter_gather}, skipping '{g.__name__}'")
+        elif scatter_gather.gather:
+            scatter_gather._debug(f"ScatteGather, scatter_all: {scatter_gather}, loading '{g.__name__}'")
+            ret = scatter_gather.load(self, g)
+        else:
+            scatter_gather._debug(f"ScatteGather, scatter_all: {scatter_gather}, executing '{g.__name__}'")
+            ret = g(self, *args, **kwargs)
+            scatter_gather.save(ret, self, g)
+        return ret
+
+    return scatter_all_wrapper
