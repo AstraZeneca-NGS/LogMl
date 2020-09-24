@@ -68,7 +68,7 @@ cross_validation:
     # Set to 'false' to disable cross validation
     enable: true
     KFold:
-        n_splits: 10
+        n_splits: 3
 
 analysis:
   enable: true
