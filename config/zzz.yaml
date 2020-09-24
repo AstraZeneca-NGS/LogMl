@@ -91,7 +91,7 @@ functions:
       max_features: 0.7
 
 hyper_parameter_optimization:
-  enable: false
+  enable: true
   algorithm: tpe
   max_evals: 10
   show_progressbar: true
@@ -119,5 +119,5 @@ hyper_parameter_optimization:
         - 1000
 
 model_search:
-  enable: true
+  enable: false
   models: !include models_search_zzz/*.yaml
