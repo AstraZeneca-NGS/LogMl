@@ -104,14 +104,13 @@ class FeatureImportanceModel(MlFiles):
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
         return loss, perf
 
-    @pre
     def _loss_base(self):
         return self.loss(is_base=True)
 
     def loss(self, is_base=False):
         """
         Calculate loss. Re-train model if necesary
-        is_base: Indicates if this is the 'base' model loss used for comparisson (i.e. self.model)
+        is_base: Indicates if this is the 'base' model loss used for comparison (i.e. self.model)
         Returns: A loss value or multiple loss values if the model uses cross-validation
         """
         raise Exception("Unimplemented!")

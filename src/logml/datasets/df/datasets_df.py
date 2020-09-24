@@ -277,9 +277,6 @@ class DatasetsDf(Datasets):
             restore = [None] * len(dfs)
         dfs = zip(dfs, restore)
         return [self._zero_input(df, name, res) for df, res in dfs]
-        x_col = self.dataset[col_name]
-        self.dataset[col_name] = np.random.permutation(x_col)
-        return x_col
 
     def _zero_input(self, df, name, restore):
         """

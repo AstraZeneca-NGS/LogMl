@@ -37,7 +37,7 @@ dataset_feature_importance:
   is_fip_gradient_boosting: false
   is_permutation_extra_trees: false
   is_permutation_gradient_boosting: false
-  is_permutation_random_forest: true
+  is_permutation_random_forest: false
   is_regularization_lasso: false
   is_regularization_ridge: false
   is_regularization_lars: false
@@ -54,7 +54,7 @@ dataset_feature_importance:
   is_skmodel_random_forest: false
   is_select: false
   is_linear_pvalue: false
-  is_tree_graph: false
+  is_tree_graph: true
   is_wilks: false
 
   permutation_iterations_gradient_boosting: 3
