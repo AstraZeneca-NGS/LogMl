@@ -27,8 +27,8 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: true
-  enable_na: true
+  enable: false
+  enable_na: false
   is_dropcol_extra_trees: true
   is_dropcol_gradient_boosting: true
   is_dropcol_random_forest: true
@@ -71,12 +71,12 @@ cross_validation:
         n_splits: 3
 
 analysis:
-  enable: true
+  enable: false
   gene_set_enrichment:
       enable: true
 
 model:
-  enable: false
+  enable: true
   model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -92,5 +92,5 @@ functions:
       max_features: 0.7
 
 model_search:
-  enable: false
+  enable: true
   models: !include models_search/*.yaml

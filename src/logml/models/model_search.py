@@ -3,7 +3,7 @@ import logml
 
 from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
-from ..core.scatter_gather import scatter
+from ..core.scatter_gather import gather, scatter
 
 
 class ModelSearch(MlFiles):
@@ -29,6 +29,12 @@ class ModelSearch(MlFiles):
         self._info(f"Model search: End")
         return ret
 
+    @gather
+    def add_results(self, df):
+        """ Collect results for later use """
+        if df is not None:
+            self.logml.model_results.add_row_df(df)
+
     def search(self):
         """ Model search """
         # Create a list of models
@@ -53,7 +59,8 @@ class ModelSearch(MlFiles):
                 self._debug(f"Model '{name}' does not match model type, skipping ('{self.model_type}' != '{model_params['model_type']}')")
                 continue
             self._debug(f"Considering model '{name}', model_class={model_class}")
-            self.search_model(model_class, params)
+            res = self.search_model(model_class, params)
+            self.add_results(res)
         self._info(f"Search models: End")
         return True
 
@@ -67,8 +74,8 @@ class ModelSearch(MlFiles):
         enable = params.get('enable', True)
         if not enable:
             self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
-            return
-        self._search_model(model_class, params)
+            return None
+        return self._search_model(model_class, params)
 
     @scatter
     def _search_model(self, model_class, params):
@@ -86,7 +93,8 @@ class ModelSearch(MlFiles):
         # Don't display or save (partial) results each time
         lml.display_model_results = False
         lml.save_model_results = False
+        lml.disable_scatter_model = True  # We are already in a scatter/gather
         # Run model
         self._debug(f"Running new LogMl")
         lml()
-        self.logml.model_results.add_row_df(lml.model_results.df)  # Collect results for later use
+        return lml.model_results.df

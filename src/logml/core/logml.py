@@ -38,6 +38,7 @@ class LogMl(MlFiles):
         self.dataset_feature_importance = None
         self.dataset_feature_importance_na = None
         self.disable_plots = False
+        self.disable_scatter_model = False
         self.display_model_results = True
         self.display_max_columns = 1000
         self.display_max_rows = 1000
@@ -87,19 +88,19 @@ class LogMl(MlFiles):
         # Feature importance
         if not self._feature_importance():
             self._debug("Could not perform feature importance")
-        # # Feature importance is missing values
-        # if not self._feature_importance_na():
-        #     self._debug("Could not perform feature importance of missing data")
-        # # Analysis
-        # if not self._analysis():
-        #     self._error("Could not analyze data")
-        #     return False
-        # # Models Train
-        # if not self.models_train():
-        #     self._error("Could not train model")
-        #     return False
-        # # Gather or show models results
-        # self.models_results()
+        # Feature importance is missing values
+        if not self._feature_importance_na():
+            self._debug("Could not perform feature importance of missing data")
+        # Analysis
+        if not self._analysis():
+            self._error("Could not analyze data")
+            return False
+        # Models Train
+        if not self.models_train():
+            self._error("Could not train model")
+            return False
+        # Gather or show models results
+        self.models_results()
         self._info(f"LogMl: End")
         return True
 
@@ -215,7 +216,10 @@ class LogMl(MlFiles):
             self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
 
     def model_train(self, config=None, dataset=None):
-        """ Train a single model """
+        """
+        Train a single model
+        This method can be called from o
+        """
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
@@ -224,14 +228,31 @@ class LogMl(MlFiles):
         self._debug(f"End")
         return ret
 
+    @scatter
+    def model_train_scatter(self):
+        """ Perform model train, allowing scatter & gather """
+        return self.model_train()
+
+    @scatter
+    def hyper_parameter_optimization_scatter(self):
+        return self.hyper_parameter_optimization()
+
     def models_train(self):
-        """ Train (several) models """
+        """
+        Train (several) models, with or without scatter/gather enabled
+        """
         if self.model_search.enable:
             return self.model_search()
         elif self.hyper_parameter_optimization.enable:
-            return self.hyper_parameter_optimization()
+            if self.disable_scatter_model:
+                return self.hyper_parameter_optimization()
+            else:
+                return self.hyper_parameter_optimization_scatter()
         else:
-            return self.model_train()
+            if self.disable_scatter_model:
+                return self.model_train()
+            else:
+                return self.model_train_scatter()
 
     def _new_dataset(self):
         model_type = self.model_ori.model_type

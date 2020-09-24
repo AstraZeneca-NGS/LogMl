@@ -149,7 +149,7 @@ class HyperOpt(MlLog):
         # Create new dataset
         dataset = self._new_dataset(config_new)
         # Train and evaluate model
-        ret_train = self.logml.model_train(config_new, dataset)
+        ret_train = self.logml.model_train(config_new, dataset)     # Note: We train a single model (we don't use the scatter & gather method 'model_train_scatter()')
         self._debug(f"Model train returned: {ret_train}")
         ret_val = self.logml.get_model_eval_validate()
         if ret_val is None:
