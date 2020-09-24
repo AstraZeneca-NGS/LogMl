@@ -328,7 +328,7 @@ class DataFeatureImportance(MlFiles):
     def is_regression(self):
         return self.model_type == MODEL_TYPE_REGRESSION
 
-    def plot_ic_criterion(self, model, name, color):
+    def plot_ic_criterion_ORI(self, model, name, color):
         """
         Plot AIC/BIC criterion
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
@@ -338,6 +338,23 @@ class DataFeatureImportance(MlFiles):
         criterion_ = model.criterion_
         plt.plot(-np.log10(alphas_), criterion_, '--', color=color, linewidth=3, label=f"{name} criterion")
         plt.axvline(-np.log10(alpha_), color=color, linewidth=3, label=f"alpha: {name} estimate")
+        plt.xlabel('-log(alpha)')
+        plt.ylabel('criterion')
+
+    def plot_ic_criterion(self, modelsk, name, color):
+        """
+        Plot AIC/BIC criterion
+        Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
+        Parameters:
+            ic: A tuple having model's parameters (model.alpha_, model.alphas_, model.criterion_)
+            name: Model name
+            color: Plot color
+        """
+        alpha = modelsk.alpha_ + EPSILON
+        alphas = modelsk.alphas_ + EPSILON
+        criterion = modelsk.criterion_
+        plt.plot(-np.log10(alphas), criterion, '--', color=color, linewidth=3, label=f"{name} criterion")
+        plt.axvline(-np.log10(alpha), color=color, linewidth=3, label=f"alpha: {name} estimate")
         plt.xlabel('-log(alpha)')
         plt.ylabel('criterion')
 
@@ -353,6 +370,22 @@ class DataFeatureImportance(MlFiles):
         self._plot_show('Information-criterion for model selection', 'dataset_feature_importance', fig)
 
     def plot_lasso_alphas(self, model):
+        """
+        Plot LassoCV model alphas
+        Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
+        """
+        m_log_alphas = -np.log10(model.alphas_ + EPSILON)
+        fig = plt.figure()
+        plt.plot(m_log_alphas, model.mse_path_, ':')
+        plt.plot(m_log_alphas, model.mse_path_.mean(axis=-1), 'k', label='Average across the folds', linewidth=2)
+        plt.axvline(-np.log10(model.alpha_ + EPSILON), linestyle='--', color='k', label='alpha: CV estimate')
+        plt.legend()
+        plt.xlabel('-log(alpha)')
+        plt.ylabel('Mean square error')
+        plt.axis('tight')
+        self._plot_show('Mean square error per fold: coordinate descent', 'dataset_feature_importance', fig)
+
+    def plot_lasso_alphas_ORI(self, model):
         """
         Plot LassoCV model alphas
         Ref: https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py
@@ -391,6 +424,8 @@ class DataFeatureImportance(MlFiles):
 
     @gather
     def pvalue_linear_add_result(self, res):
+        if res is None:
+            return
         coef, pval, pval_corr, rejected = res
         self.results.add_col(f"linear_coefficient", coef)
         self.results.add_col(f"linear_p_values", pval)
@@ -519,11 +554,11 @@ class DataFeatureImportance(MlFiles):
             res_bic = self._regularization_lasso_lars_bic()
             self.regularization_models_add_results(res_bic)
             if res_aic is not None and res_bic is not None:
-                self.plot_lars(res_aic[0], res_bic[0])
+                self.plot_lars(res_aic[3], res_bic[3])
 
     @gather
     def regularization_models_add_results(self, reg):
-        imp, weight, model_name = reg
+        imp, weight, model_name = reg[0:3]
         self.results.add_col(f"regularization_coef_{model_name}", imp)
         self.results.add_col_rank(f"regularization_rank_{model_name}", imp, weight=weight, reversed=True)
 
@@ -561,7 +596,7 @@ class DataFeatureImportance(MlFiles):
             model_name = skmodel.__class__.__name__
         self._info(f"Feature importance {self.tag}: Regularization '{model_name}, weight {weight}'")
         imp = np.abs(skmodel.coef_)
-        return imp, weight, model_name
+        return imp, weight, model_name, model.model
 
     @gather
     def reweight_results(self):
@@ -731,6 +766,8 @@ class DataFeatureImportance(MlFiles):
 
     @gather
     def wilks_add_results(self, res):
+        if res is None:
+            return
         coef, pvals, pvals_corr, rejected, best_category = res
         self.results.add_col(f"wilks_coefficient", coef)
         self.results.add_col(f"wilks_p_values", pvals)

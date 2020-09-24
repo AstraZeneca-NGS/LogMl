@@ -136,19 +136,23 @@ class Config(MlFiles):
             self.set_log_level(logging.DEBUG)
         self.scatter_total, self.scatter_num = args.scatter_total, args.scatter_num
         # Check split parameter
-        if self.scatter_total is not None:
+        if self.scatter_total is None or self.scatter_num is None:
+            self.scatter_total = 0
+            self.scatter_num = 0
+        else:
+            # Check scatter_total
             if not is_int(self.scatter_total):
                 self._fatal_error(f"Command line option '--scatter_total' should be an integer number: '{self.scatter_total}'")
             self.scatter_total = int(self.scatter_total)
             if self.scatter_total < 2:
                 self._fatal_error(f"Command line option '--scatter_total' should be an integer, acceptable values are 2 or more: '{self.scatter_total}'")
-        # Check split_num parameter
-        if self.scatter_num not in ['pre', 'gather']:
-            if not is_int(self.scatter_num):
-                self._fatal_error(f"Command line option '--scatter_num' should be either an integer number or ['pre', 'gather']: '{self.scatter_num}'")
-            self.scatter_num = int(self.scatter_num)
-            if self.scatter_num < 0 or self.scatter_num >= self.scatter_total:
-                self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.scatter}): '{self.scatter_num}'")
+            # Check scatter_num parameter
+            if self.scatter_num not in ['pre', 'gather']:
+                if not is_int(self.scatter_num):
+                    self._fatal_error(f"Command line option '--scatter_num' should be either an integer number or ['pre', 'gather']: '{self.scatter_num}'")
+                self.scatter_num = int(self.scatter_num)
+                if self.scatter_num < 0 or self.scatter_num >= self.scatter_total:
+                    self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.scatter}): '{self.scatter_num}'")
         return True
 
     def read_config_yaml(self):

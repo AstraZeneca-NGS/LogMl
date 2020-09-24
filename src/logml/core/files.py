@@ -62,7 +62,7 @@ class MlFiles(MlLog):
         if not path or not name:
             return None
         path = Path(path)
-        path.mkdir(exist_ok=True)
+        path.mkdir(parents=True, exist_ok=True)
         fname = name
         if file_type:
             fname = f"{fname}.{file_type}"
@@ -111,7 +111,7 @@ class MlFiles(MlLog):
             return
         plt.title(title)
         if PLOTS_SAVE:
-            file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
+            file = self.get_file_path(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
             self._debug(f"Saving plot '{title}' to '{file}'")
             plt.savefig(file)
         if PLOTS_SHOW:
