@@ -8,7 +8,7 @@ from pathlib import Path
 from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
-from .scatter_gather import init_scatter_gather, pre, scatter, gather
+from .scatter_gather import init_scatter_gather, scatter
 from ..analysis import AnalysisDf
 from ..datasets import Datasets, DatasetsCv, DatasetsDf, DfExplore
 from ..feature_importance import DataFeatureImportance
@@ -127,7 +127,6 @@ class LogMl(MlFiles):
             return False
         return True
 
-    @pre
     def _dataset_explore(self):
         """ Explore dataset """
         if not self.is_dataset_df():

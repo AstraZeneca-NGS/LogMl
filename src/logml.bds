@@ -41,7 +41,7 @@ string logmlCmd(bool pre, bool gather, int n) {
         println "LogMl command to run: $cmd"
     }
 
-    logFile := "$path/logml.scatter.$num\.$nstr"
+    logFile := "$path/logml.scatter.$num\.$nstr\.log"
 
     return cmd + " 2>&1 | tee '$logFile'"
 }
