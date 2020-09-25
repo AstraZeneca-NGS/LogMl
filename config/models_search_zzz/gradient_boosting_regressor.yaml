@@ -1,0 +1,63 @@
+GradientBoostingRegressor:
+  functions:
+    model_create:
+      alpha: 0.9
+      criterion: friedman_mse
+      learning_rate: 0.1
+      loss: ls
+      max_depth: 3
+      min_impurity_decrease: 0.0
+      min_samples_leaf: 1
+      min_samples_split: 2
+      min_weight_fraction_leaf: 0.0
+      n_estimators: 100
+      presort: auto
+      subsample: 1.0
+      tol: 0.0001
+      validation_fraction: 0.1
+      verbose: 0
+      warm_start: false
+  hyper_parameter_optimization:
+    enable: true
+    algorithm: tpe
+    max_evals: 10
+    show_progressbar: true
+    space:
+      model_create:
+        criterion:
+          - choice
+          - ['friedman_mse', 'mse', 'mae']
+        learning_rate:
+          - uniform
+          - 0.0001
+          - 1.0
+        loss:
+          - choice
+          - ['ls', 'lad', 'huber', 'quantile']
+        max_depth:
+          - uniformint
+          - 2
+          - 10
+        max_features:
+          - uniform
+          - 0.3
+          - 1.0
+        min_samples_split:
+          - uniformint
+          - 2
+          - 20
+        min_samples_leaf:
+          - uniformint
+          - 1
+          - 100
+        n_estimators:
+          - uniformint
+          - 2
+          - 1000
+        subsample:
+          - uniform
+          - 0.1
+          - 1.0
+  model:
+    model_class: sklearn.ensemble.GradientBoostingRegressor
+    model_type: regression

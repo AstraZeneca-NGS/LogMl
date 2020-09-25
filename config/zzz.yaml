@@ -27,35 +27,8 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
-  enable_na: false
-  is_dropcol_extra_trees: true
-  is_dropcol_gradient_boosting: true
-  is_dropcol_random_forest: true
-  is_fip_random_forest: true
-  is_fip_extra_trees: true
-  is_fip_gradient_boosting: true
-  is_permutation_extra_trees: true
-  is_permutation_gradient_boosting: true
-  is_permutation_random_forest: true
-  is_regularization_lasso: true
-  is_regularization_ridge: true
-  is_regularization_lars: true
-  is_rfe_model: true
-  is_rfe_model_lasso: true
-  is_rfe_model_ridge: true
-  is_rfe_model_lars_aic: true
-  is_rfe_model_lars_bic: true
-  is_rfe_model_random_forest: true
-  is_rfe_model_extra_trees: true
-  is_rfe_model_gradient_boosting: true
-  is_skmodel_extra_trees: true
-  is_skmodel_gradient_boosting: true
-  is_skmodel_random_forest: true
-  is_select: true
-  is_linear_pvalue: true
-  is_tree_graph: true
-  is_wilks: true
+  enable: true
+  enable_na: true
 
   permutation_iterations_gradient_boosting: 3
   permutation_iterations_extra_trees: 3
@@ -69,10 +42,9 @@ analysis:
       enable: true
 
 cross_validation:
-    # Set to 'false' to disable cross validation
-    enable: false
+    enable: true
     KFold:
-        n_splits: 3
+        n_splits: 10
 
 model:
   enable: true
@@ -91,7 +63,7 @@ functions:
       max_features: 0.7
 
 hyper_parameter_optimization:
-  enable: false
+  enable: true
   algorithm: tpe
   max_evals: 10
   show_progressbar: true
