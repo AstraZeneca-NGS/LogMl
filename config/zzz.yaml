@@ -76,4 +76,4 @@ hyper_parameter_optimization:
 
 model_search:
   enable: true
-  models: !include models_search_zzz/*.yaml
+  models: !include models_search/*.yaml
