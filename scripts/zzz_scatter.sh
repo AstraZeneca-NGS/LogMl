@@ -21,6 +21,7 @@ rm -rvf scatter_*_*
 time ./src/logml.bds \
   -system slurm \
   -v \
+  -d \
   -config config/zzz.yaml \
   -num 20 \
   2>&1 | tee zzz.out
