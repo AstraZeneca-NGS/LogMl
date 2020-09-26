@@ -6,8 +6,9 @@ import pandas as pd
 import os
 import random
 import sys
-import time
 import unittest
+
+from pathlib import Path
 
 from logml.core import LogMl, MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from logml.core.config import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_LOGGER, CONFIG_MODEL
@@ -178,8 +179,8 @@ class TestLogMl(unittest.TestCase):
         mltrain = Model(config, mldataset)
         self.assertTrue(ret)
         self.assertEqual(mltrain.model_name, 'model_001')
-        self.assertEqual(mldataset.get_file(), os.path.join('tests', 'tmp', 'test_001.pkl'))
-        self.assertEqual(mltrain.get_file(), os.path.join('tests', 'tmp', 'model', f"model_001.{mltrain._id}.pkl"))
+        self.assertEqual(mldataset.get_file(), Path('tests') / 'tmp' / 'test_001.pkl')
+        self.assertEqual(mltrain.get_file(), Path('tests') / 'tmp' / 'model' / f"model_001.Model.{mltrain._id}.pkl")
         self.assertEqual(logml.hyper_parameter_optimization.enable, False)
         self.assertEqual(config.get_parameters_functions('dataset_augment'), {'num_augment': 10})
 
@@ -258,7 +259,8 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         # Check values
         self.assertTrue(ret)
-        self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]))
+        ops_expected = set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT, DATASET_INOUT])
+        self.assertEqual(ds.operations_done, ops_expected)
         self.assertEqual(ds.dataset, [8, 9, 10, 11, 5, 6])
         self.assertEqual(ds.get_train(), [1, 2, 3])
         self.assertEqual(ds.get_validate(), [4, 5])
@@ -271,7 +273,7 @@ class TestLogMl(unittest.TestCase):
         self.assertEqual(ds.dataset_train, [1, 2, 3])
         self.assertEqual(ds.dataset_validate, [4, 5])
         self.assertEqual(ds.dataset_test, [6])
-        self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_PREPROCESS, DATASET_SPLIT]))
+        self.assertEqual(ds.operations_done, ops_expected)
 
     def test_dataset_003(self):
         """ Check Datasets.__call__(), with 'enable=False', in this case 'dataset_split' is false """
@@ -307,7 +309,8 @@ class TestLogMl(unittest.TestCase):
         ret = ds()
         self.assertTrue(ret)
         self.assertEqual(ds.dataset, [1, 2, 3, 4, 5, 6])
-        self.assertEqual(ds.operations_done, set([DATASET_AUGMENT]))
+        print(f"OPS_DONE: {ds.operations_done}")
+        self.assertEqual(ds.operations_done, set([DATASET_AUGMENT, DATASET_INOUT]))
         self.assertEqual(ds.dataset_xy.x, [1, 2, 3, 4, 5, 6])
         self.assertEqual(ds.dataset_xy.y, [1, 2, 3, 4, 5, 6])
 
@@ -333,7 +336,7 @@ class TestLogMl(unittest.TestCase):
         dataset_expected_test = np.array([3, 7, 10])
         self.assertTrue(ret)
         self.assertTrue(np.array_equal(ds.dataset, dataset_expected))
-        self.assertTrue(np.array_equal(ds.operations_done, set([DATASET_SPLIT])))
+        self.assertTrue(np.array_equal(ds.operations_done, set([DATASET_SPLIT, DATASET_INOUT])))
         self.assertTrue(np.array_equal(ds.get_train(), dataset_expected_train))
         self.assertTrue(np.array_equal(ds.get_validate(), dataset_expected_val))
         self.assertTrue(np.array_equal(ds.get_test(), dataset_expected_test))

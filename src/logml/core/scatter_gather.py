@@ -136,8 +136,9 @@ def gather(g):
     """
     def gather_wrapper(self, *args, **kwargs):
         ret = None
-        scatter_gather.inc()
-        if scatter_gather.is_disabled():
+        if scatter_gather is not None:
+            scatter_gather.inc()
+        if scatter_gather is None or scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.gather:
             scatter_gather._debug(f"ScatteGather, gather: {scatter_gather}, executing '{g.__name__}'")
@@ -156,8 +157,9 @@ def pre(g):
     """
     def pre_wrapper(self, *args, **kwargs):
         ret = None
-        scatter_gather.inc()
-        if scatter_gather.is_disabled():
+        if scatter_gather is not None:
+            scatter_gather.inc()
+        if scatter_gather is None or scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.pre:
             scatter_gather._debug(f"ScatteGather, pre: {scatter_gather}, executing '{g.__name__}'")
@@ -178,8 +180,9 @@ def scatter(g):
     """
     def scatter_wrapper(self, *args, **kwargs):
         ret = None
-        scatter_gather.inc()
-        if scatter_gather.is_disabled():
+        if scatter_gather is not None:
+            scatter_gather.inc()
+        if scatter_gather is None or scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.pre:
             scatter_gather._debug(f"ScatteGather, scatter: {scatter_gather}, skipping '{g.__name__}'")
@@ -203,8 +206,9 @@ def scatter_all(g):
     """
     def scatter_all_wrapper(self, *args, **kwargs):
         ret = None
-        scatter_gather.inc()
-        if scatter_gather.is_disabled():
+        if scatter_gather is not None:
+            scatter_gather.inc()
+        if scatter_gather is None or scatter_gather.is_disabled():
             ret = g(self, *args, **kwargs)
         elif scatter_gather.pre:
             scatter_gather._debug(f"ScatteGather, scatter_all: {scatter_gather}, skipping '{g.__name__}'")

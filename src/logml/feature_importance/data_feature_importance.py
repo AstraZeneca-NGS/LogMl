@@ -387,7 +387,7 @@ class DataFeatureImportance(MlFiles):
         """
         added_columns = list()
         if self.random_inputs_ratio <= 0.0:
-            return added_columns
+            return added_columns, self.datasets
         for c in self.datasets.get_input_names():
             if self.random_inputs_ratio < 1.0:
                 # Add shuffled column with probability 'random_inputs_ratio'

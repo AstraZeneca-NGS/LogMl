@@ -55,6 +55,7 @@ class Config(MlFiles):
         self.config_hash = None
         self.parameters = parameters if parameters is not None else dict()
         self.is_debug = False
+        self.is_verbose = False
         # self.exit_on_fatal_error = True
         self.scatter_total, self.scatter_num = None, None
         if log_level:
