@@ -1,11 +1,9 @@
 
-import copy
 import logml
-import yaml
 
-from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH
+from ..core.config import CONFIG_MODEL, CONFIG_MODEL_SEARCH
 from ..core.files import MlFiles
-from .sklearn_model import SkLearnModel
+from ..core.scatter_gather import gather, scatter
 
 
 class ModelSearch(MlFiles):
@@ -31,13 +29,19 @@ class ModelSearch(MlFiles):
         self._info(f"Model search: End")
         return ret
 
+    @gather
+    def add_results(self, df):
+        """ Collect results for later use """
+        if df is not None:
+            self.logml.model_results.add_row_df(df)
+
     def search(self):
         """ Model search """
         # Create a list of models
         self._info(f"Search models: Start")
         if self.model_type is None:
             raise ValueError(f"Missing 'model_type' parameter, in config file '{self.config.config_file}', section '{CONFIG_MODEL}'")
-        # For each model in 'models' secction: Create a nea LogMl ofbjec with these parameters and run it
+        # For each model in 'models' selection: Create a nea LogMl object with these parameters and run it
         for model_def in self.models:
             name, params = next(iter(model_def.items()))
             if 'enable' in params and not params['enable']:
@@ -55,7 +59,8 @@ class ModelSearch(MlFiles):
                 self._debug(f"Model '{name}' does not match model type, skipping ('{self.model_type}' != '{model_params['model_type']}')")
                 continue
             self._debug(f"Considering model '{name}', model_class={model_class}")
-            self.search_model(model_class, params)
+            res = self.search_model(model_class, params)
+            self.add_results(res)
         self._info(f"Search models: End")
         return True
 
@@ -69,22 +74,28 @@ class ModelSearch(MlFiles):
         enable = params.get('enable', True)
         if not enable:
             self._debug(f"Searching model: Model (model_class={model_class}) disabled (enable={enable}), skipping")
-            return
-        # Disable some sections to avoid repetition (e.g. 'model_search' to avoid infinite recursion)
+            return None
+        return self._search_model(model_class, params)
+
+    @scatter
+    def _search_model(self, model_class, params):
         # Create updated config
+        # Note: Disable all sections, e.g. disable 'model_search' to avoid infinite recursion
+        self._info(f"Searching model: Model {model_class}")
         conf = self.config.copy(disable_all=True)
         conf = conf.update_section(None, params)
         # Create datasets (shallow copy of datasets)
         self._debug(f"Creating dataset (shallow) copy")
         datasets = self.logml.datasets.clone()
-        datasets.enable = False  # We don't want to build dataset again
+        datasets.enable = False  # We don't want to build a dataset again
         # Create LogMl
         self._debug(f"Creating new LogMl")
-        lml = logml.LogMl(config=conf, datasets=datasets)
+        lml = logml.LogMl(config=conf, datasets=datasets, debug=self.logml.is_debug, verbose=self.logml.is_verbose)
         # Don't display or save (partial) results each time
         lml.display_model_results = False
         lml.save_model_results = False
+        lml.disable_scatter_model = True  # We are already in a scatter/gather, disable further scatter
         # Run model
         self._debug(f"Running new LogMl")
         lml()
-        self.logml.model_results.add_row_df(lml.model_results.df)  # Collect results for later use
+        return lml.model_results.df

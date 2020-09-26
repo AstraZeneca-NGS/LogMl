@@ -1,11 +1,9 @@
 import copy
-import numpy as np
-import random
 
 from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
-from ..core.registry import MlRegistry, DATASET_AUGMENT, DATASET_CREATE, DATASET_INOUT, DATASET_LOAD, DATASET_PREPROCESS, DATASET_SAVE, DATASET_SPLIT
+from ..core.registry import DATASET_AUGMENT, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT
 
 # InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
 InOut = namedtuple('InOut', ['x', 'y'])
@@ -139,10 +137,10 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
-    def get_file_name(self, dataset_type=None, ext='pkl'):
+    def get_file(self, dataset_type=None, ext='pkl'):
         """ Create a file name for dataset """
         self._debug(f"dataset_type={dataset_type}, ext='{ext}'")
-        return self._get_file_name(self.dataset_path, self.dataset_name, dataset_type, ext)
+        return self.get_file_path(self.dataset_path, self.dataset_name, dataset_type, ext)
 
     def __getitem__(self, key):
         """ Get item/s from the dataset.
@@ -234,7 +232,7 @@ class DatasetsBase(MlFiles):
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
 
-    def in_outs(self, all=True) -> None:
+    def in_outs(self, all=True) -> bool:
         """
         Get inputs & outputs for all datasets (train, validate, test)
         Args:

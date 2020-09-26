@@ -1,12 +1,15 @@
 
 import argparse
+import base64
 import copy
+import hashlib
 import logging
 import sys
-import yaml
 
 from .files import MlFiles
 from .registry import MlRegistry
+from ..util.etc import is_int
+from ..core.scatter_gather import init_scatter_gather
 
 
 DEFAULT_YAML = "config.yaml"
@@ -49,9 +52,12 @@ class Config(MlFiles):
         super().__init__(CONFIG_CONFIG)
         self.argv = argv if argv is not None else sys.argv
         self.config_file = config_file
+        self.config_hash = None
         self.parameters = parameters if parameters is not None else dict()
         self.is_debug = False
-        self.exit_on_fatal_error = True
+        self.is_verbose = False
+        # self.exit_on_fatal_error = True
+        self.scatter_total, self.scatter_num = None, None
         if log_level:
             self.set_log_level(log_level)
 
@@ -70,6 +76,7 @@ class Config(MlFiles):
         """ Create a copy of the config, disable all sections if 'disable_all' is true """
         conf = copy.deepcopy(self)
         if disable_all:
+            conf.split, conf.split_num = None, None
             for sec in [CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_DATASET_FEATURE_IMPORTANCE, CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_MODEL_ANALYSIS, CONFIG_MODEL_SEARCH]:
                 conf.set_enable(sec, enable=False)
         return conf
@@ -115,6 +122,8 @@ class Config(MlFiles):
         parser.add_argument('-c', '--config', help=f"Path to config (YAML) file. Default: '{DEFAULT_YAML}'", metavar='config.yaml', default=DEFAULT_YAML)
         parser.add_argument('-d', '--debug', help=f"Debug mode", action='store_true')
         parser.add_argument('-v', '--verbose', help=f"Verbose mode", action='store_true')
+        parser.add_argument('-s', '--scatter_total', help=f"Scatter into 'num_jobs' jobs", metavar='num_jobs', default=None)
+        parser.add_argument('-n', '--scatter_num', help=f"Scatter job number. This is job number 'n', out of 'scatter_total'. Can also be 'pre' or 'gather'", metavar='n', default=None)
 
         # Parse command line
         args = parser.parse_args(self.argv[1:])
@@ -126,6 +135,25 @@ class Config(MlFiles):
         self.is_debug = args.debug
         if self.is_debug:
             self.set_log_level(logging.DEBUG)
+        self.scatter_total, self.scatter_num = args.scatter_total, args.scatter_num
+        # Check split parameter
+        if self.scatter_total is None or self.scatter_num is None:
+            self.scatter_total = 0
+            self.scatter_num = 0
+        else:
+            # Check scatter_total
+            if not is_int(self.scatter_total):
+                self._fatal_error(f"Command line option '--scatter_total' should be an integer number: '{self.scatter_total}'")
+            self.scatter_total = int(self.scatter_total)
+            if self.scatter_total < 2:
+                self._fatal_error(f"Command line option '--scatter_total' should be an integer, acceptable values are 2 or more: '{self.scatter_total}'")
+            # Check scatter_num parameter
+            if self.scatter_num not in ['pre', 'gather']:
+                if not is_int(self.scatter_num):
+                    self._fatal_error(f"Command line option '--scatter_num' should be either an integer number or ['pre', 'gather']: '{self.scatter_num}'")
+                self.scatter_num = int(self.scatter_num)
+                if self.scatter_num < 0 or self.scatter_num >= self.scatter_total:
+                    self._fatal_error(f"Command line option '--split_num' should be a non-negative integer less than '--split' ({self.scatter}): '{self.scatter_num}'")
         return True
 
     def read_config_yaml(self):
@@ -135,8 +163,16 @@ class Config(MlFiles):
         """
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
-        self._debug(f"params: {self.parameters}")
+        # Hash config
+        conf_str = repr(self.parameters).encode('utf-8')  # Convert dictionary to string representation, transform into bytes
+        conf_hash = hashlib.sha256(conf_str).digest()  # Hash using SHA256
+        conf_hash64 = base64.b64encode(conf_hash).decode("utf-8")  # Convert to base64 bytes, then convert to string
+        conf_hash_safe = ''.join([c for c in conf_hash64 if c.isalnum()])  # Filter out non-alphanumeric chars, to make it 'file name safe'
+        self.config_hash = conf_hash_safe
+        # Set object's fields from config parameters
+        self._debug(f"config_hash: {self.config_hash}, params: {self.parameters}")
         self._set_from_config()
+        # Return sanity check
         return self._config_sanity_check()
 
     def set_enable(self, section, enable=True):

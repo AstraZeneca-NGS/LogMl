@@ -100,6 +100,7 @@ class ResultsRankDf(ResultsDf):
     def add_weight(self, name, weight):
         if weight is not None:
             self.weights[name] = weight
+            self._debug(f"Adding weight: name '{name}', weight={weight}")
 
     def get_weights(self):
         return np.array([self.weights.get(n, np.nan) for n in self.get_weight_names()])

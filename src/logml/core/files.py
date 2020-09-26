@@ -1,13 +1,11 @@
 
-import inspect
-import logging
 import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
 import os
-import sys
 import yaml
 
+from pathlib import Path
 from IPython.core.display import display
 from yamlinclude import YamlIncludeConstructor
 
@@ -54,23 +52,25 @@ class MlFiles(MlLog):
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', None):
             display(obj)
 
-    def _get_file_name(self, path, name, file_type=None, ext='pkl', _id=None):
-        """ Create a file name
+    def get_file_path(self, path, name, file_type=None, ext='pkl', _id=None):
+        """
+        Create a file path
         Make sure all intermediate directories exists, so
         that the file can be created
         """
         self._debug(f"path={path}, name={name}, file_type={file_type}, ext='{ext}'")
         if not path or not name:
             return None
-        os.makedirs(path, exist_ok=True)
-        fname = os.path.join(path, name)
+        path = Path(path)
+        path.mkdir(parents=True, exist_ok=True)
+        fname = name
         if file_type:
             fname = f"{fname}.{file_type}"
         if _id:
             fname = f"{fname}.{_id}"
         if ext:
             fname = f"{fname}.{ext}"
-        return fname
+        return path / fname
 
     def _load_pickle(self, file_pickle, tag):
         """ Load a pickle file, return data (on success) or None (on failure) """
@@ -111,7 +111,7 @@ class MlFiles(MlLog):
             return
         plt.title(title)
         if PLOTS_SAVE:
-            file = self._get_file_name(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
+            file = self.get_file_path(PLOTS_PATH, name=section, file_type=sanitize_name(title), ext='png', _id=None)
             self._debug(f"Saving plot '{title}' to '{file}'")
             plt.savefig(file)
         if PLOTS_SHOW:
@@ -138,7 +138,7 @@ class MlFiles(MlLog):
             return False
         self._debug(f"{tag}: Saving pickle file '{file_pickle}'")
         with open(file_pickle, 'wb') as output:
-            dataset = pickle.dump(data, output)
+            pickle.dump(data, output)
             return True
 
     def _save_yaml(self, file_name, data):

@@ -6,6 +6,7 @@ from sklearn.base import clone
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsCV, LassoLarsIC, LarsCV
 
+from ..core import MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from .model_cv import ModelCv
 from ..util.etc import camel_to_snake
 
@@ -231,3 +232,82 @@ class ModelSkRidgeCV(SkLearnModel):
     def default_model_create(self, x, y):
         self.model = RidgeCV(cv=self.cv)
         return True
+
+
+class ModelFactory:
+    """ A simple 'factory' class """
+    def __init__(self, config, datasets, model_type, model_name, cv_enable):
+        self.config, self.datasets, self.model_type, self.model_name, self.cv_enable = config, datasets, model_type, model_name, cv_enable
+        self.model = None
+
+    def get(self, force=False):
+        if self.model is None or force:
+            self.model = self._fit()
+        return self.model
+
+    def is_classification(self):
+        return self.model_type == MODEL_TYPE_CLASSIFICATION
+
+    def is_regression(self):
+        return self.model_type == MODEL_TYPE_REGRESSION
+
+
+class ModelFactoryExtraTrees(ModelFactory):
+    def __init__(self, config, datasets, model_type, cv_enable=None, n_estimators=100):
+        super().__init__(config, datasets, model_type, 'ExtraTrees', cv_enable)
+        self.model = None
+        self.n_estimators = n_estimators
+
+    def _fit(self):
+        """ Create a ExtraTrees model """
+        if self.is_regression():
+            m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators)
+        elif self.is_classification():
+            m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        if self.cv_enable is not None:
+            m.cv_enable = self.cv_enable
+        m.model_create()
+        m.model_train()
+        return m
+
+
+class ModelFactoryGradientBoosting(ModelFactory):
+    def __init__(self, config, datasets, model_type, cv_enable=None):
+        super().__init__(config, datasets, model_type, 'GradientBoosting', cv_enable)
+        self.model = None
+
+    def _fit(self):
+        """ Create a ExtraTrees model """
+        if self.is_regression():
+            m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
+        elif self.is_classification():
+            m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        if self.cv_enable is not None:
+            m.cv_enable = self.cv_enable
+        m.model_create()
+        m.model_train()
+        return m
+
+
+class ModelFactoryRandomForest(ModelFactory):
+    def __init__(self, config, datasets, model_type, cv_enable=None, n_estimators=100, max_depth=None, bootstrap=True):
+        super().__init__(config, datasets, model_type, 'RandomForest', cv_enable)
+        self.model = None
+        self.n_estimators, self.max_depth, self.bootstrap = n_estimators, max_depth, bootstrap
+
+    def _fit(self):
+        if self.is_regression():
+            m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators, max_depth=self.max_depth, bootstrap=self.bootstrap)
+        elif self.is_classification():
+            m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators, max_depth=self.max_depth, class_weight='balanced', bootstrap=self.bootstrap)
+        else:
+            raise Exception(f"Unknown model type '{self.model_type}'")
+        if self.cv_enable is not None:
+            m.cv_enable = self.cv_enable
+        m.model_create()
+        m.model_train()
+        return m

@@ -1,8 +1,9 @@
 #!/bin/bash -eu
 set -o pipefail
 
-# Tets script 'zzz'
+# Tets script 'zzz' with scatter / gather
 clear
+
 # Clean up LogMl files
 rm -rvf data/zzz/*.pkl
 rm -rvf data/zzz/zzz.feature_
@@ -16,9 +17,7 @@ rm -rvf logml.bds.* *.chp
 rm -rvf logml.scatter.*
 rm -rvf scatter_*_*
 
-### Run LogMl: Python
-PS1=''
-source bin/activate
-time ./src/logml.py -d -v -c config/zzz.yaml 2>&1 | tee zzz.out
+## Run LogMl: bds
+time ./src/logml.bds -v -config config/zzz.yaml 2>&1 | tee zzz.out
 
 echo "Exit code: $?"

@@ -1,0 +1,126 @@
+#!/usr/bin/env bds
+
+activate := ""      help Shell script to activate virtual environment"
+config := ""        help LogMl config file
+d := false          help Debug mode
+logml := ""         help Path to LogMl's Python program
+num := -1           help Split to 'num' jobs
+numDefault := 100   help Default number of jobs, when 'num' is not set (non 'local' systems only)
+path := ""          help Path to project's home (path to 'data' and 'config' parent dir)
+v := false          help Verbose mode
+
+#------------------------------------------------------------------------------
+# Create a logml command line
+# Parameters:
+#   pre    : This is the first command to run (prepare datatsets)
+#   n      : Partition number 'n' (scatter processing)
+#   gather : This is the last command to run (gather results)
+#------------------------------------------------------------------------------
+string logmlCmd(bool pre, bool gather, int n) {
+    cmd := ""
+
+    # Activate virtual environment
+    if( !activate.isEmpty() ){
+        cmd += "PS1=''; "
+        cmd += "source '$activate'; "
+    }
+
+    # LogMl command line options
+    cmd += "$logml "
+    if( d ) cmd += "--debug "
+    if( v ) cmd += "--verbose "
+    if( !config.isEmpty() ) cmd += "--config '$config' "
+
+    nstr := "$n"
+    if( pre )   nstr = 'pre'
+    else if( gather )   nstr = 'gather'
+
+    cmd += "--scatter_total $num --scatter_num $nstr "
+
+    if( d || v ) {
+        println "LogMl command to run: $cmd"
+    }
+
+    logFile := "$path/logml.scatter.$num\.$nstr\.log"
+
+    return cmd + " 2>&1 | tee '$logFile'"
+}
+
+#------------------------------------------------------------------------------
+# Parse command line options
+#------------------------------------------------------------------------------
+void parseCmdLine() {
+    if( path.isEmpty() ) path = programPath.pathName().dirName()
+
+    if( logml.isEmpty() ) logml = programPath.pathCanonical().dirName() + "/logml.py"
+
+    if( activate.isEmpty() ) {
+        activateFile := "$path/bin/activate"
+        if( activateFile.exists() ) {
+            activate = activateFile
+        }
+    }
+
+    # Set number of jobs, if not already set
+    if( num < 0 )   num = (system == 'local' ? cpusLocal : numDefault)
+
+    if( d || v ) {
+        println "Parameters:"
+        println "\tNumber of jobs       : $num"
+        println "\tPath                 : '$path'"
+        println "\tConfig file          : '$config'"
+        println "\tLogMl program        : '$logml'"
+        println "\tActivate (venv) file : '$activate'"
+        println "\tDebug                : $d"
+        println "\tVerbose              : $v"
+    }
+}
+
+#------------------------------------------------------------------------------
+# Run LogMl in "scatter & gather" mode
+#------------------------------------------------------------------------------
+void runLogMl_ZZZ(int num) {
+    # Gather
+    cmd := logmlCmd(false, true, -1)
+    task(taskName := "logml_gather") {
+        sys $cmd
+    }
+}
+
+void runLogMl(int num) {
+    # Run initial task
+    cmd := logmlCmd(true, false, -1)
+    pkl := "$path/data/zzz/zzz.pkl"
+    task(pkl <- config, taskName := "logml_pre") {
+        sys $cmd
+    }
+    wait
+
+    # Scatter
+    for(int n=0; n < num; n++) {
+        cmd = logmlCmd(false, false, n)
+        task(taskName := "logml_split_$n\_$num") {
+            sys $cmd
+        }
+    }
+    wait
+
+    # Gather
+    cmd = logmlCmd(false, true, -1)
+    task(taskName := "logml_gather") {
+        sys $cmd
+    }
+}
+
+#------------------------------------------------------------------------------
+# Main
+#------------------------------------------------------------------------------
+
+# Parse command line options
+parseCmdLine()
+
+# Run LogMl
+runLogMl(num)
+
+wait
+println "Done $programPath!"

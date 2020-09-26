@@ -1,7 +1,6 @@
 
 import hyperopt
 import hyperopt.hp
-import copy
 import numpy as np
 
 from ..core.config import CONFIG_HYPER_PARAMETER_OPTMIMIZATION, CONFIG_FUNCTIONS, CONFIG_MODEL
@@ -42,7 +41,7 @@ class HyperOpt(MlLog):
         """
         model_enable = self.config.get_parameters(CONFIG_MODEL).get('enable')
         if self.enable and not model_enable:
-            self._fatal_error(f"Config file '{self.config.config_file}', section {CONFIG_HYPER_PARAMETER_OPTMIMIZATION} incnsistency: Hyper-parameter search is enabled, but model is disabled (section {CONFIG_MODEL}, enable:{model_enable})")
+            self._fatal_error(f"Config file '{self.config.config_file}', section {CONFIG_HYPER_PARAMETER_OPTMIMIZATION} inconsistency: Hyper-parameter search is enabled, but model is disabled (section {CONFIG_MODEL}, enable:{model_enable})")
         return True
 
     def create_objective_function(self):
@@ -142,6 +141,7 @@ class HyperOpt(MlLog):
         Objective function invoked in hyper-parameter tunning
         It invokes training & test, then returns the test result metric to minimize
         """
+        self._debug(f"OBJECTIVE FUNCTION: {self.iteration}")
         self.iteration += 1
         # Create a new config with updated parameters
         params_ml = self._space2params(params)
@@ -150,7 +150,7 @@ class HyperOpt(MlLog):
         # Create new dataset
         dataset = self._new_dataset(config_new)
         # Train and evaluate model
-        ret_train = self.logml.model_train(config_new, dataset)
+        ret_train = self.logml.model_train(config_new, dataset)     # Note: We train a single model (we don't use the scatter & gather method 'model_train_scatter()')
         self._debug(f"Model train returned: {ret_train}")
         ret_val = self.logml.get_model_eval_validate()
         if ret_val is None:
@@ -167,7 +167,7 @@ class HyperOpt(MlLog):
     def save_results(self):
         """ Save hyper parameter search results to picle file """
         mltrain = self.logml.model
-        file_name = mltrain.get_file_name('hyper_param_search')
+        file_name = mltrain.get_file('hyper_param_search')
         self._debug(f"Save hyper-parameter search results: Saving to pickle file '{file_name}'")
         results = {'best': self.best, 'trials': self.trials, 'max_evals': self.trials}
         self.logml._save_pickle(file_name, 'hyper_param_search', results)

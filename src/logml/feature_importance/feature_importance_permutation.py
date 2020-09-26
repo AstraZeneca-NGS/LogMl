@@ -1,14 +1,5 @@
 
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-import traceback
-
-from sklearn.preprocessing import MinMaxScaler
-
-from ..core.files import MlFiles
+from ..core.scatter_gather import scatter_all
 from .feature_importance_model import FeatureImportanceModel
 
 
@@ -23,9 +14,10 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     randomly shuffled columns
     """
 
-    def __init__(self, model, model_name, rand_columns, num_iterations):
-        super().__init__(model, model_name, rand_columns, num_iterations)
+    def __init__(self, model_factory, rand_columns, num_iterations):
+        super().__init__(model_factory, rand_columns, num_iterations)
         self.importance_name = 'permutation'
+        self.init_new_model_force = True  # A new model is trained before starting
 
     def dataset_change(self, col_name):
         """ Change datasets for column 'col_name' """
@@ -35,11 +27,6 @@ class FeatureImportancePermutation(FeatureImportanceModel):
     def dataset_restore(self, col_name, col_ori):
         """ Restore column 'col_name' using values 'col_ori' """
         self.datasets.shuffle_input(col_name, col_ori)
-
-    def initialize(self):
-        """ Initialzie the model (the model is trained only once) """
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Initialize. Model fit")
-        self.model.model_train()
 
     def loss(self, is_base=False):
         """

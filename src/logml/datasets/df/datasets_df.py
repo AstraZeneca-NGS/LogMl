@@ -7,9 +7,6 @@ from ..datasets_base import InOut
 from .df_augment import DfAugment
 from .df_preprocess import DfPreprocess
 
-from sklearn.ensemble import RandomForestRegressor
-from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
-
 
 def _copy_df(df):
     """ Copy a DataFrame """
@@ -124,7 +121,7 @@ class DatasetsDf(Datasets):
     def default_save(self):
         """ Default implementation of '@dataset_save' """
         super().default_save()
-        filename = self.get_file_name(ext='preproc_augment.csv')
+        filename = self.get_file(ext='preproc_augment.csv')
         self._info(f"Saving dataframe to '{filename}'")
         return self._save_csv(filename, "Save as CSV", self.dataset, save_index=True)
 
@@ -195,7 +192,7 @@ class DatasetsDf(Datasets):
 
     def _load_from_csv(self):
         """ Load dataframe from CSV """
-        csv_file = self.get_file_name(ext='csv')
+        csv_file = self.get_file(ext='csv')
         self._debug(f"Loading csv file '{csv_file}'")
         self.dataset = pd.read_csv(csv_file, low_memory=False, parse_dates=self.dates)
         return len(self.dataset) > 0
@@ -280,9 +277,6 @@ class DatasetsDf(Datasets):
             restore = [None] * len(dfs)
         dfs = zip(dfs, restore)
         return [self._zero_input(df, name, res) for df, res in dfs]
-        x_col = self.dataset[col_name]
-        self.dataset[col_name] = np.random.permutation(x_col)
-        return x_col
 
     def _zero_input(self, df, name, restore):
         """

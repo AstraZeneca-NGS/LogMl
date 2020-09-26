@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
-import copy
-import datetime
 import logging
 import pandas as pd
+
+from pathlib import Path
 
 from . import Config, CONFIG_CROSS_VALIDATION, CONFIG_DATASET, CONFIG_DATASET_EXPLORE, CONFIG_FUNCTIONS, CONFIG_LOGGER, CONFIG_MODEL
 from .files import MlFiles, set_plots
 from .registry import MODEL_CREATE
+from .scatter_gather import init_scatter_gather, scatter
 from ..analysis import AnalysisDf
 from ..datasets import Datasets, DatasetsCv, DatasetsDf, DfExplore
 from ..feature_importance import DataFeatureImportance
-from ..models import HyperOpt, HYPER_PARAM_TYPES, Model, ModelCv, ModelSearch, SkLearnModel
+from ..models import HyperOpt, Model, ModelCv, ModelSearch, SkLearnModel
 from ..util.results_df import ResultsDf
 
 
@@ -25,18 +26,24 @@ class LogMl(MlFiles):
             config = Config(config_file=config_file)
             config()
         if config is not None:
-            if debug:
+            self.is_debug = debug or config.is_debug
+            self.is_verbose = verbose or config.is_verbose
+            if self.is_debug:
                 config.set_log_level(logging.DEBUG)
-            elif verbose:
+            elif self.is_verbose:
                 config.set_log_level(logging.INFO)
             else:
                 config.set_log_level(logging.WARNING)
+        else:
+            self.is_debug = debug
+            self.is_verbose = verbose
         super().__init__(config, CONFIG_LOGGER)
         self.datasets = datasets
         self._id_counter = 0
         self.dataset_feature_importance = None
         self.dataset_feature_importance_na = None
         self.disable_plots = False
+        self.disable_scatter_model = False
         self.display_model_results = True
         self.display_max_columns = 1000
         self.display_max_rows = 1000
@@ -81,28 +88,25 @@ class LogMl(MlFiles):
             self._error("Could not load or create dataset")
             return False
         # Explore dataset
-        if not self._dataset_explore():
-            self._debug("Could not explore dataset")
+        ret = self._dataset_explore()
+        if ret is not None and not ret:
+            self._debug("Dataset not explored")
+        # Feature importance
         if not self._feature_importance():
             self._debug("Could not perform feature importance")
+        # Feature importance is missing values
         if not self._feature_importance_na():
             self._debug("Could not perform feature importance of missing data")
         # Analysis
         if not self._analysis():
             self._error("Could not analyze data")
             return False
-        # Model Train
+        # Models Train
         if not self.models_train():
             self._error("Could not train model")
             return False
-        # Show model/s results
-        if self.display_model_results:
-            self.model_results.sort(['validation', 'train', 'time'])
-            self.model_results.print()
-        if self.save_model_results and self.model_results is not None:
-            m = self.model_ori if self.model is None else self.model
-            file_csv = m.get_file_name('models', ext=f"csv")
-            self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
+        # Gather or show models results
+        self.models_results()
         self._info(f"LogMl: End")
         return True
 
@@ -124,7 +128,7 @@ class LogMl(MlFiles):
         return True
 
     def _dataset_explore(self):
-        " Explore dataset "
+        """ Explore dataset """
         if not self.is_dataset_df():
             self._debug("Dataset Explore: Only available for dataset type 'df', skipping")
             return True
@@ -132,20 +136,20 @@ class LogMl(MlFiles):
         ok = True
         # Explore original dataset
         if self.config.get_parameters_section(CONFIG_DATASET_EXPLORE, 'is_use_ori', True):
-            files_base = self.datasets.get_file_name(f"dataset_explore.original", ext='')
+            files_base = self.datasets.get_file(f"dataset_explore.original", ext='')
             self.dataset_explore_original = DfExplore(self.datasets.get_ori(), 'original', self.config, files_base)
             ok = self.dataset_explore_original() and ok
         else:
-            self._debug("Dataset Explore: Exploring 'original' datasets disables ('is_use_ori'=False), skipping")
+            self._debug("Dataset Explore: Exploring 'original' datasets disabled ('is_use_ori'=False), skipping")
         # Explore pre-processed dataset
-        files_base = self.datasets.get_file_name(f"dataset_explore.preprocessed", ext='')
+        files_base = self.datasets.get_file(f"dataset_explore.preprocessed", ext='')
         self.dataset_explore_preprocessed = DfExplore(self.datasets.get(), 'preprocessed', self.config, files_base)
         ok = self.dataset_explore_preprocessed() and ok
         self._debug("Dataset Explore: End")
         return ok
 
     def _feature_importance(self):
-        " Feature importance / feature selection "
+        """ Feature importance / feature selection """
         if not self.is_dataset_df():
             self._debug("Dataset feature importance only available for dataset type 'df'")
             return True
@@ -154,7 +158,7 @@ class LogMl(MlFiles):
         return self.dataset_feature_importance()
 
     def _feature_importance_na(self):
-        " Feature importance / feature selection "
+        """ Feature importance / feature selection """
         if not self.is_dataset_df():
             self._debug("Dataset feature importance (missing data) is only available for dataset type 'df'")
             return True
@@ -184,6 +188,9 @@ class LogMl(MlFiles):
         """ Initialize objects after config is setup """
         if self.config is not None:
             self._set_from_config()
+            self.config.get_parameters_section(CONFIG_DATASET, "")
+            scatter_path = Path('.') / f"scatter_{self.config.scatter_total}_{self.config.config_hash}"
+            init_scatter_gather(scatter_num=self.config.scatter_num, scatter_total=self.config.scatter_total, data_path=scatter_path, force=False)
         if self.model_ori is None:
             self.model_ori = Model(self.config)
         if self.hyper_parameter_optimization is None:
@@ -199,12 +206,25 @@ class LogMl(MlFiles):
         return self._config_sanity_check()
 
     def is_dataset_df(self):
-        " Is a 'df' type of dataset? "
+        """ Is a 'df' type of dataset? """
         ds_type = self.config.get_parameters(CONFIG_DATASET).get('dataset_type')
         return ds_type == 'df'
 
+    def models_results(self):
+        """ Gather models resouts and or show them """
+        if self.display_model_results:
+            self.model_results.sort(['validation', 'train', 'time'])
+            self.model_results.print()
+        if self.save_model_results and self.model_results is not None:
+            m = self.model_ori if self.model is None else self.model
+            file_csv = m.get_file('models', ext=f"csv")
+            self._save_csv(file_csv, "Model resutls (CSV)", self.model_results.df, save_index=True)
+
     def model_train(self, config=None, dataset=None):
-        """ Train a single model """
+        """
+        Train a single model
+        This method can be called from o
+        """
         self._debug(f"Start")
         self.model = self._new_model(config, dataset)
         ret = self.model()
@@ -213,17 +233,31 @@ class LogMl(MlFiles):
         self._debug(f"End")
         return ret
 
+    @scatter
+    def model_train_scatter(self):
+        """ Perform model train, allowing scatter & gather """
+        return self.model_train()
+
+    @scatter
+    def hyper_parameter_optimization_scatter(self):
+        return self.hyper_parameter_optimization()
+
     def models_train(self):
-        """ Train (several) models """
+        """
+        Train (several) models, with or without scatter/gather enabled
+        """
         if self.model_search.enable:
-            self._debug(f"Model search")
             return self.model_search()
         elif self.hyper_parameter_optimization.enable:
-            self._debug(f"Hyper-parameter optimization: single model")
-            return self.hyper_parameter_optimization()
+            if self.disable_scatter_model:
+                return self.hyper_parameter_optimization()
+            else:
+                return self.hyper_parameter_optimization_scatter()
         else:
-            self._debug(f"Create and train: single model")
-            return self.model_train()
+            if self.disable_scatter_model:
+                return self.model_train()
+            else:
+                return self.model_train_scatter()
 
     def _new_dataset(self):
         model_type = self.model_ori.model_type
@@ -256,3 +290,4 @@ class LogMl(MlFiles):
         if self.cv_enable:
             return ModelCv(config, datasets)
         return Model(config, datasets)
+

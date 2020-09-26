@@ -1,4 +1,5 @@
 logger:
+  disable_plots: true
   plots_path: 'logml_plots/zzz'
 
 dataset:
@@ -10,7 +11,7 @@ dataset:
 dataset_preprocess:
   enable: true
   categories:
-    c1: ['small', 'mid', 'high']
+    c1: ['low', 'mid', 'high']
   one_hot: []
   one_hot_max_cardinality: 7
   impute:
@@ -26,35 +27,8 @@ dataset_explore:
   enable: false
 
 dataset_feature_importance:
-  enable: false
-  enable_na: false
-  is_dropcol_extra_trees: false
-  is_dropcol_gradient_boosting: false
-  is_dropcol_random_forest: false
-  is_fip_random_forest: true
-  is_fip_extra_trees: false
-  is_fip_gradient_boosting: false
-  is_permutation_extra_trees: false
-  is_permutation_gradient_boosting: false
-  is_permutation_random_forest: true
-  is_regularization_lasso: false
-  is_regularization_ridge: false
-  is_regularization_lars: false
-  is_rfe_model: false
-  is_rfe_model_lasso: false
-  is_rfe_model_ridge: false
-  is_rfe_model_lars_aic: false
-  is_rfe_model_lars_bic: false
-  is_rfe_model_random_forest: false
-  is_rfe_model_extra_trees: false
-  is_rfe_model_gradient_boosting: false
-  is_skmodel_extra_trees: false
-  is_skmodel_gradient_boosting: false
-  is_skmodel_random_forest: false
-  is_select: false
-  is_linear_pvalue: false
-  is_tree_graph: false
-  is_wilks: false
+  enable: true
+  enable_na: true
 
   permutation_iterations_gradient_boosting: 3
   permutation_iterations_extra_trees: 3
@@ -62,20 +36,18 @@ dataset_feature_importance:
 
   wilks_null_model_variables: ['x4', 'x5']
 
+analysis:
+  enable: false
+  gene_set_enrichment:
+      enable: true
 
 cross_validation:
-    # Set to 'false' to disable cross validation
     enable: true
     KFold:
         n_splits: 2
 
-analysis:
-  enable: true
-  gene_set_enrichment:
-      enable: true
-
 model:
-  enable: false
+  enable: true
   model_type: regression
   model_name: 'zzz'
   model_class: sklearn.ensemble.RandomForestRegressor
@@ -90,6 +62,18 @@ functions:
       min_samples_leaf: 3
       max_features: 0.7
 
+hyper_parameter_optimization:
+  enable: true
+  algorithm: tpe
+  max_evals: 3
+  show_progressbar: true
+  space:
+    model_create:
+      n_estimators:
+        - uniformint
+        - 2
+        - 1000
+
 model_search:
-  enable: false
+  enable: true
   models: !include models_search/*.yaml

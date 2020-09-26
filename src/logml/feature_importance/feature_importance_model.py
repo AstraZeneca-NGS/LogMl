@@ -1,17 +1,12 @@
 
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy
 import seaborn as sns
-import traceback
-
-from sklearn.base import clone
-from sklearn.preprocessing import MinMaxScaler
 
 from ..core.files import MlFiles
-from ..datasets import InOut
+from ..core.scatter_gather import scatter, scatter_all, gather
 from ..util.etc import array_to_str
 
 
@@ -20,36 +15,20 @@ class FeatureImportanceModel(MlFiles):
     Estimate feature importance based on a model.
     """
 
-    def __init__(self, model, model_type, rand_columns, num_iterations):
-        self.model = model.clone()
-        self.model_type = model_type
-        self.datasets = model.datasets
+    def __init__(self, model_factory, rand_columns, num_iterations):
+        self.model_factory = model_factory
+        self.model = None
+        self.model_type = model_factory.model_type
+        self.datasets = model_factory.datasets
         self.rand_columns = rand_columns
         self.num_iterations = num_iterations
         self.loss_base = None
         self.performance = dict()
         self.importance_name = ''
         self.importances = None
+        self.init_new_model_force = False
         self.verbose = False
-        self.is_cv = self.model.is_cv
-
-    def calc_importances(self):
-        """
-        Calculate all feature importances, based on performance results
-        """
-        # Calculate importance based an all results
-        rand_cols_set = set(self.rand_columns)
-        null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
-        self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
-        self.importances = [self._calc_importance(c) for c in self.columns]
-        self.pvalues = [self.pvalue(c, null_values) for c in self.columns]
-        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
-        return True
-
-    def _calc_importance(self, col_name):
-        """ Calculate one feature importance, for column col_name """
-        results = np.array(self.performance[col_name]).ravel()
-        return results.mean()
+        self.is_cv = False
 
     def __call__(self):
         if self.num_iterations < 1:
@@ -57,20 +36,23 @@ class FeatureImportanceModel(MlFiles):
         # Base performance
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Start")
         self.initialize()
-        self.loss_base = self.loss(is_base=True)
+        self.loss_base = self._loss_base()
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Base loss = {array_to_str(self.loss_base)}")
         # Shuffle each column
         self.columns = self.datasets.get_input_names()
         cols_count = len(self.columns)
-        fi_sk = self.model.get_feature_importances()
+        # fi_sk = self.model.get_feature_importances()
         for i, c in enumerate(self.columns):
-            self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', raw importance: {fi_sk[i]}")
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
-                self.losses(c)
-        self.calc_importances()
+                perf = self.performances(c)
+                if perf is not None:
+                    self.performance[c] = perf
+                    self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', performances: {perf}")
+        self.importances = self._importances()
+        self.pvalues = self._pvalues()
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): End")
-        return True
+        return self.importances
 
     def dataset_change(self, col_name):
         """ Change datasets for column 'col_name' """
@@ -87,20 +69,37 @@ class FeatureImportanceModel(MlFiles):
         return pd.Series(self.pvalues, index=self.columns)
 
     def get_weight(self):
-        """ Weight used when combinig different models for feature importance """
+        """ Weight used when combining different models for feature importance """
         return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
 
+    def _importance(self, col_name):
+        """ Calculate one feature importance, for column col_name """
+        results = np.array(self.performance[col_name]).ravel()
+        return results.mean()
+
+    @gather
+    def _importances(self):
+        """ Calculate all feature importances, based on performance results """
+        return [self._importance(c) for c in self.columns]
+
     def initialize(self):
-        pass
+        is_cv = self.initialize_model()
+        if is_cv is not None:
+            self.is_cv = is_cv
+
+    @scatter_all
+    def initialize_model(self):
+        self.model = self.model_factory.get(force=self.init_new_model_force)
+        return self.is_cv
 
     def losses(self, column_name):
         """
-        Calculate loss after changing the dataset for 'column_name'.
+        Calculate loss and perfor values after changing the dataset for 'column_name'.
         Repeat 'num_iterations' and store results.
         """
-        perf, loss = list(), list()
+        loss, perf = list(), list()
         for i in range(self.num_iterations):
-            # Change dataset, evaluate performance, restore originl dataset
+            # Change dataset, evaluate performance, restore original dataset
             ori = self.dataset_change(column_name)
             loss_i = self.loss()
             self.dataset_restore(column_name, ori)
@@ -112,18 +111,29 @@ class FeatureImportanceModel(MlFiles):
             perf.append(perf_i)
             loss.append(perf_i)
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
-        self.performance[column_name] = perf
+        return loss, perf
+
+    @scatter_all
+    def _loss_base(self):
+        lb = self.loss(is_base=True)
+        self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Loss base '{lb}")
+        return lb
 
     def loss(self, is_base=False):
         """
         Calculate loss. Re-train model if necesary
-        is_base: Indicates if this is the 'base' model loss used for comparisson (i.e. self.model)
+        is_base: Indicates if this is the 'base' model loss used for comparison (i.e. self.model)
         Returns: A loss value or multiple loss values if the model uses cross-validation
         """
         raise Exception("Unimplemented!")
 
+    @scatter
+    def performances(self, column_name):
+        loss, perf = self.losses(column_name)
+        return perf
+
     def plot(self):
-        " Plot importance distributions "
+        """ Plot importance distributions """
         names = np.array([self.columns])
         imp = np.array(self.importances)
         # Show bar plot
@@ -164,3 +174,11 @@ class FeatureImportanceModel(MlFiles):
         except ValueError as v:
             self._warning(f"Error calculating Mann-Whitney's U-statistic, column '{col_name}': {v}. Results: {results}")
         return 1.0
+
+    @gather
+    def _pvalues(self):
+        """ Calculate all pvalues """
+        null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
+        self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
+        return [self.pvalue(c, null_values) for c in self.columns]
+

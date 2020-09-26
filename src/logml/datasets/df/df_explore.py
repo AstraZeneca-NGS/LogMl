@@ -13,6 +13,7 @@ from scipy.cluster import hierarchy as hc
 
 from ...core.config import CONFIG_DATASET_EXPLORE
 from ...core.files import MlFiles
+from ...core.scatter_gather import init_scatter_gather, pre, scatter, gather
 from ...util.results_df import ResultsDf
 
 
@@ -201,6 +202,7 @@ class DfExplore(MlFiles):
         is_normal = (p >= self.shapiro_wilks_threshold)
         return pd.DataFrame({field_name: [is_normal, p]}, index=['Normality', 'Normality_test_pvalue'])
 
+    @pre
     def explore(self):
         """ Explore dataFrame"""
         if self.df is None:
