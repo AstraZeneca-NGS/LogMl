@@ -18,6 +18,11 @@ rm -rvf logml.scatter.*
 rm -rvf scatter_*_*
 
 ## Run LogMl: bds
-time ./src/logml.bds -v -config config/zzz.yaml 2>&1 | tee zzz.out
+time ./src/logml.bds \
+  -system slurm \
+  -v \
+  -config config/zzz.yaml \
+  -num 20 \
+  2>&1 | tee zzz.out
 
 echo "Exit code: $?"
