@@ -236,8 +236,8 @@ class ModelSkRidgeCV(SkLearnModel):
 
 class ModelFactory:
     """ A simple 'factory' class """
-    def __init__(self, config, datasets, model_type, model_name):
-        self.config, self.datasets, self.model_type, self.model_name = config, datasets, model_type, model_name
+    def __init__(self, config, datasets, model_type, model_name, cv_enable):
+        self.config, self.datasets, self.model_type, self.model_name, self.cv_enable = config, datasets, model_type, model_name, cv_enable
         self.model = None
 
     def get(self, force=False):
@@ -253,10 +253,10 @@ class ModelFactory:
 
 
 class ModelFactoryExtraTrees(ModelFactory):
-    def __init__(self, config, datasets, model_type, n_estimators=100, cv_enable=None):
-        super().__init__(config, datasets, model_type, 'ExtraTrees')
+    def __init__(self, config, datasets, model_type, cv_enable=None, n_estimators=100):
+        super().__init__(config, datasets, model_type, 'ExtraTrees', cv_enable)
         self.model = None
-        self.n_estimators, self.cv_enable = n_estimators, cv_enable
+        self.n_estimators = n_estimators
 
     def _fit(self):
         """ Create a ExtraTrees model """
@@ -275,9 +275,8 @@ class ModelFactoryExtraTrees(ModelFactory):
 
 class ModelFactoryGradientBoosting(ModelFactory):
     def __init__(self, config, datasets, model_type, cv_enable=None):
-        super().__init__(config, datasets, model_type, 'GradientBoosting')
+        super().__init__(config, datasets, model_type, 'GradientBoosting', cv_enable)
         self.model = None
-        self.cv_enable = cv_enable
 
     def _fit(self):
         """ Create a ExtraTrees model """
@@ -295,10 +294,10 @@ class ModelFactoryGradientBoosting(ModelFactory):
 
 
 class ModelFactoryRandomForest(ModelFactory):
-    def __init__(self, config, datasets, model_type, n_estimators=100, max_depth=None, bootstrap=True, cv_enable=None):
-        super().__init__(config, datasets, model_type, 'RandomForest')
+    def __init__(self, config, datasets, model_type, cv_enable=None, n_estimators=100, max_depth=None, bootstrap=True):
+        super().__init__(config, datasets, model_type, 'RandomForest', cv_enable)
         self.model = None
-        self.n_estimators, self.max_depth, self.bootstrap, self.cv_enable = n_estimators, max_depth, bootstrap, cv_enable
+        self.n_estimators, self.max_depth, self.bootstrap = n_estimators, max_depth, bootstrap
 
     def _fit(self):
         if self.is_regression():
