@@ -1,4 +1,5 @@
 
+from ..core.scatter_gather import scatter_all
 from .feature_importance_model import FeatureImportanceModel
 
 
@@ -11,8 +12,8 @@ class FeatureImportanceDropColumn(FeatureImportanceModel):
     not affect performance
     """
 
-    def __init__(self, model, model_name, rand_columns, num_iterations):
-        super().__init__(model, model_name, rand_columns, num_iterations)
+    def __init__(self, model_factory, rand_columns, num_iterations):
+        super().__init__(model_factory, rand_columns, num_iterations)
         self.importance_name = 'drop column'
 
     def dataset_change(self, col_name):

@@ -16,10 +16,8 @@ from ..core.scatter_gather import pre, scatter, gather
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
 from .pvalue_fdr import get_categories, LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
-from ..models.sklearn_model import ModelSkExtraTreesRegressor, ModelSkExtraTreesClassifier
-from ..models.sklearn_model import ModelSkGradientBoostingRegressor, ModelSkGradientBoostingClassifier
+from ..models.sklearn_model import ModelFactoryExtraTrees, ModelFactoryGradientBoosting, ModelFactoryRandomForest
 from ..models.sklearn_model import ModelSkLarsCV, ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkLassoLarsCV, ModelSkRidgeCV
-from ..models.sklearn_model import ModelSkRandomForestRegressor, ModelSkRandomForestClassifier
 from ..util.results_df import ResultsRankDf
 
 EPSILON = 1.0e-4
@@ -98,6 +96,7 @@ class DataFeatureImportance(MlFiles):
 
     def boruta(self):
         """ Calculate feature improtance using Boruta algorithm """
+        return      # FIXME: Boruta algorithm not working properly
         if not self.is_classification():
             self._debug("Boruta algorithm only for classification")
             return
@@ -109,7 +108,8 @@ class DataFeatureImportance(MlFiles):
     @scatter
     def _boruta(self):
         self._info(f"Feature importance {self.tag}: Boruta algorithm")
-        model = self.fit_random_forest()
+        model_factory = ModelFactoryRandomForest(self.config, self.datasets, self.model_type)
+        model = model_factory.get()
         boruta = BorutaPy(model, n_estimators='auto', verbose=2)
         boruta.fit(self.x_train, self.y_train)
         return boruta
@@ -124,21 +124,23 @@ class DataFeatureImportance(MlFiles):
             return True
         # Add random inputs (shuffled columns)
         self.random_inputs_added, self.datasets = self.random_inputs_add()
+        # Prepare dataset
         self._info(f"Feature importance {self.tag} (model_type={self.model_type}): Start")
         self.x, self.y = self.datasets.get_xy()
         self.x_train, self.y_train = self.datasets.get_train_xy()
+        # Initialize results
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
         self.results = ResultsRankDf(inputs)
+        # Feature importance analyses
         self.feature_importance_models()
-        # self.boruta()     # FIXME: Boruta algorithm not working properly
+        self.boruta()
         self.regularization_models()
         self.select()
         self.recursive_feature_elimination()
         self.pvalue_linear()
         self.wilks()
-        # Show a decision tree of the most important variables (first levels)
         self.tree_graph()
-        # Perform re-weighting, then display and save results
+        # Process results from all feature importance methods: Perform re-weighting, then display and save results
         loss_ori = self.reweight_results()
         self.show_and_save_results(loss_ori)
         # Restore dataset (remove added random inputs)
@@ -148,15 +150,16 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance {self.tag}: End")
         return True
 
-    def feature_importance_drop_column(self, model, model_name, config_tag):
+    def feature_importance_drop_column(self, model_factory, config_tag):
         """ Feature importance using 'drop column' analysis """
         conf = f"is_dropcol_{config_tag}"
+        model_name = model_factory.model_name
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
         num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
-        fi = FeatureImportanceDropColumn(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        fi = FeatureImportanceDropColumn(model_factory, self.random_inputs_added, num_iterations)
         res = fi()
         if res:
             imp = fi.get_importances()
@@ -174,41 +177,46 @@ class DataFeatureImportance(MlFiles):
             self._info(f"All model based methods disabled, skipping")
             return
         if self.is_fip_random_forest:
-            self.feature_importance_model(self.fit_random_forest(), 'RandomForest', 'random_forest')
+            model_factory = ModelFactoryRandomForest(self.config, self.datasets, self.model_type)
+            self.feature_importance_model(model_factory, 'random_forest')
         else:
             self._debug(f"Feature importance 'Random forest': is_fip_random_forest={self.is_fip_random_forest}, skipping")
         if self.is_fip_extra_trees:
-            self.feature_importance_model(self.fit_extra_trees(), 'ExtraTrees', 'extra_trees')
+            model_factory = ModelFactoryExtraTrees(self.config, self.datasets, self.model_type)
+            self.feature_importance_model(model_factory, 'extra_trees')
         else:
             self._debug(f"Feature importance 'Extra trees': is_fip_extra_trees={self.is_fip_extra_trees}, skipping")
         if self.is_fip_gradient_boosting:
-            self.feature_importance_model(self.fit_gradient_boosting(), 'GradientBoosting', 'gradient_boosting')
+            model_factory = ModelFactoryGradientBoosting(self.config, self.datasets, self.model_type)
+            self.feature_importance_model(model_factory, 'gradient_boosting')
         else:
             self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
 
-    def feature_importance_model(self, model, model_name, config_tag):
+    def feature_importance_model(self, model_factory, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
         conf = f"is_fip_{config_tag}"
+        model_name = model_factory.model_name
         if not self.__dict__[conf]:
             self._info(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance {self.tag} using model '{model_name}'")
         if self.is_model_permutation:
-            self.feature_importance_permutation(model, model_name, config_tag)
+            self.feature_importance_permutation(model_factory, config_tag)
         if self.is_model_dropcol:
-            self.feature_importance_drop_column(model, model_name, config_tag)
+            self.feature_importance_drop_column(model_factory, config_tag)
         if self.is_model_skmodel:
-            self.feature_importance_skmodel(model, model_name, config_tag)
+            self.feature_importance_skmodel(model_factory, config_tag)
 
-    def feature_importance_permutation(self, model, model_name, config_tag):
+    def feature_importance_permutation(self, model_factory, config_tag):
         """ Feature importance using 'permutation' analysis """
         conf = f"is_permutation_{config_tag}"
+        model_name = model_factory.model_name
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
         num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
-        fi = FeatureImportancePermutation(model, f"{self.tag}_{model_name}", self.random_inputs_added, num_iterations)
+        fi = FeatureImportancePermutation(model_factory, self.random_inputs_added, num_iterations)
         res = fi()
         if res:
             imp = fi.get_importances()
@@ -218,46 +226,28 @@ class DataFeatureImportance(MlFiles):
             fi.plot()
         return True
 
-    @gather
-    def feature_importance_skmodel(self, model, model_name, config_tag):
+    def feature_importance_skmodel(self, model_factory, config_tag):
         """ Show model built-in feature importance """
         conf = f"is_skmodel_{config_tag}"
-        weight = model.eval_validate if model.model_eval_validate() else None
+        model_name = model_factory.model_name
         if not self.__dict__[conf]:
             self._debug(f"Feature importance {self.tag} (skmodel importance) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
+        res = self._feature_importance_skmodel(model_factory)
+        if res is not None:
+            fi, weight = res
+            self.results.add_col(f"importance_skmodel_{model_name}", fi)
+            self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
+
+    @scatter
+    def _feature_importance_skmodel(self, model_factory):
+        """ Show model built-in feature importance """
+        model_name = model_factory.model_name
+        model = model_factory.get()
+        weight = model.eval_validate if model.model_eval_validate() else None
         self._info(f"Feature importance (sklearn), {model_name}, weight {weight}")
         fi = model.get_feature_importances()
-        self.results.add_col(f"importance_skmodel_{model_name}", fi)
-        self.results.add_col_rank(f"importance_skmodel_rank_{model_name}", fi, weight=weight, reversed=True)
-
-    def fit_extra_trees(self, n_estimators=100, cv_enable=None):
-        """ Create a ExtraTrees model """
-        if self.is_regression():
-            m = ModelSkExtraTreesRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
-        elif self.is_classification():
-            m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators)
-        else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
-        if cv_enable is not None:
-            m.cv_enable = cv_enable
-        m.model_create()
-        m.model_train()
-        return m
-
-    def fit_gradient_boosting(self, cv_enable=None):
-        """ Create a ExtraTrees model """
-        if self.is_regression():
-            m = ModelSkGradientBoostingRegressor(self.config, self.datasets)
-        elif self.is_classification():
-            m = ModelSkGradientBoostingClassifier(self.config, self.datasets)
-        else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
-        if cv_enable is not None:
-            m.cv_enable = cv_enable
-        m.model_create()
-        m.model_train()
-        return m
+        return fi, weight
 
     def fit_lars(self, cv_enable=None):
         m = ModelSkLarsCV(self.config, self.datasets, cv=self.regularization_model_cv)
@@ -293,20 +283,6 @@ class DataFeatureImportance(MlFiles):
 
     def fit_lasso_lars_bic(self, cv_enable=None):
         m = ModelSkLassoLarsBIC(self.config, self.datasets)
-        if cv_enable is not None:
-            m.cv_enable = cv_enable
-        m.model_create()
-        m.model_train()
-        return m
-
-    def fit_random_forest(self, n_estimators=100, max_depth=None, bootstrap=True, cv_enable=None):
-        """ Create a RandomForest model """
-        if self.is_regression():
-            m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, bootstrap=bootstrap)
-        elif self.is_classification():
-            m = ModelSkRandomForestClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=n_estimators, max_depth=max_depth, class_weight='balanced', bootstrap=bootstrap)
-        else:
-            raise Exception(f"Unknown model type '{self.model_type}'")
         if cv_enable is not None:
             m.cv_enable = cv_enable
         m.model_create()
@@ -476,11 +452,15 @@ class DataFeatureImportance(MlFiles):
 
     @scatter
     def _rfe_model_extra_trees(self):
-        return self.recursive_feature_elimination_model(self.fit_extra_trees(cv_enable=False), 'ExtraTrees')
+        mf = ModelFactoryExtraTrees(self.config, self.datasets, self.model_type, cv_enable=False)
+        m = mf.get()
+        return self.recursive_feature_elimination_model(m, mf.model_name)
 
     @scatter
     def _rfe_model_gradient_boosting(self):
-        return self.recursive_feature_elimination_model(self.fit_gradient_boosting(cv_enable=False), 'GradientBoosting')
+        mf = ModelFactoryGradientBoosting(self.config, self.datasets, self.model_type, cv_enable=False)
+        m = mf.get()
+        return self.recursive_feature_elimination_model(m, mf.model_name)
 
     @scatter
     def _rfe_model_lars_aic(self):
@@ -500,7 +480,9 @@ class DataFeatureImportance(MlFiles):
 
     @scatter
     def _rfe_model_random_forest(self):
-        return self.recursive_feature_elimination_model(self.fit_random_forest(cv_enable=False), 'RandomForest')
+        mf = ModelFactoryRandomForest(self.config, self.datasets, self.model_type, cv_enable=False)
+        m = mf.get()
+        return self.recursive_feature_elimination_model(m, mf.model_name)
 
     def regularization_models(self):
         """ Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) """
@@ -584,6 +566,7 @@ class DataFeatureImportance(MlFiles):
         if len(w) > 0:
             weight_delta = self.weight_max - self.weight_min if self.weight_max > self.weight_min else 1.0
             # Flip weights and scale relative to the best loss (minimum weight)
+            self._error(f"REWEIGHT\n\tnames: {names}\n\tloss_ori: {loss_ori}\n\tw.shape = {w.shape}\n\tw: {w}")
             w_min = np.abs(w).min()
             if w_min == 0:
                 w_min = 1.0
@@ -679,14 +662,18 @@ class DataFeatureImportance(MlFiles):
 
     @scatter
     def tree_graph(self, file_dot=None, file_png=None):
-        """ Simple tree representation """
+        """
+        Simple tree representation
+        Show a decision tree of the most important variables (first levels)
+        """
         if not self.is_tree_graph:
             return
         self._info(f"Tree graph {self.tag}: Random Forest")
         file_dot = self.datasets.get_file(f'tree_graph_{self.tag}', ext=f"dot") if file_dot is None else file_dot
         file_png = self.datasets.get_file(f'tree_graph_{self.tag}', ext=f"png") if file_png is None else file_png
         # Train a single tree with all the samples
-        model = self.fit_random_forest(n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False, cv_enable=False)
+        model_factory = ModelFactoryRandomForest(self.config, self.datasets, self.model_type, n_estimators=1, max_depth=self.tree_graph_max_depth, bootstrap=False, cv_enable=False)
+        model = model_factory.get()
         skmodel = model.model
         # Export the tree to a graphviz 'dot' format
         export_graphviz(skmodel.estimators_[0], out_file=str(file_dot), feature_names=self.x_train.columns, filled=True, rounded=True)
