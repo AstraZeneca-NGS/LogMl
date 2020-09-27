@@ -2,8 +2,10 @@
 
 activate := ""      help Shell script to activate virtual environment"
 config := ""        help LogMl config file
+cpus := 1           help Default number of CPUs for each task
 d := false          help Debug mode
 logml := ""         help Path to LogMl's Python program
+mem := 8 * G        help Default memory for each task
 num := -1           help Split to 'num' jobs
 numDefault := 100   help Default number of jobs, when 'num' is not set (non 'local' systems only)
 path := ""          help Path to project's home (path to 'data' and 'config' parent dir)
