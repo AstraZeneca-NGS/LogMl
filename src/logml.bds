@@ -92,8 +92,7 @@ void runLogMl_ZZZ(int num) {
 void runLogMl(int num) {
     # Run initial task
     cmd := logmlCmd(true, false, -1)
-    pkl := "$path/data/zzz/zzz.pkl"
-    task(pkl <- config, taskName := "logml_pre") {
+    task(taskName := "logml_pre") {
         sys $cmd
     }
     wait
