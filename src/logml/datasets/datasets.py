@@ -38,9 +38,9 @@ class Datasets(DatasetsBase):
         self._debug("Start")
         self.should_save = False
         if self.load():
-            self._debug("Dataset loaded")
+            self._debug(f"Dataset loaded. {self.memory()}")
         elif self.create():
-            self._debug("Dataset created")
+            self._debug(f"Dataset created. {self.memory()}")
             self.should_save = True
         else:
             self._debug("Could not load or create dataset")
@@ -55,7 +55,7 @@ class Datasets(DatasetsBase):
         if self.should_save:
             self._debug("Should save = {self.should_save}, saving dataset")
             self.save()
-        self._debug("End")
+        self._debug(f"End. {self.memory()}")
         return True
 
     def _config_sanity_check(self):
@@ -141,7 +141,7 @@ class Datasets(DatasetsBase):
                 idx_test.append(idx)
             else:
                 idx_train.append(idx)
-        self._info(f"Splitting dataset: train={len(idx_train) / len_tot}, validate={len(idx_validate) / len_tot}, test={len(idx_test) / len_tot}")
+        self._info(f"Splitting dataset: train={len(idx_train) / len_tot}, validate={len(idx_validate) / len_tot}, test={len(idx_test) / len_tot}. {self.memory()}")
         idx_train, idx_validate, idx_test = np.array(idx_train), np.array(idx_validate), np.array(idx_test)
         return self.split_idx(idx_train, idx_validate, idx_test)
 
@@ -169,7 +169,7 @@ class Datasets(DatasetsBase):
             raise ValueError(f"Unknown dataset operation '{op}'")
         if ok:
             self.operations_done.add(op)
-        self._debug(f"Dataset operation '{op}': End, ok={ok}")
+        self._debug(f"Dataset operation '{op}': End, ok={ok}. {self.memory()}")
         return ok
 
     def __getitem__(self, key):
@@ -185,6 +185,7 @@ class Datasets(DatasetsBase):
         self._debug(f"Get inputs & outputs from dataset '{name}'")
         (invoked, ret) = self.invoke_in_out(ds, name)
         if invoked:
+            self._debug(f"In/Out {name} invoked: {self.memory()}")
             return ret
         # We provide a default implementation for 'in_out'
         if self.is_use_default_in_out:
@@ -199,6 +200,7 @@ class Datasets(DatasetsBase):
         self.dataset_test_xy = self._in_out(self.dataset_test, 'test')
         self.dataset_train_xy = self._in_out(self.dataset_train, 'train')
         self.dataset_validate_xy = self._in_out(self.dataset_validate, 'validate')
+        self._debug(f"In/Out finshed: {self.memory()}")
         return True
 
     def invoke_augment(self):
@@ -305,10 +307,13 @@ class Datasets(DatasetsBase):
         " Split dataset into train, test, validate "
         ret = self.invoke_split()
         if ret:
+            self._debug(f"Split invoked: {self.memory()}")
             return ret
         # We provide a default implementation for dataset_split
         if self.is_use_default_split:
-            return self.default_split()
+            ret = self.default_split()
+            self._debug(f"Split default result {ret}: {self.memory()}")
+            return ret
         return False
 
     def split_idx(self, idx_train, idx_validate, idx_test=None):

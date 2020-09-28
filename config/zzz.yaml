@@ -44,7 +44,7 @@ analysis:
 cross_validation:
     enable: true
     KFold:
-        n_splits: 2
+        n_splits: 10
 
 model:
   enable: true

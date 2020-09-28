@@ -2,10 +2,13 @@ import copy
 import pandas as pd
 import numpy as np
 
+from sys import getsizeof
+
 from ..datasets import Datasets
 from ..datasets_base import InOut
 from .df_augment import DfAugment
 from .df_preprocess import DfPreprocess
+from ...util.mem import bytes2human, memory
 
 
 def _copy_df(df):
@@ -16,6 +19,21 @@ def _copy_df(df):
 def _copy_inout(inout):
     """ Copy an InOut object """
     return InOut(_copy_df(inout.x), _copy_df(inout.y)) if inout is not None else InOut(None, None)
+
+
+def mem_type_shape(obj):
+    mem, t, shape = memory(obj), type(obj).__name__, None
+    if obj is None:
+        mem = 0
+    elif hasattr(obj, 'shape'):
+        shape = obj.shape
+    elif isinstance(obj, InOut):
+        mem = bytes2human(getsizeof(obj.x) + getsizeof(obj.y))
+        shape = f"(x: {shape_or_none(obj.x)}, y:{shape_or_none(obj.y)})"
+    out = f"mem={mem} type={t}"
+    if shape:
+        out += f" shape={shape}"
+    return out
 
 
 def shape_or_none(df):
@@ -196,6 +214,21 @@ class DatasetsDf(Datasets):
         self._debug(f"Loading csv file '{csv_file}'")
         self.dataset = pd.read_csv(csv_file, low_memory=False, parse_dates=self.dates)
         return len(self.dataset) > 0
+
+    def memory(self):
+        """
+        Return memory consumption as a string
+        """
+        out = f"Dataset {self.dataset_name} memory usage. total: {mem_type_shape(self)}, "
+        out += f"dataset: {mem_type_shape(self.dataset)}, "
+        out += f"dataset_test: {mem_type_shape(self.dataset_test)}, "
+        out += f"dataset_train: {mem_type_shape(self.dataset_train)}, "
+        out += f"dataset_validate: {mem_type_shape(self.dataset_validate)}, "
+        out += f"dataset_xy: {mem_type_shape(self.dataset_xy)}, "
+        out += f"dataset_test_xy: {mem_type_shape(self.dataset_test_xy)}, "
+        out += f"dataset_train_xy: {mem_type_shape(self.dataset_train_xy)}, "
+        out += f"dataset_validate_xy: {mem_type_shape(self.dataset_validate_xy)}, "
+        return out
 
     def remove_inputs(self, names):
         [df.drop(columns=names, inplace=True) for df in self._get_dfs()]

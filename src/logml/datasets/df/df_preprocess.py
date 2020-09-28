@@ -4,7 +4,6 @@ import hashlib
 import numpy as np
 import pandas as pd
 import re
-import traceback
 
 from .category import CategoriesPreprocess
 from ...core import MODEL_TYPE_CLASSIFICATION

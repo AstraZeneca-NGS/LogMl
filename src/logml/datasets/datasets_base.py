@@ -1,12 +1,17 @@
 import copy
 
 from collections import namedtuple
+
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
 from ..core.registry import DATASET_AUGMENT, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT
+from ..util.mem import bytes2human, memory
+
 
 # InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
 InOut = namedtuple('InOut', ['x', 'y'])
+
+
 DATASET_OPS = [DATASET_PREPROCESS, DATASET_AUGMENT, DATASET_SPLIT, DATASET_INOUT]
 
 
@@ -322,6 +327,21 @@ class DatasetsBase(MlFiles):
         Returns: True if the dataset is loaded, False otherwise
         """
         raise NotImplementedError("Unimplemented method, this method should be overiden by a subclass!")
+
+    def memory(self):
+        """
+        Return memory consumption as a string
+        """
+        out = f"Dataset {self.dataset_name} memory usage. total: {memory(self)}, "
+        out += f"dataset: {memory(self.dataset)}, "
+        out += f"dataset_test: {memory(self.dataset_test)}, "
+        out += f"dataset_train: {memory(self.dataset_train)}, "
+        out += f"dataset_validate: {memory(self.dataset_validate)}, "
+        out += f"dataset_xy: {memory(self.dataset_xy)}, "
+        out += f"dataset_test_xy: {memory(self.dataset_test_xy)}, "
+        out += f"dataset_train_xy: {memory(self.dataset_train_xy)}, "
+        out += f"dataset_validate_xy: {memory(self.dataset_validate_xy)}"
+        return out
 
     def preprocess(self):
         """ Perform pre-processing step.

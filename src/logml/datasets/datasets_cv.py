@@ -90,7 +90,7 @@ class DatasetsCv(DatasetsBase):
             self._error(f"Could not get cross-validation iterator for {self.cv_type}")
             return False
         # For each split...
-        self._debug(f"DatasetsCv: Create cross-validation indexes: Start")
+        self._debug(f"DatasetsCv: Create cross-validation indexes: Start. {self.memory()}")
         dlen = len(self.datasets)
         self._debug(f"DatasetsCv: Dataset length={dlen}")
         x = np.arange(dlen)
@@ -106,7 +106,7 @@ class DatasetsCv(DatasetsBase):
                 self._debug(f"DatasetsCv: Create cross-validation {len(idx_train)}: class distribution: {yperc}")
             self.cv_datasets.append(ds)
             self._debug(f"DatasetsCv: Created datasets: {len(self.cv_datasets)}")
-        self._debug(f"DatasetsCv: Create cross-validation indexes: End")
+        self._debug(f"DatasetsCv: Create cross-validation indexes: End. {self.memory()}")
         self.cv_count = len(self.cv_datasets)
 
     def _get_cv_iterator(self):
@@ -183,8 +183,8 @@ class DatasetsCv(DatasetsBase):
     def remove_inputs(self, names):
         [d.remove_inputs(names) for d in self.all()]
 
-    def remove_samples_if_missing(self, idx):
-        [d.remove_samples_if_missing(names) for d in self.all()]
+    def remove_samples_if_missing(self, name):
+        [d.remove_samples_if_missing(name) for d in self.all()]
 
     def reset(self, soft=False):
         return all([d.reset(soft) for d in self.all()])
