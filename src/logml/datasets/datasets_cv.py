@@ -2,10 +2,10 @@ import copy
 import numpy as np
 import sklearn.model_selection
 
-from ..core.config import CONFIG_CROSS_VALIDATION
-from ..core.files import MlFiles
-from .datasets_base import DatasetsBase, InOut
 from ..core import MODEL_TYPE_CLASSIFICATION
+from ..core.config import CONFIG_CROSS_VALIDATION
+from .datasets_base import DatasetsBase, InOut
+from ..util.mem import memory
 
 
 CV_METHODS = ['KFold', 'RepeatedKFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit', 'StratifiedKFold', 'StratifiedShuffleSplit']
@@ -179,6 +179,16 @@ class DatasetsCv(DatasetsBase):
 
     def __len__(self):
         return len(self.datasets)
+
+    def memory(self):
+        """
+        Return memory consumption as a string
+        """
+        out = f"Dataset {self.dataset_name} memory usage. total: {memory(self)},"
+        if self.cv_datasets is not None:
+            out += f", number of CVs {len(self.cv_datasets)} "
+            out += ', sizes: [' + ','.join([memory(ds) for i, ds in enumerate(self.cv_datasets)]) + ']'
+        return out
 
     def remove_inputs(self, names):
         [d.remove_inputs(names) for d in self.all()]

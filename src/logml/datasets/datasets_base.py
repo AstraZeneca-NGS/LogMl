@@ -5,7 +5,7 @@ from collections import namedtuple
 from ..core.config import CONFIG_DATASET
 from ..core.files import MlFiles
 from ..core.registry import DATASET_AUGMENT, DATASET_INOUT, DATASET_PREPROCESS, DATASET_SPLIT
-from ..util.mem import bytes2human, memory
+from ..util.mem import memory
 
 
 # InOut is a named tuple containig dataset's inputs (InOut.x) and outputs (InOut.y)
