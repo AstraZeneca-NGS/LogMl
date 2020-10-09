@@ -153,8 +153,9 @@ class DfExplore(MlFiles):
                     self._plot_show(f"Distribution {c}", f'dataset_explore.{self.name}', fig)
                 except Exception as e:
                     self._error(f"Exception '{e}', when plotting variable '{c}': {xi_no_na}")
-
-        descr.print(f"Describe variables {self.name}")
+        descr_csv = f"{self.files_base}.describe_features.csv"
+        descr.print(f"Describe variables {self.name}, saving to file '{descr_csv}'")
+        self._save_csv(descr_csv, "Describe Features", descr.df, save_index=True)
 
     def describe(self, x, field_name):
         " Describe a single field (i.e. a single column from a dataframe) "
