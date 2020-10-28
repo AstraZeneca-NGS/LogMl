@@ -57,7 +57,7 @@ class Config(MlFiles):
         self.is_debug = False
         self.is_verbose = False
         # self.exit_on_fatal_error = True
-        self.scatter_total, self.scatter_num = None, None
+        self.scatter_total, self.scatter_num = 0, 0
         if log_level:
             self.set_log_level(log_level)
 
