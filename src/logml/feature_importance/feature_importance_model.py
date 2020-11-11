@@ -86,11 +86,12 @@ class FeatureImportanceModel(MlFiles):
         is_cv = self.initialize_model()
         if is_cv is not None:
             self.is_cv = is_cv
+        self._debug(f"Feature importance ({self.importance_name}: Initialize, is_cv={self.is_cv}")
 
     @scatter_all
     def initialize_model(self):
         self.model = self.model_factory.get(force=self.init_new_model_force)
-        return self.is_cv
+        return self.model.is_cv
 
     def losses(self, column_name):
         """
@@ -107,7 +108,7 @@ class FeatureImportanceModel(MlFiles):
             # (the higher the loss difference, the more important the variable)
             # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
             perf_i = loss_i - self.loss_base
-            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', iteration {i+1} / {self.num_iterations}, losses: {array_to_str(loss_i)}, performance: {array_to_str(perf_i)}")
+            self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', is_cv: {self.is_cv}, iteration {i+1} / {self.num_iterations}, losses: {array_to_str(loss_i)}, performance: {array_to_str(perf_i)}")
             perf.append(perf_i)
             loss.append(perf_i)
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")

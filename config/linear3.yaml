@@ -20,6 +20,23 @@ dataset_explore:
 
 dataset_feature_importance:
   enable: true
+  enable_na: false
+
+  is_model_dropcol: false
+  is_model_permutation: true
+  is_model_skmodel: false
+
+  is_permutation_extra_trees: false
+  is_permutation_gradient_boosting: false
+  is_permutation_random_forest: true
+
+  permutation_iterations_random_forest: 2
+
+cross_validation:
+    # Set to 'false' to disable cross validation
+    enable: true
+    KFold:
+        n_splits: 3
 
 model:
   enable: false
