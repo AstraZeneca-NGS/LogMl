@@ -102,7 +102,7 @@ class DatasetsDf(Datasets):
         return ret
 
     def default_augment(self):
-        " Default implementation for '@dataset_augment' "
+        """ Default implementation for '@dataset_augment' """
         self._debug(f"Dataset augment (default): Start")
         self.dataset_augment = DfAugment(self.dataset, self.config, self.outputs, self.model_type)
         self.dataset = self.dataset_augment()
@@ -126,7 +126,7 @@ class DatasetsDf(Datasets):
         return InOut(x, y)
 
     def default_preprocess(self):
-        " Default implementation for '@dataset_preprocess' "
+        """ Default implementation for '@dataset_preprocess' """
         self._debug(f"Using default dataset preprocess for dataset type 'DataFrame': Start")
         if self.dataset_ori is None:
             # Keep a copy.copy of the original dataset
@@ -167,7 +167,7 @@ class DatasetsDf(Datasets):
         cols_to_remove = [c for c in df.columns if c not in cols_na]
         self._debug(f"Get dataframe NA: Removing columns: {cols_to_remove}")
         df_na = df.drop(columns=cols_to_remove)
-        # Change cathegorical, only keep 'na' data
+        # Change categorical, only keep 'na' data
         for c in df.columns:
             if c in self.outputs:
                 pass
@@ -298,7 +298,7 @@ class DatasetsDf(Datasets):
             return x_col
 
     def __str__(self):
-        return f"Dtasets(df). Shapes: all={shape_or_none(self.dataset)}, train={shape_or_none(self.dataset_train)}, validate={shape_or_none(self.dataset_validate)}, test={shape_or_none(self.dataset_test)}"
+        return f"Datasets(df). Shapes: all={shape_or_none(self.dataset)}, train={shape_or_none(self.dataset_train)}, validate={shape_or_none(self.dataset_validate)}, test={shape_or_none(self.dataset_test)}"
 
     def zero_input(self, name, restore=None):
         """

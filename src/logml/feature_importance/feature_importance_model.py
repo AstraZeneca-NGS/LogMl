@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -29,6 +28,8 @@ class FeatureImportanceModel(MlFiles):
         self.init_new_model_force = False
         self.verbose = False
         self.is_cv = False
+        self.performance_per_cv_indexes = list()
+        self.performance_per_cv_values = list()
 
     def __call__(self):
         if self.num_iterations < 1:
@@ -67,6 +68,12 @@ class FeatureImportanceModel(MlFiles):
 
     def get_pvalues(self):
         return pd.Series(self.pvalues, index=self.columns)
+
+    def get_performances(self, column_name):
+        """Prepare performance detailed data per column for detailed performance table"""
+        column_indexes = [elem + (column_name, ) for elem in self.performance_per_cv_indexes]
+        multi_indexes = pd.MultiIndex.from_tuples(column_indexes)
+        return pd.Series(self.performance_per_cv_values, index=multi_indexes).unstack()
 
     def get_weight(self):
         """ Weight used when combining different models for feature importance """
@@ -109,10 +116,25 @@ class FeatureImportanceModel(MlFiles):
             # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
             perf_i = loss_i - self.loss_base
             self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', is_cv: {self.is_cv}, iteration {i+1} / {self.num_iterations}, losses: {array_to_str(loss_i)}, performance: {array_to_str(perf_i)}")
+            self._save_performance_data_for_detailed_table(i, perf_i, column_name)
+
             perf.append(perf_i)
             loss.append(perf_i)
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
         return loss, perf
+
+    def _save_performance_data_for_detailed_table(self, iteration_number, perf_i, column_name):
+        """Collect table indexes and performance values for each cross-validation"""
+        if self.is_cv:
+            for cv_number, cv_perfm_value in enumerate(perf_i, start=1):
+                self.performance_per_cv_indexes.append((column_name, f'CV_{cv_number}', f'Iteration_{iteration_number + 1}'))
+                self.performance_per_cv_values.append(cv_perfm_value)
+        else:
+            if self.num_iterations < 1:
+                self.performance_per_cv_indexes.append((column_name,))
+            else:
+                self.performance_per_cv_indexes.append((column_name, f'Iteration_{iteration_number + 1}'))
+            self.performance_per_cv_values.append(perf_i)
 
     @scatter_all
     def _loss_base(self):
