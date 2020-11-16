@@ -130,7 +130,7 @@ class FeatureImportanceModel(MlFiles):
                 self.performance_per_cv_indexes.append((column_name, f'CV_{cv_number}', f'Iteration_{iteration_number + 1}'))
                 self.performance_per_cv_values.append(cv_perfm_value)
         else:
-            if self.num_iterations < 1:
+            if self.num_iterations <= 1:
                 self.performance_per_cv_indexes.append((column_name,))
             else:
                 self.performance_per_cv_indexes.append((column_name, f'Iteration_{iteration_number + 1}'))
