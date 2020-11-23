@@ -93,8 +93,11 @@ class ScatterGather(MlLogMessages):
         fn = self.file(state)
         method_name = f"{type(object).__name__}.{method.__name__}"
         self._debug(f"Loading {method_name} results from '{fn}'")
-        with open(fn, 'rb') as input:
-            data_method = pickle.load(input)
+        try:
+            with open(fn, 'rb') as input:
+                data_method = pickle.load(input)
+        except FileNotFoundError:
+            raise ValueError(f"Scatter & Gather error: Cache file '{fn}' is not exist")
         (data, method_name_ori) = data_method
         # Check that the data is loaded from the same class.method that was originally saved from
         if method_name != method_name_ori:
@@ -156,7 +159,6 @@ def pre(g):
     Otherwise the data is loaded from a (cached) result
     """
     def pre_wrapper(self, *args, **kwargs):
-        ret = None
         if scatter_gather is not None:
             scatter_gather.inc()
         if scatter_gather is None or scatter_gather.is_disabled():
