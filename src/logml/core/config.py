@@ -165,9 +165,6 @@ class Config(MlFiles):
         """
         self._info(f"Reading yaml file '{self.config_file}'")
         self.parameters = self._load_yaml(self.config_file)
-        # Set scatter
-        self.scatter_num = self.get_parameters(CONFIG_SCATTER_NUM)
-        self.scatter_total = self.get_parameters(CONFIG_SCATTER_TOTAL)
         # Hash config
         conf_str = repr(self.parameters).encode('utf-8')  # Convert dictionary to string representation, transform into bytes
         conf_hash = hashlib.sha256(conf_str).digest()  # Hash using SHA256
