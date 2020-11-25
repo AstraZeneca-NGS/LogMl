@@ -1,5 +1,6 @@
 
 import pickle
+import shutil
 
 from pathlib import Path
 
@@ -23,7 +24,7 @@ def init_scatter_gather(scatter_num, scatter_total, data_path='.', force=True):
         pre = (scatter_num == 'pre')
         gather = (scatter_num == 'gather')
         scatter_num = 0
-    if scatter_gather is None or force:
+    if scatter_gather is None or scatter_gather.scatter_num != scatter_num or scatter_gather.pre != pre or force:
         scatter_gather = ScatterGather(scatter_num=scatter_num, scatter_total=scatter_total, pre=pre, gather=gather, data_path=data_path)
 
 
@@ -75,6 +76,10 @@ class ScatterGather(MlLogMessages):
         """ File for saving (caching) results """
         self.data_path.mkdir(parents=True, exist_ok=True)
         return self.data_path / f"{state}_{self.total}_{self.count}.pkl"
+
+    @staticmethod
+    def remove_scatter_folder(folder_path):
+        shutil.rmtree(folder_path)
 
     def is_disabled(self):
         """ Is scatter & gather disabled? """
