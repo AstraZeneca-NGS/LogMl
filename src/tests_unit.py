@@ -758,9 +758,8 @@ class TestLogMl(unittest.TestCase):
         model_factory = ModelFactoryRandomForest(config, ds, MODEL_TYPE_CLASSIFICATION)
         fi = FeatureImportancePermutation(model_factory, [], iteration_numb)
         fi()
-        self.assertEqual(len(fi.performance_per_cv_indexes), len(fi.performance_per_cv_values))
-        expected_performance_list = [('x1',), ('x2',), ('x3',), ('x4',), ('x5',), ('x6',)]
-        self.assertEqual(fi.performance_per_cv_indexes[:10], expected_performance_list)
+        expected_performance_list = [[('x1',)], [('x2',)], [('x3',)], [('x4',)], [('x5',)], [('x6',)]]
+        self.assertEqual([elem for _, elem in fi.performance.values()], expected_performance_list)
 
         # with multiple cross-validation and one iteration
         iteration_numb = 1
@@ -776,27 +775,20 @@ class TestLogMl(unittest.TestCase):
         model_factory = ModelFactoryRandomForest(config, ds, MODEL_TYPE_CLASSIFICATION)
         fi = FeatureImportancePermutation(model_factory, [], iteration_numb)
         fi()
-        self.assertEqual(len(fi.performance_per_cv_indexes), len(fi.performance_per_cv_values))
         expected_performance_list = [
             ('x1', 'CV_1', 'Iteration_1'),
             ('x1', 'CV_2', 'Iteration_1'),
             ('x1', 'CV_3', 'Iteration_1'),
             ('x1', 'CV_4', 'Iteration_1'),
             ('x1', 'CV_5', 'Iteration_1'),
-            ('x2', 'CV_1', 'Iteration_1'),
-            ('x2', 'CV_2', 'Iteration_1'),
-            ('x2', 'CV_3', 'Iteration_1'),
-            ('x2', 'CV_4', 'Iteration_1'),
-            ('x2', 'CV_5', 'Iteration_1')
         ]
-        self.assertEqual(fi.performance_per_cv_indexes[:10], expected_performance_list)
+        self.assertEqual([elem for _, elem in fi.performance.values()][0], expected_performance_list)
 
         # with multiple cross-validation and multiple iteration
         iteration_numb = 2
         model_factory = ModelFactoryRandomForest(config, ds, MODEL_TYPE_CLASSIFICATION)
         fi = FeatureImportancePermutation(model_factory, [], iteration_numb)
         fi()
-        self.assertEqual(len(fi.performance_per_cv_indexes), len(fi.performance_per_cv_values))
         expected_performance_list = [
             ('x1', 'CV_1', 'Iteration_1'),
             ('x1', 'CV_2', 'Iteration_1'),
@@ -809,7 +801,7 @@ class TestLogMl(unittest.TestCase):
             ('x1', 'CV_4', 'Iteration_2'),
             ('x1', 'CV_5', 'Iteration_2')
         ]
-        self.assertEqual(fi.performance_per_cv_indexes[:10], expected_performance_list)
+        self.assertEqual([elem for _, elem in fi.performance.values()][0], expected_performance_list)
 
     def test_dataset_feature_importance_009(self):
         """

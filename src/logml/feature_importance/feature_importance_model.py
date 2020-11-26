@@ -75,11 +75,16 @@ class FeatureImportanceModel(MlFiles):
         column_indexes, column_values = list(), list()
         for performance_values in self.performance.values():
             perf_values, perf_indexes = performance_values
+
             # union lists of column indexes in one list and add column_name to each column index
             # ('x1', 'Iteration_1') -> ('x2', 'Iteration_1', 'importance_permutation')
             column_indexes += [indx + (column_name, ) for indx in perf_indexes]
             # union lists of column values in one list
-            column_values += perf_values
+            try:
+                flat_list = [item for sublist in perf_values for item in sublist]
+                column_values += flat_list
+            except Exception:
+                column_values += perf_values
 
         multi_indexes = pd.MultiIndex.from_tuples(column_indexes)
         return pd.Series(column_values, index=multi_indexes).unstack()
