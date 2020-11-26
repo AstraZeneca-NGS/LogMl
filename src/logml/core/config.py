@@ -29,8 +29,6 @@ CONFIG_LOGGER = 'logger'
 CONFIG_MODEL = 'model'
 CONFIG_MODEL_SEARCH = 'model_search'
 CONFIG_MODEL_ANALYSIS = 'model_analysis'
-CONFIG_SCATTER_NUM = 'scatter_num'
-CONFIG_SCATTER_TOTAL = 'scatter_total'
 
 
 def update_dict(d, u):

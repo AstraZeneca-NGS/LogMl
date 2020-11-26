@@ -120,7 +120,7 @@ class FeatureImportanceModel(MlFiles):
         Calculate loss and perfor values after changing the dataset for 'column_name'.
         Repeat 'num_iterations' and store results.
         """
-        loss, perf, perf_indx, = list(), list(), list()
+        loss, perf, perf_indx = list(), list(), list()
         for i in range(self.num_iterations):
             # Change dataset, evaluate performance, restore original dataset
             ori = self.dataset_change(column_name)
