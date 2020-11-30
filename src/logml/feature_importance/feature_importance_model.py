@@ -192,6 +192,7 @@ class FeatureImportanceModel(MlFiles):
         except Exception as e:
             self._error(f"Feature importance {self.importance_name}, {self.model_type}: Exception trying to bar plot, exception: {e}, y_pos: {y_pos}, importances: {imp}")
         # Plot performance histogram
+        # self.performance e.g [([0.00046228115333546427], [('x3', 'Iteration1')])]
         perf_values = [performance_value[0] for performance_value in self.performance.values()]
         values = [v for vs in perf_values for v in vs]
         values = np.array(values).ravel()
@@ -215,6 +216,7 @@ class FeatureImportanceModel(MlFiles):
         if col_name in self.rand_columns:
             return 1.0
         try:
+            # self.performance e.g {'x3': ([0.00046228115333546427], [('x3', 'Iteration1')])}
             results = np.array(self.performance[col_name][0]).ravel()
             u, p = scipy.stats.mannwhitneyu(results, null_values, alternative='greater')
             self._debug(f"P-value '{col_name}' (Mann-Whitney statistic): p-value={p}, U-test={u}, results: {array_to_str(results)}")
@@ -226,6 +228,8 @@ class FeatureImportanceModel(MlFiles):
     @gather
     def _pvalues(self):
         """ Calculate all pvalues """
+        # self.performance contain performance info and index info
+        # {'x3': ([0.00046228115333546427], [('x3', 'Iteration1')])}
         null_values = np.array([v for c in self.rand_columns for v in self.performance[c][0]]).ravel()
         self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
         return [self.pvalue(c, null_values) for c in self.columns]
