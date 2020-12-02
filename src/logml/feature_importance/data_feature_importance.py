@@ -16,7 +16,8 @@ from ..core.scatter_gather import pre, scatter, gather
 from .feature_importance_permutation import FeatureImportancePermutation
 from .feature_importance_drop_column import FeatureImportanceDropColumn
 from .pvalue_fdr import get_categories, LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
-from ..models.sklearn_model import ModelFactoryExtraTrees, ModelFactoryGradientBoosting, ModelFactoryRandomForest
+from ..models.sklearn_model import ModelFactoryExtraTrees, ModelFactoryGradientBoosting, ModelFactoryRandomForest, \
+    ModelFactory
 from ..models.sklearn_model import ModelSkLarsCV, ModelSkLassoLarsAIC, ModelSkLassoLarsBIC, ModelSkLassoCV, ModelSkLassoLarsCV, ModelSkRidgeCV
 from ..util.results_df import ResultsRankDf
 
@@ -86,6 +87,10 @@ class DataFeatureImportance(MlFiles):
         self.weight_max = 10.0
         self.weight_min = 1.0
         self.wilks_null_model_variables = list()
+
+        self.model_dropcol = dict()
+        self.model_permutation = dict()
+
         if set_config:
             self._set_from_config()
         self.results = None
@@ -150,28 +155,28 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance {self.tag}: End")
         return True
 
-    def feature_importance_drop_column(self, model_factory, config_tag):
-        """ Feature importance using 'drop column' analysis """
-        conf = f"is_dropcol_{config_tag}"
-        model_name = model_factory.model_name
-        if not self.__dict__[conf]:
-            self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
-            return
-        self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
-        num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
-        fi = FeatureImportanceDropColumn(model_factory, self.random_inputs_added, num_iterations)
-        res = fi()
-        if res:
-            imp = fi.get_importances()
-            self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
-            self.results.add_col(f"importance_dropcol_{model_name}", imp)
-            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
-            self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
-            fi.plot()
-        return True
-
     def feature_importance_models(self):
         """ Feature importance using several models """
+        if self.model_dropcol['enable']:
+            for model_name, model_params in self.model_dropcol['models'].items():
+                model_class = model_params['model']['model_class']
+                model_type = model_params['model']['model_type']
+
+                model_factory = ModelFactory(
+                    config=self.config,
+                    datasets=self.datasets,
+                    model_type=model_type,
+                    model_name=model_name,
+                    cv_enable=None,
+                )
+                print(model_factory)
+
+        if self.model_permutation['enable']:
+            pass
+
+
+
+
         any_model = self.is_model_permutation or self.is_model_dropcol or self.is_model_skmodel
         if not any_model:
             self._info(f"All model based methods disabled, skipping")
@@ -200,8 +205,8 @@ class DataFeatureImportance(MlFiles):
             self._info(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance {self.tag} using model '{model_name}'")
-        if self.is_model_permutation:
-            self.feature_importance_permutation(model_factory, config_tag)
+        # if self.is_model_permutation:
+        #     self.feature_importance_permutation(model_factory, config_tag)
         if self.is_model_dropcol:
             self.feature_importance_drop_column(model_factory, config_tag)
         if self.is_model_skmodel:
@@ -223,6 +228,26 @@ class DataFeatureImportance(MlFiles):
             self.results.add_col(f"importance_permutation_{model_name}", imp)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
             self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
+            fi.plot()
+        return True
+
+    def feature_importance_drop_column(self, model_factory, config_tag):
+        """ Feature importance using 'drop column' analysis """
+        conf = f"is_dropcol_{config_tag}"
+        model_name = model_factory.model_name
+        if not self.__dict__[conf]:
+            self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
+            return
+        self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
+        num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
+        fi = FeatureImportanceDropColumn(model_factory, self.random_inputs_added, num_iterations)
+        res = fi()
+        if res:
+            imp = fi.get_importances()
+            self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
+            self.results.add_col(f"importance_dropcol_{model_name}", imp)
+            self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
+            self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
             fi.plot()
         return True
 

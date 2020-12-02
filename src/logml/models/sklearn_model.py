@@ -236,7 +236,7 @@ class ModelSkRidgeCV(SkLearnModel):
 
 class ModelFactory:
     """ A simple 'factory' class """
-    def __init__(self, config, datasets, model_type, model_name, cv_enable):
+    def __init__(self, config, datasets, model_type, model_name, cv_enable, **kwargs):
         self.config, self.datasets, self.model_type, self.model_name, self.cv_enable = config, datasets, model_type, model_name, cv_enable
         self.model = None
 
