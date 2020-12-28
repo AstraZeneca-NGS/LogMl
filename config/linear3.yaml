@@ -37,12 +37,13 @@ dataset_feature_importance:
 # TODO: implementation block start
   model_dropcol:
     enable: true
-    numb_iterations: 2
-    models: !include feature_importance_dropcolumn/random_forest_classifier.yaml
+    # TODO should be overided in model
+    num_iterations: 2
+    models: !include feature_importance_dropcolumn/random_forest_regressor.yaml
 
   model_permutation:
     enable: false
-    numb_iterations: 2
+    num_iterations: 2
     models: !include feature_importance_permutation/*.yaml
 # TODO: implementation block end
 

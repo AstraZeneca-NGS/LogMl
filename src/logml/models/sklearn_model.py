@@ -1,13 +1,23 @@
 import inspect
-import sklearn
+import sys
 import traceback
 
 from sklearn.base import clone
-from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor, GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import RidgeCV, LassoCV, LassoLarsCV, LassoLarsIC, LarsCV
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LarsCV
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import LassoLarsCV
+from sklearn.linear_model import LassoLarsIC
+from sklearn.linear_model import RidgeCV
 
-from ..core import MODEL_TYPE_CLASSIFICATION, MODEL_TYPE_REGRESSION
 from .model_cv import ModelCv
+from ..core import MODEL_TYPE_CLASSIFICATION
+from ..core import MODEL_TYPE_REGRESSION
 from ..util.etc import camel_to_snake
 
 
@@ -234,10 +244,17 @@ class ModelSkRidgeCV(SkLearnModel):
         return True
 
 
+# TODO: change the name of class
 class ModelFactory:
     """ A simple 'factory' class """
-    def __init__(self, config, datasets, model_type, model_name, cv_enable, **kwargs):
-        self.config, self.datasets, self.model_type, self.model_name, self.cv_enable = config, datasets, model_type, model_name, cv_enable
+    def __init__(self, config, datasets, model_type, model_name, cv_enable, n_estimators=100, **kwargs):
+        self.__dict__.update(kwargs)
+        self.config = config
+        self.datasets = datasets
+        self.model_type = model_type
+        self.model_name = model_name
+        self.cv_enable = cv_enable
+        self.n_estimators = n_estimators
         self.model = None
 
     def get(self, force=False):
@@ -250,6 +267,63 @@ class ModelFactory:
 
     def is_regression(self):
         return self.model_type == MODEL_TYPE_REGRESSION
+
+    def _fit(self):
+        """ Create a ExtraTrees model """
+        m = ExpandSkLearnModel(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators, model_name=self.model_name)
+        # if self.is_regression():
+        #     m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators)
+        # elif self.is_classification():
+        #     m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators)
+        # else:
+        #     raise Exception(f"Unknown model type '{self.model_type}'")
+        # if self.cv_enable is not None:
+        #     m.cv_enable = self.cv_enable
+        m.model_create()
+        m.model_train()
+
+        if m.model is None:
+            model_init_params = m._prepare_sklearn_model_class_params()
+            # initiate sklearn model with all parameters provided from config
+            m.model = m.str_to_class(m.model_name)(**model_init_params)
+
+        return m
+
+
+class ExpandSkLearnModel(SkLearnModel):
+    def __init__(self, config, datasets, n_jobs=-1, n_estimators=100, model_name='', max_depth=None, class_weight='balanced', bootstrap=True):
+        super().__init__(config, datasets, class_name=model_name, params=None, set_config=False)
+        self.n_jobs = n_jobs
+        self.n_estimators = n_estimators
+        self.model_name = model_name
+        self.max_depth = max_depth
+        self.class_weight = class_weight
+        self.bootstrap = bootstrap
+        self.model = None
+
+    def default_model_create(self, x, y):
+        model_init_params = self._prepare_sklearn_model_class_params()
+        # initiate sklearn model with all parameters provided from config
+        self.model = self.str_to_class(self.model_name)(**model_init_params)
+        return True
+
+    def _prepare_sklearn_model_class_params(self):
+        import inspect
+        # get list of all possible sklearn class parameters
+        signature = inspect.signature(self.str_to_class(self.model_name))
+        sklearn_model_init_params = signature.parameters.keys()
+
+        # check if parameters from config is present in current sklearn class
+        model_init_params = dict()
+        for parameter in self.__dict__.keys():
+            if parameter in sklearn_model_init_params:
+                model_init_params[parameter] = self.__dict__[parameter]
+
+        return model_init_params
+
+    @staticmethod
+    def str_to_class(model_name):
+        return getattr(sys.modules[__name__], model_name)
 
 
 class ModelFactoryExtraTrees(ModelFactory):
@@ -295,7 +369,7 @@ class ModelFactoryGradientBoosting(ModelFactory):
 
 class ModelFactoryRandomForest(ModelFactory):
     def __init__(self, config, datasets, model_type, cv_enable=None, n_estimators=100, max_depth=None, bootstrap=True):
-        super().__init__(config, datasets, model_type, 'RandomForest', cv_enable)
+        super().__init__(config, datasets, model_type, 'RandomForestRegressor', cv_enable)
         self.model = None
         self.n_estimators, self.max_depth, self.bootstrap = n_estimators, max_depth, bootstrap
 

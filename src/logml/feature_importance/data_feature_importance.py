@@ -90,6 +90,7 @@ class DataFeatureImportance(MlFiles):
 
         self.model_dropcol = dict()
         self.model_permutation = dict()
+        self.num_iterations = 1
 
         if set_config:
             self._set_from_config()
@@ -155,47 +156,62 @@ class DataFeatureImportance(MlFiles):
         self._info(f"Feature importance {self.tag}: End")
         return True
 
+    def _is_model_dropcol_provided(self):
+        return True if self.model_dropcol['enable'] else False
+
+    def _is_model_permutation_provided(self):
+        return True if self.model_permutation['enable'] else False
+
     def feature_importance_models(self):
         """ Feature importance using several models """
-        if self.model_dropcol['enable']:
-            for model_name, model_params in self.model_dropcol['models'].items():
-                model_class = model_params['model']['model_class']
-                model_type = model_params['model']['model_type']
+        # Could set the list of models from the folders
+        if self._is_model_dropcol_provided() or self._is_model_permutation_provided():
+            models_dropcol = self.model_dropcol['models']
+            if models_dropcol:
+                self.feature_importance_set_models(models_dropcol, 'drop_column')
 
-                model_factory = ModelFactory(
-                    config=self.config,
-                    datasets=self.datasets,
-                    model_type=model_type,
-                    model_name=model_name,
-                    cv_enable=None,
-                )
-                print(model_factory)
-
-        if self.model_permutation['enable']:
-            pass
-
-
-
-
-        any_model = self.is_model_permutation or self.is_model_dropcol or self.is_model_skmodel
-        if not any_model:
-            self._info(f"All model based methods disabled, skipping")
-            return
-        if self.is_fip_random_forest:
-            model_factory = ModelFactoryRandomForest(self.config, self.datasets, self.model_type)
-            self.feature_importance_model(model_factory, 'random_forest')
+            models_permutation = self.model_permutation['models']
+            if models_permutation:
+                self.feature_importance_set_models(models_permutation, 'permutation')
+        # or use the predefined list of models
         else:
-            self._debug(f"Feature importance 'Random forest': is_fip_random_forest={self.is_fip_random_forest}, skipping")
-        if self.is_fip_extra_trees:
-            model_factory = ModelFactoryExtraTrees(self.config, self.datasets, self.model_type)
-            self.feature_importance_model(model_factory, 'extra_trees')
-        else:
-            self._debug(f"Feature importance 'Extra trees': is_fip_extra_trees={self.is_fip_extra_trees}, skipping")
-        if self.is_fip_gradient_boosting:
-            model_factory = ModelFactoryGradientBoosting(self.config, self.datasets, self.model_type)
-            self.feature_importance_model(model_factory, 'gradient_boosting')
-        else:
-            self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
+            any_model = self.is_model_permutation or self.is_model_dropcol or self.is_model_skmodel
+            if not any_model:
+                self._info(f"All model based methods disabled, skipping")
+                return
+            if self.is_fip_random_forest:
+                model_factory = ModelFactoryRandomForest(self.config, self.datasets, self.model_type)
+                self.feature_importance_model(model_factory, 'random_forest')
+            else:
+                self._debug(f"Feature importance 'Random forest': is_fip_random_forest={self.is_fip_random_forest}, skipping")
+            if self.is_fip_extra_trees:
+                model_factory = ModelFactoryExtraTrees(self.config, self.datasets, self.model_type)
+                self.feature_importance_model(model_factory, 'extra_trees')
+            else:
+                self._debug(f"Feature importance 'Extra trees': is_fip_extra_trees={self.is_fip_extra_trees}, skipping")
+            if self.is_fip_gradient_boosting:
+                model_factory = ModelFactoryGradientBoosting(self.config, self.datasets, self.model_type)
+                self.feature_importance_model(model_factory, 'gradient_boosting')
+            else:
+                self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
+
+    def feature_importance_set_models(self, models, models_type):
+        for model_name, model_params in models.items():
+            model_class = model_params['model']['model_class']
+            model_type = model_params['model']['model_type']
+            # TODO: could be something else instead model_create?
+            model_functions = model_params['functions']['model_create']
+
+            model_factory = ModelFactory(
+                config=self.config,
+                datasets=self.datasets,
+                model_type=model_type,
+                model_name=model_name,
+                cv_enable=None,
+                **model_functions
+            )
+            method = getattr(self, f"feature_importance_{models_type}")
+            method(model_factory, 'random_forest')
 
     def feature_importance_model(self, model_factory, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
@@ -205,8 +221,8 @@ class DataFeatureImportance(MlFiles):
             self._info(f"Feature importance {self.tag} using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._info(f"Feature importance {self.tag} using model '{model_name}'")
-        # if self.is_model_permutation:
-        #     self.feature_importance_permutation(model_factory, config_tag)
+        if self.is_model_permutation:
+            self.feature_importance_permutation(model_factory, config_tag)
         if self.is_model_dropcol:
             self.feature_importance_drop_column(model_factory, config_tag)
         if self.is_model_skmodel:
@@ -447,15 +463,18 @@ class DataFeatureImportance(MlFiles):
             if self.is_rfe_model_lars_bic:
                 ret = self._rfe_model_lars_bic()
                 self._rfe_add_result(ret)
-        if self.is_rfe_model_random_forest:
-            ret = self._rfe_model_random_forest()
-            self._rfe_add_result(ret)
-        if self.is_rfe_model_extra_trees:
-            ret = self._rfe_model_extra_trees()
-            self._rfe_add_result(ret)
-        if self.is_rfe_model_gradient_boosting:
-            ret = self._rfe_model_gradient_boosting()
-            self._rfe_add_result(ret)
+        if self._is_model_dropcol_provided():
+            self._rfe_models()
+
+        # if self.is_rfe_model_random_forest:
+        #     ret = self._rfe_model_random_forest()
+        #     self._rfe_add_result(ret)
+        # if self.is_rfe_model_extra_trees:
+        #     ret = self._rfe_model_extra_trees()
+        #     self._rfe_add_result(ret)
+        # if self.is_rfe_model_gradient_boosting:
+        #     ret = self._rfe_model_gradient_boosting()
+        #     self._rfe_add_result(ret)
 
     def recursive_feature_elimination_model(self, model, model_name):
         """ Use RFE to estimate parameter importance based on model """
@@ -474,6 +493,35 @@ class DataFeatureImportance(MlFiles):
     def _rfe_add_result(self, res):
         model_name, ranking, weight = res
         self.results.add_col_rank(f"rfe_rank_{model_name}", ranking, weight=weight)
+
+    def _rfe_models(self):
+        for model_name, model_params in self.model_dropcol['models'].items():
+            model_class = model_params['model']['model_class']
+            model_type = model_params['model']['model_type']
+            # TODO: could be something else instead model_create?
+            model_functions = model_params['functions']['model_create']
+
+            model_factory = ModelFactory(
+                config=self.config,
+                datasets=self.datasets,
+                model_type=model_type,
+                model_name=model_name,
+                cv_enable=None,
+                **model_functions
+            )
+            ret = self._rfe_model(model_factory)
+            self._rfe_add_result(ret)
+
+    @scatter
+    def _rfe_model(self, model_factory):
+        m = model_factory.get()
+        return self.recursive_feature_elimination_model(m, model_factory.model_name)
+
+    @scatter
+    def _rfe_model_random_forest(self):
+        mf = ModelFactoryRandomForest(self.config, self.datasets, self.model_type, cv_enable=False)
+        m = mf.get()
+        return self.recursive_feature_elimination_model(m, mf.model_name)
 
     @scatter
     def _rfe_model_extra_trees(self):
@@ -502,12 +550,6 @@ class DataFeatureImportance(MlFiles):
     @scatter
     def _rfe_model_ridge(self):
         return self.recursive_feature_elimination_model(self.fit_ridge(cv_enable=False), 'Ridge')
-
-    @scatter
-    def _rfe_model_random_forest(self):
-        mf = ModelFactoryRandomForest(self.config, self.datasets, self.model_type, cv_enable=False)
-        m = mf.get()
-        return self.recursive_feature_elimination_model(m, mf.model_name)
 
     def regularization_models(self):
         """ Feature importance analysis based on regularization models (Lasso, Ridge, Lars, etc.) """
