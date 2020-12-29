@@ -271,14 +271,8 @@ class ModelFactory:
     def _fit(self):
         """ Create a ExtraTrees model """
         m = ExpandSkLearnModel(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators, model_name=self.model_name)
-        # if self.is_regression():
-        #     m = ModelSkRandomForestRegressor(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators)
-        # elif self.is_classification():
-        #     m = ModelSkExtraTreesClassifier(self.config, self.datasets, n_jobs=-1, n_estimators=self.n_estimators)
-        # else:
-        #     raise Exception(f"Unknown model type '{self.model_type}'")
-        # if self.cv_enable is not None:
-        #     m.cv_enable = self.cv_enable
+        if self.cv_enable is not None:
+            m.cv_enable = self.cv_enable
         m.model_create()
         m.model_train()
 
