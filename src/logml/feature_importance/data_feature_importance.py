@@ -87,10 +87,8 @@ class DataFeatureImportance(MlFiles):
         self.weight_max = 10.0
         self.weight_min = 1.0
         self.wilks_null_model_variables = list()
-
         self.model_dropcol = dict()
         self.model_permutation = dict()
-        self.num_iterations = 1
 
         if set_config:
             self._set_from_config()
@@ -167,12 +165,14 @@ class DataFeatureImportance(MlFiles):
         # Could set the list of models from the folders
         if self._is_model_dropcol_provided() or self._is_model_permutation_provided():
             models_dropcol = self.model_dropcol['models']
+            numb_iterations = self.model_dropcol.get('num_iterations')
             if models_dropcol:
-                self.feature_importance_set_models(models_dropcol, 'drop_column')
+                self.feature_importance_set_models(models_dropcol, numb_iterations, 'drop_column')
 
             models_permutation = self.model_permutation['models']
+            numb_iterations = self.model_dropcol.get('num_iterations')
             if models_permutation:
-                self.feature_importance_set_models(models_permutation, 'permutation')
+                self.feature_importance_set_models(models_permutation, numb_iterations, 'permutation')
         # or use the predefined list of models
         else:
             any_model = self.is_model_permutation or self.is_model_dropcol or self.is_model_skmodel
@@ -195,12 +195,14 @@ class DataFeatureImportance(MlFiles):
             else:
                 self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
 
-    def feature_importance_set_models(self, models, models_type):
+    def feature_importance_set_models(self, models, numb_iterations, models_type):
         for model_name, model_params in models.items():
             model_class = model_params['model']['model_class']
             model_type = model_params['model']['model_type']
             # TODO: could be something else instead model_create?
             model_functions = model_params['functions']['model_create']
+            # override numb_iterations for specific model if exist
+            numb_iterations = model_functions.get('numb_iterations', numb_iterations)
 
             model_factory = ModelFactory(
                 config=self.config,
@@ -211,7 +213,7 @@ class DataFeatureImportance(MlFiles):
                 **model_functions
             )
             method = getattr(self, f"feature_importance_{models_type}")
-            method(model_factory, 'random_forest')
+            method(model_factory, 'random_forest', numb_iterations)
 
     def feature_importance_model(self, model_factory, config_tag):
         """ Perform feature importance analyses based on a (trained) model """
@@ -228,7 +230,7 @@ class DataFeatureImportance(MlFiles):
         if self.is_model_skmodel:
             self.feature_importance_skmodel(model_factory, config_tag)
 
-    def feature_importance_permutation(self, model_factory, config_tag):
+    def feature_importance_permutation(self, model_factory, config_tag, num_iterations=None):
         """ Feature importance using 'permutation' analysis """
         conf = f"is_permutation_{config_tag}"
         model_name = model_factory.model_name
@@ -236,7 +238,7 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
-        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"]
+        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"] if num_iterations is None else num_iterations
         fi = FeatureImportancePermutation(model_factory, self.random_inputs_added, num_iterations)
         res = fi()
         if res:
@@ -247,7 +249,7 @@ class DataFeatureImportance(MlFiles):
             fi.plot()
         return True
 
-    def feature_importance_drop_column(self, model_factory, config_tag):
+    def feature_importance_drop_column(self, model_factory, config_tag, num_iterations=None):
         """ Feature importance using 'drop column' analysis """
         conf = f"is_dropcol_{config_tag}"
         model_name = model_factory.model_name
@@ -255,7 +257,7 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
-        num_iterations = self.__dict__[f"dropcol_iterations_{config_tag}"]
+        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"] if num_iterations is None else num_iterations
         fi = FeatureImportanceDropColumn(model_factory, self.random_inputs_added, num_iterations)
         res = fi()
         if res:

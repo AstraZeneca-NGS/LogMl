@@ -38,7 +38,7 @@ dataset_feature_importance:
   model_dropcol:
     enable: true
     # TODO should be overided in model
-    num_iterations: 2
+    numb_iterations: 2
     models: !include feature_importance_dropcolumn/random_forest_regressor.yaml
 
   model_permutation:
