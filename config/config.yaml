@@ -422,6 +422,17 @@ dataset_feature_importance:
   # Variables used for setting the null model
   wilks_null_model_variables: ['age', 'sex', 'pc_1', 'pc_2', 'pc_3', 'pc_4']
 
+  # block for specifying the models which will be involved for dropcolumn
+  model_dropcol:
+    enable: true
+    numb_iterations: 2 # Number of iterations (per CV) in dropcolumn method (could be override by each model if need it)
+    models: !include feature_importance_dropcolumn/*.yaml
+
+  model_permutation:
+    enable: true
+    num_iterations: 2 # Number of iterations (per CV) in permutation method (could be override by each model if need it)
+    models: !include feature_importance_permutation/*.yaml
+
 #---
 # Model definition and parameters
 #---

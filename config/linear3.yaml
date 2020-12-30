@@ -34,18 +34,15 @@ dataset_feature_importance:
   permutation_iterations_gradient_boosting: 3
   permutation_iterations_random_forest: 2
 
-# TODO: implementation block start
   model_dropcol:
     enable: true
-    # TODO should be overided in model
     numb_iterations: 2
     models: !include feature_importance_dropcolumn/random_forest_regressor.yaml
 
   model_permutation:
-    enable: false
+    enable: true
     num_iterations: 2
     models: !include feature_importance_permutation/*.yaml
-# TODO: implementation block end
 
 cross_validation:
     # Set to 'false' to disable cross validation

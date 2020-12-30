@@ -1,0 +1,8 @@
+DummyRegressor:
+  numb_iteartion: 10
+  functions:
+    model_create:
+      strategy: most_frequent
+  model:
+    model_class: sklearn.dummy.DummyClassifier
+    model_type: classification
