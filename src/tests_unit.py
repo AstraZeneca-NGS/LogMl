@@ -21,6 +21,10 @@ from logml.feature_importance.data_feature_importance import DataFeatureImportan
 from logml.feature_importance.pvalue_fdr import LogisticRegressionWilks, MultipleLogisticRegressionWilks, PvalueLinear
 from logml.models import Model
 
+from logml.feature_importance import FeatureImportancePermutation
+
+from logml.models.sklearn_model import ModelFactoryRandomForest
+
 DEBUG = os.getenv('TEST_UNIT_DEBUG', False)
 # DEBUG = True
 
@@ -588,6 +592,12 @@ class TestLogMl(unittest.TestCase):
         fi_vars = list(fi.results.df.index.values)
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
 
+        # check that we have detailed table info with correct Model name and
+        # feature importance model inspection techniques
+        self.assertTrue('RandomForest' in fi.detailed_table_results_by_model.keys())
+        self.assertTrue('importance_permutation' in fi.detailed_table_results_by_model['RandomForest'][0])
+        self.assertTrue('importance_dropcol' in fi.detailed_table_results_by_model['RandomForest'][1])
+
     def test_dataset_feature_importance_003(self):
         """ Checking feature importance on dataset (dataframe): Regression test (linear) """
         config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_003.yaml')
@@ -730,6 +740,68 @@ class TestLogMl(unittest.TestCase):
         # Make sure we can select x1 and x2 as important varaibles
         fi_vars = list(fi.results.df.index.values)
         self.assertTrue(fi_vars[0] == 'x1', f"Feature importance variables are: {fi_vars}")
+
+    def test_feature_importance_save_performance_data_for_detailed_table(self):
+        """
+        Checking that performance_per_cv_indexes and performance_per_cv_values variables collected correctly
+        """
+        # with no cross-validation and one iteration
+        iteration_numb = 1
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_007.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        rm(ds.get_file())
+        ds()
+
+        model_factory = ModelFactoryRandomForest(config, ds, MODEL_TYPE_CLASSIFICATION)
+        fi = FeatureImportancePermutation(model_factory, [], iteration_numb)
+        fi()
+        expected_performance_list = [[('x1',)], [('x2',)], [('x3',)], [('x4',)], [('x5',)], [('x6',)]]
+        self.assertEqual([elem for _, elem in fi.performance.values()], expected_performance_list)
+
+        # with multiple cross-validation and one iteration
+        iteration_numb = 1
+        config_file = os.path.join('tests', 'unit', 'config', 'test_dataset_feature_importance_008.yaml')
+        config = Config(argv=['logml.py', '-c', config_file])
+        config()
+        # Load and preprocess dataset
+        ds = DatasetsDf(config)
+        ds = DatasetsCv(config, ds, MODEL_TYPE_CLASSIFICATION)
+        rm(ds.get_file())
+        ds()
+
+        model_factory = ModelFactoryRandomForest(config, ds, MODEL_TYPE_CLASSIFICATION)
+        fi = FeatureImportancePermutation(model_factory, [], iteration_numb)
+        fi()
+        expected_performance_list = [
+            ('x1', 'CV_1', 'Iteration_1'),
+            ('x1', 'CV_2', 'Iteration_1'),
+            ('x1', 'CV_3', 'Iteration_1'),
+            ('x1', 'CV_4', 'Iteration_1'),
+            ('x1', 'CV_5', 'Iteration_1'),
+        ]
+        self.assertEqual([elem for _, elem in fi.performance.values()][0], expected_performance_list)
+
+        # with multiple cross-validation and multiple iteration
+        iteration_numb = 2
+        model_factory = ModelFactoryRandomForest(config, ds, MODEL_TYPE_CLASSIFICATION)
+        fi = FeatureImportancePermutation(model_factory, [], iteration_numb)
+        fi()
+        expected_performance_list = [
+            ('x1', 'CV_1', 'Iteration_1'),
+            ('x1', 'CV_2', 'Iteration_1'),
+            ('x1', 'CV_3', 'Iteration_1'),
+            ('x1', 'CV_4', 'Iteration_1'),
+            ('x1', 'CV_5', 'Iteration_1'),
+            ('x1', 'CV_1', 'Iteration_2'),
+            ('x1', 'CV_2', 'Iteration_2'),
+            ('x1', 'CV_3', 'Iteration_2'),
+            ('x1', 'CV_4', 'Iteration_2'),
+            ('x1', 'CV_5', 'Iteration_2')
+        ]
+        self.assertEqual([elem for _, elem in fi.performance.values()][0], expected_performance_list)
 
     def test_dataset_feature_importance_009(self):
         """

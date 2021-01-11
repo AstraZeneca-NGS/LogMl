@@ -81,14 +81,6 @@ void parseCmdLine() {
 #------------------------------------------------------------------------------
 # Run LogMl in "scatter & gather" mode
 #------------------------------------------------------------------------------
-void runLogMl_ZZZ(int num) {
-    # Gather
-    cmd := logmlCmd(false, true, -1)
-    task(taskName := "logml_gather") {
-        sys $cmd
-    }
-}
-
 void runLogMl(int num) {
     # Run initial task
     cmd := logmlCmd(true, false, -1)

@@ -1,5 +1,6 @@
 
 import pickle
+import shutil
 
 from pathlib import Path
 
@@ -23,7 +24,7 @@ def init_scatter_gather(scatter_num, scatter_total, data_path='.', force=True):
         pre = (scatter_num == 'pre')
         gather = (scatter_num == 'gather')
         scatter_num = 0
-    if scatter_gather is None or force:
+    if scatter_gather is None or scatter_gather.scatter_num != scatter_num or scatter_gather.pre != pre or force:
         scatter_gather = ScatterGather(scatter_num=scatter_num, scatter_total=scatter_total, pre=pre, gather=gather, data_path=data_path)
 
 
@@ -76,6 +77,10 @@ class ScatterGather(MlLogMessages):
         self.data_path.mkdir(parents=True, exist_ok=True)
         return self.data_path / f"{state}_{self.total}_{self.count}.pkl"
 
+    @staticmethod
+    def remove_scatter_folder(folder_path):
+        shutil.rmtree(folder_path)
+
     def is_disabled(self):
         """ Is scatter & gather disabled? """
         return self.total <= 1
@@ -93,8 +98,11 @@ class ScatterGather(MlLogMessages):
         fn = self.file(state)
         method_name = f"{type(object).__name__}.{method.__name__}"
         self._debug(f"Loading {method_name} results from '{fn}'")
-        with open(fn, 'rb') as input:
-            data_method = pickle.load(input)
+        try:
+            with open(fn, 'rb') as input:
+                data_method = pickle.load(input)
+        except FileNotFoundError:
+            raise ValueError(f"Scatter & Gather error: Cache file '{fn}' is not exist")
         (data, method_name_ori) = data_method
         # Check that the data is loaded from the same class.method that was originally saved from
         if method_name != method_name_ori:
@@ -156,7 +164,6 @@ def pre(g):
     Otherwise the data is loaded from a (cached) result
     """
     def pre_wrapper(self, *args, **kwargs):
-        ret = None
         if scatter_gather is not None:
             scatter_gather.inc()
         if scatter_gather is None or scatter_gather.is_disabled():

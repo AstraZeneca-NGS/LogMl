@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -131,6 +132,7 @@ class DataFeatureImportance(MlFiles):
         # Initialize results
         inputs = [c for c in self.datasets.get_input_names() if c not in self.datasets.outputs]
         self.results = ResultsRankDf(inputs)
+        self.detailed_table_results_by_model = defaultdict(list)
         # Feature importance analyses
         self.feature_importance_models()
         self.boruta()
@@ -164,6 +166,7 @@ class DataFeatureImportance(MlFiles):
         if res:
             imp = fi.get_importances()
             self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
+            self.detailed_table_results_by_model[model_name].append(fi.get_performances("importance_dropcol"))
             self.results.add_col(f"importance_dropcol_{model_name}", imp)
             self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
             self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
@@ -220,6 +223,7 @@ class DataFeatureImportance(MlFiles):
         res = fi()
         if res:
             imp = fi.get_importances()
+            self.detailed_table_results_by_model[model_name].append(fi.get_performances("importance_permutation"))
             self.results.add_col(f"importance_permutation_{model_name}", imp)
             self.results.add_col_rank(f"importance_permutation_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
             self.results.add_col(f"importance_permutation_pvalue_{model_name}", fi.get_pvalues())
@@ -641,16 +645,34 @@ class DataFeatureImportance(MlFiles):
 
     @gather
     def show_and_save_results(self, loss_ori):
-        """ Show and save resutl tables """
+        """ Show and save result tables """
         if self.results.is_empty():
-            self._debug(f"Feature importance {self.tag}: Enpty resutls, nothing to show or save")
+            self._debug(f"Feature importance {self.tag}: Empty results, nothing to show or save")
             return
-        # Show and save main results table
+
+        self._show_and_save_detailed_results_table()
+        self._show_and_save_main_result_table()
+        self._show_and_save_weights_table(loss_ori)
+
+    def _show_and_save_detailed_results_table(self):
+        for model, table_values in self.detailed_table_results_by_model.items():
+            detailed_table = ResultsRankDf()
+            for indx, performance_data in enumerate(table_values):
+                detailed_table.print(msg=f"Feature importance details for {model} model:", data=performance_data)
+
+                fimp_csv = self.datasets.get_file(f'feature_importance_{self.tag}_details_for_{model}_{indx}',
+                                                  ext=f"csv")
+                self._info(f"Feature importance {self.tag} details for {model}: Saving results to '{fimp_csv}'")
+                self._save_csv(fimp_csv, f"Feature importance {self.tag} details for {model}", performance_data,
+                               save_index=True)
+
+    def _show_and_save_main_result_table(self):
         self.results.print(f"Feature importance {self.tag}")
         fimp_csv = self.datasets.get_file(f'feature_importance_{self.tag}', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving results to '{fimp_csv}'")
         self._save_csv(fimp_csv, f"Feature importance {self.tag}", self.results.df, save_index=True)
-        # Show and save weights table
+
+    def _show_and_save_weights_table(self, loss_ori):
         fimp_weights_csv = self.datasets.get_file(f'feature_importance_{self.tag}_weights', ext=f"csv")
         self._info(f"Feature importance {self.tag}: Saving weights to {fimp_weights_csv}")
         weights = self.results.get_weights_table()

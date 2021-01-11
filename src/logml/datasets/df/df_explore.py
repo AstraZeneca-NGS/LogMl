@@ -59,7 +59,7 @@ class DfExplore(MlFiles):
         return True
 
     def correlation_analysis(self):
-        " Correlation between all variables "
+        """ Correlation between all variables """
         if not self.is_correlation_analysis:
             return
         self._debug(f"Correlation analysis: {self.name}")
