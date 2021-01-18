@@ -1,4 +1,4 @@
-
+import math
 import re
 
 
@@ -7,7 +7,11 @@ def array_to_str(x):
         return 'None'
     if isinstance(x, list):
         return '[' + ' '.join([str(xi) for xi in x]) + ']'
-    return '[' + ' '.join([str(xi) for xi in x.ravel()]) + ']'
+
+    if isinstance(x, float) and not math.isnan(x):
+        return '[' + ' '.join([str(xi) for xi in x.ravel()]) + ']'
+    else:
+        return x
 
 
 def camel_to_snake(name):

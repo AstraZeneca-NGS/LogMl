@@ -35,12 +35,12 @@ dataset_feature_importance:
   permutation_iterations_random_forest: 2
 
   model_dropcol:
-    enable: true
+    enable: false
     numb_iterations: 2
     models: !include feature_importance_dropcolumn/random_forest_regressor.yaml
 
   model_permutation:
-    enable: true
+    enable: false
     num_iterations: 2
     models: !include feature_importance_permutation/*.yaml
 

@@ -280,7 +280,6 @@ class ModelFactory:
             model_init_params = m._prepare_sklearn_model_class_params()
             # initiate sklearn model with all parameters provided from config
             m.model = m.str_to_class(m.model_name)(**model_init_params)
-
         return m
 
 

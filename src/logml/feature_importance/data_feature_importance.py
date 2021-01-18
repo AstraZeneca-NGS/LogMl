@@ -155,10 +155,10 @@ class DataFeatureImportance(MlFiles):
         return True
 
     def _is_model_dropcol_provided(self):
-        return True if self.model_dropcol['enable'] else False
+        return True if self.model_dropcol.get('enable') else False
 
     def _is_model_permutation_provided(self):
-        return True if self.model_permutation['enable'] else False
+        return True if self.model_permutation.get('enable') else False
 
     def feature_importance_models(self):
         """ Feature importance using several models """
@@ -166,12 +166,12 @@ class DataFeatureImportance(MlFiles):
         if self._is_model_dropcol_provided() or self._is_model_permutation_provided():
             models_dropcol = self.model_dropcol['models']
             numb_iterations = self.model_dropcol.get('num_iterations')
-            if models_dropcol:
+            if self._is_model_dropcol_provided() and models_dropcol:
                 self.feature_importance_set_models(models_dropcol, numb_iterations, 'drop_column')
 
             models_permutation = self.model_permutation['models']
-            numb_iterations = self.model_dropcol.get('num_iterations')
-            if models_permutation:
+            numb_iterations = self.model_permutation.get('num_iterations')
+            if self._is_model_permutation_provided() and models_permutation:
                 self.feature_importance_set_models(models_permutation, numb_iterations, 'permutation')
         # or use the predefined list of models
         else:
@@ -196,6 +196,13 @@ class DataFeatureImportance(MlFiles):
                 self._debug(f"Feature importance 'Gradient boosting': is_fip_gradient_boosting={self.is_fip_gradient_boosting}, skipping")
 
     def feature_importance_set_models(self, models, numb_iterations, models_type):
+        if isinstance(models, list):
+            for model in models:
+                self._feature_importance_set_model(model, numb_iterations, models_type)
+        else:
+            self._feature_importance_set_model(models, numb_iterations, models_type)
+
+    def _feature_importance_set_model(self, models, numb_iterations, models_type):
         for model_name, model_params in models.items():
             model_class = model_params['model']['model_class']
             model_type = model_params['model']['model_type']
@@ -238,7 +245,7 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (permutation) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (permutation): Based on '{model_name}'")
-        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"] if num_iterations is None else num_iterations
+        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"] if num_iterations is None else int(num_iterations)
         fi = FeatureImportancePermutation(model_factory, self.random_inputs_added, num_iterations)
         res = fi()
         if res:
@@ -257,7 +264,7 @@ class DataFeatureImportance(MlFiles):
             self._debug(f"Feature importance {self.tag} (drop column) using model '{model_name}' disabled (config '{conf}' is '{self.__dict__[conf]}'), skipping")
             return
         self._debug(f"Feature importance {self.tag} (drop column): Based on '{model_name}', config '{conf}'")
-        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"] if num_iterations is None else num_iterations
+        num_iterations = self.__dict__[f"permutation_iterations_{config_tag}"] if num_iterations is None else int(num_iterations)
         fi = FeatureImportanceDropColumn(model_factory, self.random_inputs_added, num_iterations)
         res = fi()
         if res:
@@ -465,18 +472,18 @@ class DataFeatureImportance(MlFiles):
             if self.is_rfe_model_lars_bic:
                 ret = self._rfe_model_lars_bic()
                 self._rfe_add_result(ret)
-        if self._is_model_dropcol_provided():
+        if self._is_model_dropcol_provided() or self._is_model_permutation_provided():
             self._rfe_models()
-
-        # if self.is_rfe_model_random_forest:
-        #     ret = self._rfe_model_random_forest()
-        #     self._rfe_add_result(ret)
-        # if self.is_rfe_model_extra_trees:
-        #     ret = self._rfe_model_extra_trees()
-        #     self._rfe_add_result(ret)
-        # if self.is_rfe_model_gradient_boosting:
-        #     ret = self._rfe_model_gradient_boosting()
-        #     self._rfe_add_result(ret)
+        else:
+            if self.is_rfe_model_random_forest:
+                ret = self._rfe_model_random_forest()
+                self._rfe_add_result(ret)
+            if self.is_rfe_model_extra_trees:
+                ret = self._rfe_model_extra_trees()
+                self._rfe_add_result(ret)
+            if self.is_rfe_model_gradient_boosting:
+                ret = self._rfe_model_gradient_boosting()
+                self._rfe_add_result(ret)
 
     def recursive_feature_elimination_model(self, model, model_name):
         """ Use RFE to estimate parameter importance based on model """
