@@ -22,6 +22,16 @@ dataset_explore:
 dataset_feature_importance:
   enable: true
 
+  model_dropcol:
+    enable: true
+    numb_iterations: 1
+    models: !include feature_importance_dropcolumn/random_forest_regressor.yaml
+
+  model_permutation:
+    enable: true
+    num_iterations: 2
+    models: !include feature_importance_permutation/*.yaml
+
 model:
   enable: true
   model_type: regression
