@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -45,9 +44,12 @@ class FeatureImportanceModel(MlFiles):
         for i, c in enumerate(self.columns):
             # Only estimate importance of input variables
             if c not in self.datasets.outputs:
-                perf = self.performances(c)
+                try:
+                    perf, perf_indx = self.performances(c)
+                except TypeError:
+                    perf = None
                 if perf is not None:
-                    self.performance[c] = perf
+                    self.performance[c] = perf, perf_indx
                     self._info(f"Feature importance ({self.importance_name}, {self.model_type}): Column {i} / {cols_count}, column name '{c}', performances: {perf}")
         self.importances = self._importances()
         self.pvalues = self._pvalues()
@@ -68,13 +70,33 @@ class FeatureImportanceModel(MlFiles):
     def get_pvalues(self):
         return pd.Series(self.pvalues, index=self.columns)
 
+    def get_performances(self, column_name):
+        """Prepare performance detailed data per column for detailed performance table"""
+        column_indexes, column_values = list(), list()
+        for performance_values in self.performance.values():
+            perf_values, perf_indexes = performance_values
+
+            # union lists of column indexes in one list and add column_name to each column index
+            # ('x1', 'Iteration_1') -> ('x2', 'Iteration_1', 'importance_permutation')
+            column_indexes += [indx + (column_name, ) for indx in perf_indexes]
+            # union lists of column values in one list
+            try:
+                flat_list = [item for sublist in perf_values for item in sublist]
+                column_values += flat_list
+            except Exception:
+                column_values += perf_values
+
+        multi_indexes = pd.MultiIndex.from_tuples(column_indexes)
+        return pd.Series(column_values, index=multi_indexes).unstack()
+
     def get_weight(self):
         """ Weight used when combining different models for feature importance """
         return self.loss_base.ravel().mean() if self.is_cv else self.loss_base
 
     def _importance(self, col_name):
         """ Calculate one feature importance, for column col_name """
-        results = np.array(self.performance[col_name]).ravel()
+        perf, perf_indx = self.performance[col_name]
+        results = np.array(perf).ravel()
         return results.mean()
 
     @gather
@@ -98,7 +120,7 @@ class FeatureImportanceModel(MlFiles):
         Calculate loss and perfor values after changing the dataset for 'column_name'.
         Repeat 'num_iterations' and store results.
         """
-        loss, perf = list(), list()
+        loss, perf, perf_indx = list(), list(), list()
         for i in range(self.num_iterations):
             # Change dataset, evaluate performance, restore original dataset
             ori = self.dataset_change(column_name)
@@ -109,10 +131,28 @@ class FeatureImportanceModel(MlFiles):
             # Note that loss can be an array (in case of cross-validation), so perf_i can be an array too
             perf_i = loss_i - self.loss_base
             self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', is_cv: {self.is_cv}, iteration {i+1} / {self.num_iterations}, losses: {array_to_str(loss_i)}, performance: {array_to_str(perf_i)}")
+
+            perf_indx_i = self._save_performance_data_for_detailed_table(i, perf_i, column_name)
+            for indx in perf_indx_i:
+                perf_indx.append(indx)
+
             perf.append(perf_i)
             loss.append(perf_i)
         self._debug(f"Feature importance ({self.importance_name}, {self.model_type}): Column '{column_name}', losses: {array_to_str(loss)}, performance: {array_to_str(np.array(perf))}")
-        return loss, perf
+        return loss, perf, perf_indx
+
+    def _save_performance_data_for_detailed_table(self, iteration_number, perf_i, column_name):
+        """Collect table indexes and performance values for each cross-validation"""
+        indxs = list()
+        if self.is_cv:
+            for cv_number, cv_perfm_value in enumerate(perf_i, start=1):
+                indxs.append((column_name, f'CV_{cv_number}', f'Iteration_{iteration_number + 1}'))
+        else:
+            if self.num_iterations <= 1:
+                indxs.append((column_name,))
+            else:
+                indxs.append((column_name, f'Iteration_{iteration_number + 1}'))
+        return indxs
 
     @scatter_all
     def _loss_base(self):
@@ -130,8 +170,14 @@ class FeatureImportanceModel(MlFiles):
 
     @scatter
     def performances(self, column_name):
-        loss, perf = self.losses(column_name)
-        return perf
+        """
+        Example returned values:
+        loss = [0.00046228115333546427]
+        perf = [0.00046228115333546427]
+        perf_indx = [('x3', 'Iteration1')]
+        """
+        loss, perf, perf_indx = self.losses(column_name)
+        return perf, perf_indx
 
     def plot(self):
         """ Plot importance distributions """
@@ -146,7 +192,9 @@ class FeatureImportanceModel(MlFiles):
         except Exception as e:
             self._error(f"Feature importance {self.importance_name}, {self.model_type}: Exception trying to bar plot, exception: {e}, y_pos: {y_pos}, importances: {imp}")
         # Plot performance histogram
-        values = [v for vs in self.performance.values() for v in vs]
+        # self.performance e.g [([0.00046228115333546427], [('x3', 'Iteration1')])]
+        perf_values = [performance_value[0] for performance_value in self.performance.values()]
+        values = [v for vs in perf_values for v in vs]
         values = np.array(values).ravel()
         fig = plt.figure()
         try:
@@ -168,7 +216,8 @@ class FeatureImportanceModel(MlFiles):
         if col_name in self.rand_columns:
             return 1.0
         try:
-            results = np.array(self.performance[col_name]).ravel()
+            # self.performance e.g {'x3': ([0.00046228115333546427], [('x3', 'Iteration1')])}
+            results = np.array(self.performance[col_name][0]).ravel()
             u, p = scipy.stats.mannwhitneyu(results, null_values, alternative='greater')
             self._debug(f"P-value '{col_name}' (Mann-Whitney statistic): p-value={p}, U-test={u}, results: {array_to_str(results)}")
             return p
@@ -179,7 +228,9 @@ class FeatureImportanceModel(MlFiles):
     @gather
     def _pvalues(self):
         """ Calculate all pvalues """
-        null_values = np.array([v for c in self.rand_columns for v in self.performance[c]]).ravel()
+        # self.performance contain performance info and index info
+        # {'x3': ([0.00046228115333546427], [('x3', 'Iteration1')])}
+        null_values = np.array([v for c in self.rand_columns for v in self.performance[c][0]]).ravel()
         self._debug(f"P-value null-values (Mann-Whitney statistic): {array_to_str(null_values)}")
         return [self.pvalue(c, null_values) for c in self.columns]
 

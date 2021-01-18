@@ -51,11 +51,14 @@ class ResultsDf(MlLogMessages):
     def is_empty(self):
         return self.df.empty
 
-    def print(self, msg=None):
+    def print(self, msg=None, data=None):
         if msg is not None:
             print(msg)
         with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', None):
-            display(self.df)
+            if data is None:
+                display(self.df)
+            else:
+                display(data)
 
     def sort(self, col_names, ascending=True):
         if self.df is None:

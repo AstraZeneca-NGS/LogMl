@@ -200,6 +200,7 @@ class LogMl(MlFiles):
         # Table width
         pd.set_option('display.max_columns', self.display_max_columns)
         pd.set_option('display.max_rows', self.display_max_rows)
+        pd.set_option('display.max_colwidth', None)
         # Set plots options
         set_plots(disable=self.disable_plots, show=self.show_plots, save=self.save_plots, path=self.plots_path)
         self.cv_enable = self.config.get_parameters(CONFIG_CROSS_VALIDATION).get('enable', False)
