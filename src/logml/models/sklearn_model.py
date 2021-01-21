@@ -1,6 +1,7 @@
 import inspect
 import sys
 import traceback
+import sklearn
 
 from sklearn.base import clone
 from sklearn.ensemble import ExtraTreesClassifier
@@ -362,7 +363,7 @@ class ModelFactoryGradientBoosting(ModelFactory):
 
 class ModelFactoryRandomForest(ModelFactory):
     def __init__(self, config, datasets, model_type, cv_enable=None, n_estimators=100, max_depth=None, bootstrap=True):
-        super().__init__(config, datasets, model_type, 'RandomForestRegressor', cv_enable)
+        super().__init__(config, datasets, model_type, 'RandomForest', cv_enable)
         self.model = None
         self.n_estimators, self.max_depth, self.bootstrap = n_estimators, max_depth, bootstrap
 

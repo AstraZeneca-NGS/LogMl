@@ -83,6 +83,14 @@ class TestLogMlIntegration(unittest.TestCase):
         self.assertEqual(modsearch_first.validation, 0.0)
 
         detailed_table_results_by_model = ml.dataset_feature_importance.detailed_table_results_by_model
+        return detailed_table_results_by_model
+
+    def test_linear3(self):
+        config_file = os.path.join('tests', 'integration', 'config', 'linear3.yaml')
+        ml = self._run_logml(config_file)
+
+        detailed_table_results_by_model = self._check_test_linear3(ml=ml)
+
         self.assertTrue('RandomForest' in detailed_table_results_by_model.keys())
         self.assertTrue('ExtraTrees' in detailed_table_results_by_model.keys())
         self.assertTrue('GradientBoosting' in detailed_table_results_by_model.keys())
@@ -93,11 +101,31 @@ class TestLogMlIntegration(unittest.TestCase):
         self.assertTrue('importance_permutation' in detailed_table_results_by_model['GradientBoosting'][0])
         self.assertTrue('importance_dropcol' in detailed_table_results_by_model['GradientBoosting'][1])
 
-    def test_linear3(self):
-        config_file = os.path.join('tests', 'integration', 'config', 'linear3.yaml')
+    def test_feature_importance_with_false_model_dropcol_and_model_permutation(self):
+        config_file = os.path.join('tests', 'integration', 'config', 'linear3_specifying_models_exmp1.yaml')
         ml = self._run_logml(config_file)
 
-        self._check_test_linear3(ml=ml)
+        detailed_table_results_by_model = self._check_test_linear3(ml=ml)
+
+        self.assertTrue('RandomForest' in detailed_table_results_by_model.keys())
+        self.assertTrue('ExtraTrees' in detailed_table_results_by_model.keys())
+        self.assertTrue('GradientBoosting' in detailed_table_results_by_model.keys())
+        self.assertTrue('importance_permutation' in detailed_table_results_by_model['RandomForest'][0])
+        self.assertTrue('importance_dropcol' in detailed_table_results_by_model['RandomForest'][1])
+        self.assertTrue('importance_permutation' in detailed_table_results_by_model['ExtraTrees'][0])
+        self.assertTrue('importance_dropcol' in detailed_table_results_by_model['ExtraTrees'][1])
+        self.assertTrue('importance_permutation' in detailed_table_results_by_model['GradientBoosting'][0])
+        self.assertTrue('importance_dropcol' in detailed_table_results_by_model['GradientBoosting'][1])
+
+    def test_feature_importance_with_true_model_dropcol_and_false_model_permutation(self):
+        config_file = os.path.join('tests', 'integration', 'config', 'linear3_specifying_models_exmp2.yaml')
+        ml = self._run_logml(config_file)
+
+        detailed_table_results_by_model = self._check_test_linear3(ml=ml)
+        self.assertTrue('RandomForestRegressor' in detailed_table_results_by_model.keys())
+        self.assertTrue('importance_dropcol' in detailed_table_results_by_model['RandomForestRegressor'][0])
+        self.assertFalse('ExtraTrees' in detailed_table_results_by_model.keys())
+        self.assertFalse('GradientBoosting' in detailed_table_results_by_model.keys())
 
     def test_linear3_with_scatter_and_gather(self):
         config_file = os.path.join('tests', 'integration', 'config', 'linear3.yaml')

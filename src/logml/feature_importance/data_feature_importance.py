@@ -273,6 +273,7 @@ class DataFeatureImportance(MlFiles):
         if res:
             imp = fi.get_importances()
             self._info(f"Feature importance (drop column), {model_name}, weight {fi.get_weight()}")
+            self.detailed_table_results_by_model[model_name].append(fi.get_performances("importance_dropcol"))
             self.results.add_col(f"importance_dropcol_{model_name}", imp)
             self.results.add_col_rank(f"importance_dropcol_rank_{model_name}", imp, weight=fi.get_weight(), reversed=True)
             self.results.add_col(f"importance_dropcol_pvalue_{model_name}", fi.get_pvalues())
@@ -506,8 +507,17 @@ class DataFeatureImportance(MlFiles):
         model_name, ranking, weight = res
         self.results.add_col_rank(f"rfe_rank_{model_name}", ranking, weight=weight)
 
+    # def _rfe_models(self):
+    #     models = self.model_dropcol['models']
+    #     if isinstance(models, list):
+    #         for model in models:
+    #             self._rfe_model_create(model)
+    #     else:
+    #         self._rfe_model_create(models)
+
     def _rfe_models(self):
-        for model_name, model_params in self.model_dropcol['models'].items():
+        models = self.model_dropcol['models']
+        for model_name, model_params in models.items():
             model_class = model_params['model']['model_class']
             model_type = model_params['model']['model_type']
             # TODO: could be something else instead model_create?
