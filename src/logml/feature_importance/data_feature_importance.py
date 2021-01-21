@@ -507,16 +507,15 @@ class DataFeatureImportance(MlFiles):
         model_name, ranking, weight = res
         self.results.add_col_rank(f"rfe_rank_{model_name}", ranking, weight=weight)
 
-    # def _rfe_models(self):
-    #     models = self.model_dropcol['models']
-    #     if isinstance(models, list):
-    #         for model in models:
-    #             self._rfe_model_create(model)
-    #     else:
-    #         self._rfe_model_create(models)
-
     def _rfe_models(self):
         models = self.model_dropcol['models']
+        if isinstance(models, list):
+            for model in models:
+                self._rfe_model_create(model)
+        else:
+            self._rfe_model_create(models)
+
+    def _rfe_model_create(self, models):
         for model_name, model_params in models.items():
             model_class = model_params['model']['model_class']
             model_type = model_params['model']['model_type']

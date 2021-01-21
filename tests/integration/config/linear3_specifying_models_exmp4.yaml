@@ -1,0 +1,53 @@
+logger:
+  disable_plots: true
+
+dataset:
+  dataset_type: 'df'
+  dataset_name: 'linear3'
+  dataset_path: 'tests/integration/data'
+  do_not_load_pickle: true
+  outputs: ['y']
+
+dataset_preprocess:
+  enable: true
+  normalize:
+    standard: true
+    skip: ['y']
+  impute:
+    median: true
+
+dataset_explore:
+  enable: true
+
+dataset_feature_importance:
+  enable: true
+
+  model_dropcol:
+    enable: true
+    numb_iterations: 2
+    models: !include feature_importance_dropcolumn/*.yaml
+
+  model_permutation:
+    enable: true
+    num_iterations: 2
+    models: !include feature_importance_permutation/*.yaml
+
+model:
+  enable: true
+  model_type: regression
+  model_name: 'linear3'
+  model_class: sklearn.linear_model.LinearRegression
+  model_path: 'tests/integration/model'
+
+functions:
+    dataset_split:
+        split_validate: 0.2
+        split_test: 0.0
+    model_create:
+      n_estimators: 30
+      min_samples_leaf: 3
+      max_features: 0.7
+
+model_search:
+  enable: true
+  models: !include models_search/*.yaml
