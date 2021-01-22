@@ -22,7 +22,7 @@ dataset_feature_importance:
   enable: true
   enable_na: false
 
-  is_model_dropcol: true
+  is_model_dropcol: false
   is_model_permutation: true
   is_model_skmodel: false
 
@@ -30,25 +30,13 @@ dataset_feature_importance:
   is_permutation_gradient_boosting: false
   is_permutation_random_forest: true
 
-  permutation_iterations_extra_trees: 10
-  permutation_iterations_gradient_boosting: 3
   permutation_iterations_random_forest: 2
-
-  model_dropcol:
-    enable: false
-    numb_iterations: 2
-    models: !include feature_importance_dropcolumn/random_forest_regressor.yaml
-
-  model_permutation:
-    enable: false
-    num_iterations: 2
-    models: !include feature_importance_permutation/*.yaml
 
 cross_validation:
     # Set to 'false' to disable cross validation
     enable: true
     KFold:
-        n_splits: 2
+        n_splits: 3
 
 model:
   enable: false
